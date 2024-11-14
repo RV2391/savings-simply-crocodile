@@ -1,11 +1,18 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { CostCalculator } from "@/components/CostCalculator";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-gradient-to-b from-sage-50 to-sage-100">
+      <div className="container py-12">
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl font-bold text-sage-800 sm:text-5xl">
+            Kostenrechner für Fortbildungen
+          </h1>
+          <p className="mt-4 text-lg text-sage-600">
+            Berechnen Sie Ihr Einsparpotenzial durch digitale Fortbildungen
+          </p>
+        </div>
+        <CostCalculator />
       </div>
     </div>
   );
