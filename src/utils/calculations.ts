@@ -37,6 +37,8 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
   return 14990;
 };
 
+import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes';
+
 export const calculateResults = (inputs: CalculationInputs): CalculationResults => {
   const traditionalCostsDentists =
     inputs.dentists * CME_POINTS_REQUIRED * inputs.cmePointCost +

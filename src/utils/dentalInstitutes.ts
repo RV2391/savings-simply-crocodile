@@ -111,6 +111,74 @@ export const dentalInstitutes: DentalInstitute[] = [
     city: "48147 Münster",
     coordinates: { lat: 51.9602, lng: 7.6254 }
   },
+  // Swiss Institutes
+  {
+    name: "Schweizerische Zahnärzte-Gesellschaft SSO",
+    address: "Münzgraben 2",
+    city: "3001 Bern",
+    coordinates: { lat: 46.9480, lng: 7.4474 }
+  },
+  {
+    name: "Zahnmedizinisches Zentrum der Universität Zürich",
+    address: "Plattenstrasse 11",
+    city: "8032 Zürich",
+    coordinates: { lat: 47.3769, lng: 8.5417 }
+  },
+  {
+    name: "Universitätskliniken für Zahnmedizin Basel",
+    address: "Hebelstrasse 3",
+    city: "4056 Basel",
+    coordinates: { lat: 47.5596, lng: 7.5806 }
+  },
+  {
+    name: "Klinik für Zahnmedizin der Universität Bern",
+    address: "Freiburgstrasse 7",
+    city: "3010 Bern",
+    coordinates: { lat: 46.9479, lng: 7.4246 }
+  },
+  {
+    name: "Swiss Dental Academy",
+    address: "Industriestrasse 4",
+    city: "8604 Volketswil",
+    coordinates: { lat: 47.3874, lng: 8.6977 }
+  },
+  // Austrian Institutes
+  {
+    name: "Österreichische Zahnärztekammer",
+    address: "Kohlmarkt 11/6",
+    city: "1010 Wien",
+    coordinates: { lat: 48.2082, lng: 16.3669 }
+  },
+  {
+    name: "Universitätszahnklinik Wien",
+    address: "Sensengasse 2a",
+    city: "1090 Wien",
+    coordinates: { lat: 48.2206, lng: 16.3521 }
+  },
+  {
+    name: "Universitätsklinik für Zahn-, Mund- und Kieferheilkunde Graz",
+    address: "Auenbruggerplatz 12",
+    city: "8036 Graz",
+    coordinates: { lat: 47.0817, lng: 15.4688 }
+  },
+  {
+    name: "Universitätsklinik für Zahn-, Mund- und Kieferheilkunde Innsbruck",
+    address: "Anichstraße 35",
+    city: "6020 Innsbruck",
+    coordinates: { lat: 47.2692, lng: 11.3933 }
+  },
+  {
+    name: "Österreichische Gesellschaft für Zahn-, Mund- und Kieferheilkunde (ÖGZMK)",
+    address: "Liechtensteinstraße 37/9",
+    city: "1090 Wien",
+    coordinates: { lat: 48.2252, lng: 16.3580 }
+  },
+  {
+    name: "Akademie für Österreichs Zahnärzte",
+    address: "Sperrgasse 2/9",
+    city: "1150 Wien",
+    coordinates: { lat: 48.1957, lng: 16.3336 }
+  }
 ];
 
 export const calculateNearestInstitute = (practiceLat: number, practiceLng: number): DentalInstitute => {
@@ -134,7 +202,7 @@ export const calculateNearestInstitute = (practiceLat: number, practiceLng: numb
   return nearestInstitute;
 };
 
-const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371; // Earth's radius in kilometers
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
