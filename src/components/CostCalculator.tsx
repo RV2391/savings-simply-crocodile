@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ResultCard } from "./ResultCard";
 import { calculateResults, type CalculationInputs } from "@/utils/calculations";
+import { PracticeMap } from "./PracticeMap";
+import { AddressInput } from "./AddressInput";
+import { dentalInstitutes } from "@/utils/dentalInstitutes";
 
 const defaultInputs: CalculationInputs = {
   teamSize: 10,
@@ -18,12 +21,21 @@ const defaultInputs: CalculationInputs = {
 
 export const CostCalculator = () => {
   const [inputs, setInputs] = useState<CalculationInputs>(defaultInputs);
+  const [showMap, setShowMap] = useState(false);
 
   const handleInputChange = (field: keyof CalculationInputs) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = parseFloat(e.target.value) || 0;
     setInputs((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleLocationChange = (location: { lat: number; lng: number }) => {
+    setInputs((prev) => ({
+      ...prev,
+      practiceLat: location.lat,
+      practiceLng: location.lng,
+    }));
   };
 
   const results = calculateResults(inputs);
@@ -119,35 +131,28 @@ export const CostCalculator = () => {
 
           <div className="space-y-2 border-t border-gray-700 pt-4">
             <h3 className="text-lg font-medium text-white">Standort der Praxis</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="practiceLat" className="text-gray-300">Breitengrad</Label>
-                <Input
-                  id="practiceLat"
-                  type="number"
-                  value={inputs.practiceLat || ""}
-                  onChange={handleInputChange("practiceLat")}
-                  placeholder="z.B. 52.5200"
-                  step="0.0001"
-                  className="input-transition bg-[#1a1a1a] text-white border-gray-700"
+            <AddressInput onLocationChange={handleLocationChange} />
+            
+            <button
+              onClick={() => setShowMap(!showMap)}
+              className="mt-2 text-sm text-primary hover:text-primary/80"
+            >
+              {showMap ? "Karte ausblenden" : "Karte anzeigen"}
+            </button>
+
+            {showMap && (
+              <div className="mt-4">
+                <PracticeMap
+                  institutes={dentalInstitutes}
+                  practiceLocation={
+                    inputs.practiceLat && inputs.practiceLng
+                      ? { lat: inputs.practiceLat, lng: inputs.practiceLng }
+                      : undefined
+                  }
+                  onPracticeLocationChange={handleLocationChange}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="practiceLng" className="text-gray-300">Längengrad</Label>
-                <Input
-                  id="practiceLng"
-                  type="number"
-                  value={inputs.practiceLng || ""}
-                  onChange={handleInputChange("practiceLng")}
-                  placeholder="z.B. 13.4050"
-                  step="0.0001"
-                  className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">
-              Geben Sie die Koordinaten Ihrer Praxis ein, um das nächstgelegene Fortbildungsinstitut zu finden.
-            </p>
+            )}
           </div>
         </div>
       </motion.div>
