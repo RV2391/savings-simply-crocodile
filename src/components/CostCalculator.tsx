@@ -12,6 +12,8 @@ const defaultInputs: CalculationInputs = {
   cmePointCost: 40,
   travelCosts: 200,
   growthRate: 5,
+  practiceLat: undefined,
+  practiceLng: undefined,
 };
 
 export const CostCalculator = () => {
@@ -113,6 +115,39 @@ export const CostCalculator = () => {
               max="100"
               className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
+          </div>
+
+          <div className="space-y-2 border-t border-gray-700 pt-4">
+            <h3 className="text-lg font-medium text-white">Standort der Praxis</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="practiceLat" className="text-gray-300">Breitengrad</Label>
+                <Input
+                  id="practiceLat"
+                  type="number"
+                  value={inputs.practiceLat || ""}
+                  onChange={handleInputChange("practiceLat")}
+                  placeholder="z.B. 52.5200"
+                  step="0.0001"
+                  className="input-transition bg-[#1a1a1a] text-white border-gray-700"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="practiceLng" className="text-gray-300">Längengrad</Label>
+                <Input
+                  id="practiceLng"
+                  type="number"
+                  value={inputs.practiceLng || ""}
+                  onChange={handleInputChange("practiceLng")}
+                  placeholder="z.B. 13.4050"
+                  step="0.0001"
+                  className="input-transition bg-[#1a1a1a] text-white border-gray-700"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500">
+              Geben Sie die Koordinaten Ihrer Praxis ein, um das nächstgelegene Fortbildungsinstitut zu finden.
+            </p>
           </div>
         </div>
       </motion.div>

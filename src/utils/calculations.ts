@@ -5,6 +5,8 @@ export interface CalculationInputs {
   cmePointCost: number;
   travelCosts: number;
   growthRate: number;
+  practiceLat?: number;
+  practiceLng?: number;
 }
 
 export interface CalculationResults {
@@ -14,11 +16,17 @@ export interface CalculationResults {
   crocodileCosts: number;
   savings: number;
   savingsPercentage: number;
+  nearestInstitute?: {
+    name: string;
+    distance: number;
+    travelTime: number;
+  };
 }
 
 const ASSISTANT_HOURS = 20;
 const ASSISTANT_HOURLY_RATE = 30;
 const CME_POINTS_REQUIRED = 50;
+const AVERAGE_SPEED_KMH = 60; // Average travel speed in km/h
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   // Beispielhafte Staffelung der Kosten
@@ -42,6 +50,24 @@ export const calculateResults = (inputs: CalculationInputs): CalculationResults 
   const savings = totalTraditionalCosts - crocodileCosts;
   const savingsPercentage = (savings / totalTraditionalCosts) * 100;
 
+  let nearestInstitute;
+  if (inputs.practiceLat && inputs.practiceLng) {
+    const nearest = calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
+    const distance = calculateDistance(
+      inputs.practiceLat,
+      inputs.practiceLng,
+      nearest.coordinates.lat,
+      nearest.coordinates.lng
+    );
+    const travelTime = (distance / AVERAGE_SPEED_KMH) * 60; // Convert to minutes
+
+    nearestInstitute = {
+      name: nearest.name,
+      distance: Math.round(distance),
+      travelTime: Math.round(travelTime)
+    };
+  }
+
   return {
     traditionalCostsDentists,
     traditionalCostsAssistants,
@@ -49,6 +75,7 @@ export const calculateResults = (inputs: CalculationInputs): CalculationResults 
     crocodileCosts,
     savings,
     savingsPercentage,
+    nearestInstitute
   };
 };
 

@@ -55,6 +55,23 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             </span>
           </div>
         </div>
+
+        {results.nearestInstitute && (
+          <div className="mt-6 space-y-2 border-t border-gray-700 pt-4">
+            <div className="text-xs text-gray-500">Nächstgelegenes Fortbildungsinstitut:</div>
+            <div className="space-y-2 text-sm">
+              <div className="font-medium text-white">{results.nearestInstitute.name}</div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Entfernung</span>
+                <span className="font-medium text-white">{results.nearestInstitute.distance} km</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Fahrzeit (ca.)</span>
+                <span className="font-medium text-white">{results.nearestInstitute.travelTime} min</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );
