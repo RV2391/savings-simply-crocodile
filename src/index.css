@@ -4,33 +4,33 @@
  
 @layer base {
   :root {
-    --background: 150 40% 99%;
-    --foreground: 150 10% 10%;
+    --background: 0 0% 10%;
+    --foreground: 0 0% 100%;
  
-    --card: 150 40% 98%;
-    --card-foreground: 150 10% 10%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
  
-    --popover: 150 40% 99%;
-    --popover-foreground: 150 10% 10%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 100%;
  
-    --primary: 150 40% 50%;
-    --primary-foreground: 150 10% 98%;
+    --primary: 353 83% 57%;
+    --primary-foreground: 0 0% 100%;
  
-    --secondary: 150 10% 96%;
-    --secondary-foreground: 150 10% 10%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 100%;
  
-    --muted: 150 10% 96%;
-    --muted-foreground: 150 10% 45%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 63%;
  
-    --accent: 150 10% 96%;
-    --accent-foreground: 150 10% 10%;
+    --accent: 353 83% 57%;
+    --accent-foreground: 0 0% 100%;
  
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 150 10% 98%;
+    --destructive-foreground: 0 0% 100%;
  
-    --border: 150 20% 90%;
-    --input: 150 20% 90%;
-    --ring: 150 40% 50%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 353 83% 57%;
  
     --radius: 0.75rem;
   }
@@ -41,7 +41,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-[#1a1a1a] text-foreground antialiased;
   }
   .input-transition {
     @apply transition-all duration-200 ease-in-out;

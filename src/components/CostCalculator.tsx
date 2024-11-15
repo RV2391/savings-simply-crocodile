@@ -32,78 +32,78 @@ export const CostCalculator = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
-        className="space-y-6 rounded-2xl bg-card p-6 shadow-lg"
+        className="space-y-6 rounded-2xl bg-[#2a2a2a] p-6 shadow-lg"
       >
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-sage-800">Kostenkalkulator</h2>
-          <p className="text-sm text-sage-600">
+          <h2 className="text-2xl font-semibold text-white">Kostenkalkulator</h2>
+          <p className="text-sm text-gray-400">
             Berechnen Sie Ihr Einsparpotenzial mit Crocodile Health
           </p>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="teamSize">Teamgröße</Label>
+            <Label htmlFor="teamSize" className="text-gray-300">Teamgröße</Label>
             <Input
               id="teamSize"
               type="number"
               value={inputs.teamSize}
               onChange={handleInputChange("teamSize")}
               min="1"
-              className="input-transition"
+              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dentists">Anzahl Zahnärzte</Label>
+            <Label htmlFor="dentists" className="text-gray-300">Anzahl Zahnärzte</Label>
             <Input
               id="dentists"
               type="number"
               value={inputs.dentists}
               onChange={handleInputChange("dentists")}
               min="0"
-              className="input-transition"
+              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="assistants">Anzahl Assistenzkräfte</Label>
+            <Label htmlFor="assistants" className="text-gray-300">Anzahl Assistenzkräfte</Label>
             <Input
               id="assistants"
               type="number"
               value={inputs.assistants}
               onChange={handleInputChange("assistants")}
               min="0"
-              className="input-transition"
+              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="cmePointCost">Kosten pro CME-Punkt (€)</Label>
+            <Label htmlFor="cmePointCost" className="text-gray-300">Kosten pro CME-Punkt (€)</Label>
             <Input
               id="cmePointCost"
               type="number"
               value={inputs.cmePointCost}
               onChange={handleInputChange("cmePointCost")}
               min="0"
-              className="input-transition"
+              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="travelCosts">Reisekosten pro Veranstaltung (€)</Label>
+            <Label htmlFor="travelCosts" className="text-gray-300">Reisekosten pro Veranstaltung (€)</Label>
             <Input
               id="travelCosts"
               type="number"
               value={inputs.travelCosts}
               onChange={handleInputChange("travelCosts")}
               min="0"
-              className="input-transition"
+              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="growthRate">Jährliche Wachstumsrate (%)</Label>
+            <Label htmlFor="growthRate" className="text-gray-300">Jährliche Wachstumsrate (%)</Label>
             <Input
               id="growthRate"
               type="number"
@@ -111,7 +111,7 @@ export const CostCalculator = () => {
               onChange={handleInputChange("growthRate")}
               min="0"
               max="100"
-              className="input-transition"
+              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
           </div>
         </div>
