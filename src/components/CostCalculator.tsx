@@ -27,16 +27,16 @@ export const CostCalculator = () => {
   const results = calculateResults(inputs);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2">
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-2 lg:px-8">
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
-        className="space-y-6 rounded-2xl bg-[#2A2F3C] p-6 shadow-lg"
+        className="space-y-6 rounded-2xl bg-card p-6 shadow-lg"
       >
         <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-white">Kostenkalkulator</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-2xl font-semibold text-sage-800">Kostenkalkulator</h2>
+          <p className="text-sm text-sage-600">
             Berechnen Sie Ihr Einsparpotenzial mit Crocodile Health
           </p>
         </div>
