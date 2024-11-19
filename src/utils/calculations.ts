@@ -30,7 +30,7 @@ const AVERAGE_SPEED_KMH = 60; // Average travel speed in km/h
 const BASE_USERS_INCLUDED = 20;
 const ADDITIONAL_USER_BLOCK_SIZE = 10;
 const COST_PER_ADDITIONAL_BLOCK = 50;
-const BASE_PRICE = 2990;
+const BASE_PRICE = 1699;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
