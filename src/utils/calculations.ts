@@ -22,14 +22,13 @@ export interface CalculationResults {
   };
 }
 
-const ASSISTANT_HOURS = 20;
-const ASSISTANT_HOURLY_RATE = 30;
-const CME_POINTS_REQUIRED = 50;
-const AVERAGE_SPEED_KMH = 60; // Average travel speed in km/h
+const DENTIST_ANNUAL_COST = 1200;
+const ASSISTANT_ANNUAL_COST = 280;
 const BASE_USERS_INCLUDED = 20;
 const ADDITIONAL_USER_BLOCK_SIZE = 10;
 const COST_PER_ADDITIONAL_BLOCK = 50;
 const BASE_PRICE = 1699;
+const AVERAGE_SPEED_KMH = 60; // Average travel speed in km/h
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -46,12 +45,8 @@ import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes
 export const calculateResults = (inputs: CalculationInputs): CalculationResults => {
   const assistants = inputs.teamSize - inputs.dentists;
   
-  const traditionalCostsDentists =
-    inputs.dentists * CME_POINTS_REQUIRED * inputs.cmePointCost +
-    inputs.dentists * inputs.travelCosts;
-
-  const traditionalCostsAssistants =
-    assistants * ASSISTANT_HOURS * ASSISTANT_HOURLY_RATE;
+  const traditionalCostsDentists = inputs.dentists * DENTIST_ANNUAL_COST;
+  const traditionalCostsAssistants = assistants * ASSISTANT_ANNUAL_COST;
 
   const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants;
   const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
