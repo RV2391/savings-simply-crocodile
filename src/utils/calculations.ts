@@ -27,14 +27,19 @@ const ASSISTANT_HOURS = 20;
 const ASSISTANT_HOURLY_RATE = 30;
 const CME_POINTS_REQUIRED = 50;
 const AVERAGE_SPEED_KMH = 60; // Average travel speed in km/h
+const BASE_USERS_INCLUDED = 20;
+const ADDITIONAL_USER_BLOCK_SIZE = 10;
+const COST_PER_ADDITIONAL_BLOCK = 50;
+const BASE_PRICE = 2990;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
-  // Beispielhafte Staffelung der Kosten
-  if (teamSize <= 5) return 1990;
-  if (teamSize <= 10) return 2990;
-  if (teamSize <= 20) return 4990;
-  if (teamSize <= 50) return 9990;
-  return 14990;
+  if (teamSize <= BASE_USERS_INCLUDED) {
+    return BASE_PRICE;
+  }
+  
+  const additionalUsers = teamSize - BASE_USERS_INCLUDED;
+  const additionalBlocks = Math.ceil(additionalUsers / ADDITIONAL_USER_BLOCK_SIZE);
+  return BASE_PRICE + (additionalBlocks * COST_PER_ADDITIONAL_BLOCK);
 };
 
 import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes';
