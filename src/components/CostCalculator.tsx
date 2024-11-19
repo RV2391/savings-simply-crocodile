@@ -11,7 +11,6 @@ import { dentalInstitutes } from "@/utils/dentalInstitutes";
 const defaultInputs: CalculationInputs = {
   teamSize: 10,
   dentists: 3,
-  assistants: 7,
   cmePointCost: 40,
   travelCosts: 200,
   growthRate: 5,
@@ -75,18 +74,6 @@ export const CostCalculator = () => {
               type="number"
               value={inputs.dentists}
               onChange={handleInputChange("dentists")}
-              min="0"
-              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="assistants" className="text-gray-300">Anzahl Assistenzkräfte</Label>
-            <Input
-              id="assistants"
-              type="number"
-              value={inputs.assistants}
-              onChange={handleInputChange("assistants")}
               min="0"
               className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />

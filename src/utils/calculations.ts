@@ -1,7 +1,6 @@
 export interface CalculationInputs {
   teamSize: number;
   dentists: number;
-  assistants: number;
   cmePointCost: number;
   travelCosts: number;
   growthRate: number;
@@ -45,12 +44,14 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
 import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes';
 
 export const calculateResults = (inputs: CalculationInputs): CalculationResults => {
+  const assistants = inputs.teamSize - inputs.dentists;
+  
   const traditionalCostsDentists =
     inputs.dentists * CME_POINTS_REQUIRED * inputs.cmePointCost +
     inputs.dentists * inputs.travelCosts;
 
   const traditionalCostsAssistants =
-    inputs.assistants * ASSISTANT_HOURS * ASSISTANT_HOURLY_RATE;
+    assistants * ASSISTANT_HOURS * ASSISTANT_HOURLY_RATE;
 
   const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants;
   const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
