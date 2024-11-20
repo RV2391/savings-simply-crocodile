@@ -55,11 +55,17 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             </span>
           </div>
           {results.nearestInstitute && (
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Reisekosten (0,30€/km)*</span>
-              <span className="font-medium text-white">
-                {formatCurrency(results.nearestInstitute.travelCosts)}
-              </span>
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Reisekosten (0,30€/km)*</span>
+                <span className="font-medium text-white">
+                  {formatCurrency(results.nearestInstitute.travelCosts)}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 text-right">
+                ({Math.round(results.nearestInstitute.distance)}km × 0,30€ × {results.traditionalCostsDentists / 1200} Zahnärzte + 
+                {Math.round(results.nearestInstitute.distance)}km × 0,30€ × {Math.ceil((results.traditionalCostsAssistants / 280) / 5)} Fahrgemeinschaften)
+              </div>
             </div>
           )}
         </div>
