@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
+import { useToast } from "./ui/use-toast";
 
 interface AddressInputProps {
   onLocationChange: (location: { lat: number; lng: number }) => void;
@@ -14,12 +15,18 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   const [postalCode, setPostalCode] = useState("");
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const handleLocationUpdate = (lat: number, lng: number) => {
     onLocationChange({ lat, lng });
     if (onNearestInstituteFound) {
       const nearestInstitute = calculateNearestInstitute(lat, lng);
       onNearestInstituteFound(nearestInstitute.coordinates.lat, nearestInstitute.coordinates.lng);
+      
+      toast({
+        title: "Nächstgelegenes Institut gefunden",
+        description: `${nearestInstitute.name} wurde als nächstgelegenes Institut identifiziert.`,
+      });
     }
   };
 
@@ -29,6 +36,7 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
     const options = {
       componentRestrictions: { country: "de" },
       fields: ["address_components", "geometry"],
+      types: ["address"],
     };
 
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -38,7 +46,14 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
 
     const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
-      if (!place?.geometry?.location) return;
+      if (!place?.geometry?.location) {
+        toast({
+          title: "Fehler",
+          description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const addressComponents = place.address_components || [];
       let streetNumber = "";
@@ -64,7 +79,8 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
         }
       }
 
-      setStreet(`${route} ${streetNumber}`.trim());
+      const newStreet = `${route} ${streetNumber}`.trim();
+      setStreet(newStreet);
       setCity(newCity);
       setPostalCode(newPostalCode);
 
@@ -82,22 +98,32 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   }, [onLocationChange, onNearestInstituteFound]);
 
   const geocodeAddress = async () => {
-    if (!window.google) return;
+    if (!window.google || !street) return;
     
     try {
       const address = `${street}, ${postalCode} ${city}, Germany`;
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-          address
-        )}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`
-      );
-      const data = await response.json();
+      const geocoder = new google.maps.Geocoder();
+      
+      const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === google.maps.GeocoderStatus.OK && results) {
+            resolve(results);
+          } else {
+            reject(status);
+          }
+        });
+      });
 
-      if (data.results && data.results[0]) {
-        const { lat, lng } = data.results[0].geometry.location;
-        handleLocationUpdate(lat, lng);
+      if (result[0]) {
+        const { lat, lng } = result[0].geometry.location;
+        handleLocationUpdate(lat(), lng());
       }
     } catch (error) {
+      toast({
+        title: "Fehler bei der Adresssuche",
+        description: "Die eingegebene Adresse konnte nicht gefunden werden.",
+        variant: "destructive",
+      });
       console.error("Geocoding error:", error);
     }
   };

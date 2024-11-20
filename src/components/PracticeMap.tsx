@@ -28,7 +28,11 @@ export const PracticeMap = ({
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
-  }, []);
+    if (practiceLocation) {
+      map.setCenter(practiceLocation);
+      map.setZoom(12);
+    }
+  }, [practiceLocation]);
 
   const onUnmount = useCallback(() => {
     setMap(null);
@@ -38,7 +42,7 @@ export const PracticeMap = ({
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
       center={practiceLocation || GERMANY_CENTER}
-      zoom={practiceLocation ? 8 : 6}
+      zoom={practiceLocation ? 12 : 6}
       onLoad={onLoad}
       onUnmount={onUnmount}
       onClick={(e) => onPracticeLocationChange?.(e.latLng?.toJSON())}
