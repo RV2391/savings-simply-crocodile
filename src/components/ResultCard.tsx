@@ -7,6 +7,8 @@ interface ResultCardProps {
 }
 
 export const ResultCard = ({ results }: ResultCardProps) => {
+  const savingsColor = results.savings > 0 ? "text-green-500" : "text-primary";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -17,23 +19,23 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       <div className="space-y-4">
         <div className="text-center">
           <span className="text-sm font-medium text-gray-400">Jährliches Einsparpotenzial</span>
-          <h2 className="mt-1 text-4xl font-bold text-primary">
+          <h2 className={`mt-1 text-4xl font-bold ${savingsColor}`}>
             {formatCurrency(results.savings)}
           </h2>
-          <span className="mt-1 text-sm text-gray-400">
+          <span className={`mt-1 text-lg font-semibold ${results.savingsPercentage > 0 ? "text-green-500" : "text-gray-400"}`}>
             {results.savingsPercentage?.toFixed(1)}% Ersparnis
           </span>
         </div>
 
         <div className="mt-6 space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Traditionelle Kosten*</span>
+            <span className="text-gray-400">Bisherige geschätzte Kosten*</span>
             <span className="font-medium text-white">
               {formatCurrency(results.totalTraditionalCosts)}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Crocodile Health Kosten</span>
+            <span className="text-gray-400">Crocodile Kosten</span>
             <span className="font-medium text-white">
               {formatCurrency(results.crocodileCosts)}
             </span>
@@ -41,7 +43,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         </div>
 
         <div className="mt-6 space-y-2">
-          <div className="text-xs text-gray-500">Aufschlüsselung traditioneller Kosten:</div>
+          <div className="text-xs text-gray-500">Aufschlüsselung bisheriger geschätzter Kosten:</div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Zahnärzte</span>
             <span className="font-medium text-white">

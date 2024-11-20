@@ -77,13 +77,13 @@ export const CostCalculator = () => {
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold text-white">Kostenkalkulator</h2>
           <p className="text-sm text-gray-400">
-            Berechnen Sie Ihr Einsparpotenzial mit Crocodile Health
+            Berechne dein Einsparpotenzial mit Crocodile
           </p>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="teamSize" className="text-gray-300">Teamgröße</Label>
+            <Label htmlFor="teamSize" className="text-gray-300">Teamgröße (inkl. Zahnärzte)</Label>
             <Input
               id="teamSize"
               type="number"
@@ -92,6 +92,7 @@ export const CostCalculator = () => {
               min="1"
               className="input-transition bg-[#1a1a1a] text-white border-gray-700"
             />
+            <p className="text-xs text-gray-400">Bitte gib hier die Gesamtanzahl deiner Mitarbeiter ein, inklusive aller Zahnärzte.</p>
           </div>
 
           <div className="space-y-2">
@@ -109,7 +110,7 @@ export const CostCalculator = () => {
           <div className="space-y-2 border-t border-gray-700 pt-4">
             <h3 className="text-lg font-medium text-white">Standort der Praxis</h3>
             <p className="text-sm text-gray-400">
-              Geben Sie Ihren Standort ein, um die Reisekosten zu berechnen
+              Gib deinen Standort ein, um die Reisekosten zu berechnen
             </p>
             <AddressInput 
               onLocationChange={handleLocationChange}
