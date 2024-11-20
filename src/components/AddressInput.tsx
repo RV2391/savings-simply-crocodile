@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
@@ -10,6 +10,66 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+
+    const options = {
+      componentRestrictions: { country: "de" },
+      fields: ["address_components", "geometry"],
+    };
+
+    autocompleteRef.current = new google.maps.places.Autocomplete(
+      inputRef.current,
+      options
+    );
+
+    autocompleteRef.current.addListener("place_changed", () => {
+      const place = autocompleteRef.current?.getPlace();
+      if (!place?.geometry?.location) return;
+
+      const addressComponents = place.address_components || [];
+      let streetNumber = "";
+      let route = "";
+      let newCity = "";
+      let newPostalCode = "";
+
+      for (const component of addressComponents) {
+        const type = component.types[0];
+        switch (type) {
+          case "street_number":
+            streetNumber = component.long_name;
+            break;
+          case "route":
+            route = component.long_name;
+            break;
+          case "locality":
+            newCity = component.long_name;
+            break;
+          case "postal_code":
+            newPostalCode = component.long_name;
+            break;
+        }
+      }
+
+      setStreet(`${route} ${streetNumber}`.trim());
+      setCity(newCity);
+      setPostalCode(newPostalCode);
+
+      onLocationChange({
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      });
+    });
+
+    return () => {
+      if (google.maps.event && autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [onLocationChange]);
 
   const geocodeAddress = async () => {
     try {
@@ -38,10 +98,12 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
         </Label>
         <Input
           id="street"
+          ref={inputRef}
           value={street}
           onChange={(e) => setStreet(e.target.value)}
           onBlur={geocodeAddress}
           className="input-transition bg-[#1a1a1a] text-white border-gray-700"
+          placeholder="Geben Sie eine Adresse ein..."
         />
       </div>
 
