@@ -6,7 +6,7 @@ const Index = () => {
       <div className="container py-12">
         <div className="mb-12 text-center">
           <img 
-            src="/logo.svg" 
+            src="/logo.png" 
             alt="Crocodile Health Logo" 
             className="mx-auto mb-8 h-24 w-24 sm:h-32 sm:w-32"
           />
