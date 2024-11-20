@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
+import { useToast } from "./ui/use-toast";
 
 const GERMANY_CENTER = {
   lat: 51.1657,
@@ -29,6 +30,7 @@ export const PracticeMap = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [distance, setDistance] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
@@ -58,6 +60,12 @@ export const PracticeMap = ({
             if (result.routes[0]?.legs[0]?.distance?.text) {
               setDistance(result.routes[0].legs[0].distance.text);
             }
+          } else {
+            toast({
+              title: "Fehler bei der Routenberechnung",
+              description: "Die Route konnte nicht berechnet werden. Bitte versuchen Sie es später erneut.",
+              variant: "destructive",
+            });
           }
         }
       );
@@ -74,9 +82,9 @@ export const PracticeMap = ({
         onUnmount={onUnmount}
         onClick={(e) => onPracticeLocationChange?.(e.latLng?.toJSON())}
       >
-        {institutes.map((institute) => (
+        {institutes.map((institute, index) => (
           <Marker
-            key={institute.name}
+            key={`${institute.name}-${index}`}
             position={institute.coordinates}
             onClick={() => setSelectedInstitute(institute)}
             icon={{

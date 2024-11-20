@@ -13,14 +13,11 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [isProcessingSelection, setIsProcessingSelection] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleLocationUpdate = (lat: number, lng: number) => {
-    if (isProcessingSelection) return;
-    
     onLocationChange({ lat, lng });
     const nearestInstitute = calculateNearestInstitute(lat, lng);
     
@@ -52,9 +49,6 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
     );
 
     const listener = autocompleteRef.current.addListener("place_changed", () => {
-      if (isProcessingSelection) return;
-      setIsProcessingSelection(true);
-      
       const place = autocompleteRef.current?.getPlace();
       if (!place?.geometry?.location) {
         toast({
@@ -62,7 +56,6 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
           description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
           variant: "destructive",
         });
-        setIsProcessingSelection(false);
         return;
       }
 
@@ -100,7 +93,6 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
       const lng = place.geometry.location.lng();
       
       handleLocationUpdate(lat, lng);
-      setIsProcessingSelection(false);
     });
 
     return () => {
@@ -109,40 +101,6 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
       }
     };
   }, [onLocationChange, onNearestInstituteFound]);
-
-  const geocodeAddress = async () => {
-    if (!window.google || !street || isProcessingSelection) return;
-    
-    setIsProcessingSelection(true);
-    try {
-      const address = `${street}, ${postalCode} ${city}, Germany`;
-      const geocoder = new google.maps.Geocoder();
-      
-      const result = await new Promise<google.maps.GeocoderResult[]>((resolve, reject) => {
-        geocoder.geocode({ address }, (results, status) => {
-          if (status === google.maps.GeocoderStatus.OK && results) {
-            resolve(results);
-          } else {
-            reject(status);
-          }
-        });
-      });
-
-      if (result[0]) {
-        const { lat, lng } = result[0].geometry.location;
-        handleLocationUpdate(lat(), lng());
-      }
-    } catch (error) {
-      toast({
-        title: "Fehler bei der Adresssuche",
-        description: "Die eingegebene Adresse konnte nicht gefunden werden.",
-        variant: "destructive",
-      });
-      console.error("Geocoding error:", error);
-    } finally {
-      setIsProcessingSelection(false);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -155,7 +113,6 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
           ref={inputRef}
           value={street}
           onChange={(e) => setStreet(e.target.value)}
-          onBlur={geocodeAddress}
           className="input-transition bg-[#1a1a1a] text-white border-gray-700"
           placeholder="Geben Sie eine Adresse ein..."
         />
@@ -170,8 +127,8 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
             id="postalCode"
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
-            onBlur={geocodeAddress}
             className="input-transition bg-[#1a1a1a] text-white border-gray-700"
+            readOnly
           />
         </div>
         <div className="space-y-2">
@@ -182,8 +139,8 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
             id="city"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            onBlur={geocodeAddress}
             className="input-transition bg-[#1a1a1a] text-white border-gray-700"
+            readOnly
           />
         </div>
       </div>
