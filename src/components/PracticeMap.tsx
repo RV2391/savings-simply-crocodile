@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
 import { useToast } from "./ui/use-toast";
+import { Card } from "./ui/card";
 
 const GERMANY_CENTER = {
   lat: 51.1657,
@@ -20,6 +21,12 @@ interface PracticeMapProps {
   onPracticeLocationChange?: (location: google.maps.LatLngLiteral) => void;
 }
 
+interface RouteDetails {
+  distance: string;
+  duration: string;
+  trafficDuration?: string;
+}
+
 export const PracticeMap = ({
   institutes,
   practiceLocation,
@@ -29,7 +36,7 @@ export const PracticeMap = ({
   const [selectedInstitute, setSelectedInstitute] = useState<DentalInstitute | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
-  const [distance, setDistance] = useState<string | null>(null);
+  const [routeDetails, setRouteDetails] = useState<RouteDetails | null>(null);
   const { toast } = useToast();
 
   const onLoad = useCallback((map: google.maps.Map) => {
@@ -47,7 +54,7 @@ export const PracticeMap = ({
   useEffect(() => {
     if (!practiceLocation || !nearestInstitute) {
       setDirections(null);
-      setDistance(null);
+      setRouteDetails(null);
       return;
     }
 
@@ -58,13 +65,21 @@ export const PracticeMap = ({
         origin: practiceLocation,
         destination: nearestInstitute.coordinates,
         travelMode: google.maps.TravelMode.DRIVING,
-        optimizeWaypoints: true,
+        drivingOptions: {
+          departureTime: new Date(),
+          trafficModel: google.maps.TrafficModel.BEST_GUESS,
+        },
       },
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
-          if (result.routes[0]?.legs[0]?.distance?.text) {
-            setDistance(result.routes[0].legs[0].distance.text);
+          const leg = result.routes[0]?.legs[0];
+          if (leg) {
+            setRouteDetails({
+              distance: leg.distance?.text || "",
+              duration: leg.duration?.text || "",
+              trafficDuration: leg.duration_in_traffic?.text,
+            });
           }
         } else if (status === google.maps.DirectionsStatus.REQUEST_DENIED) {
           toast({
@@ -86,7 +101,7 @@ export const PracticeMap = ({
   }, [practiceLocation, nearestInstitute, toast]);
 
   return (
-    <div className="relative">
+    <div className="relative space-y-4">
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={practiceLocation || GERMANY_CENTER}
@@ -130,10 +145,20 @@ export const PracticeMap = ({
           </InfoWindow>
         )}
       </GoogleMap>
-      {distance && (
-        <div className="absolute top-4 right-4 bg-white p-2 rounded shadow-md text-sm">
-          Entfernung: {distance}
-        </div>
+      
+      {routeDetails && (
+        <Card className="p-4 bg-white/10 backdrop-blur-sm">
+          <div className="space-y-2 text-white">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Entfernung:</span>
+              <span>{routeDetails.distance}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">Fahrzeit:</span>
+              <span>{routeDetails.trafficDuration || routeDetails.duration}</span>
+            </div>
+          </div>
+        </Card>
       )}
     </div>
   );
