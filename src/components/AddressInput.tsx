@@ -22,9 +22,13 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
     if (isProcessingSelection) return;
     
     onLocationChange({ lat, lng });
-    if (onNearestInstituteFound && postalCode) {
-      const nearestInstitute = calculateNearestInstitute(lat, lng, postalCode);
-      onNearestInstituteFound(nearestInstitute.coordinates.lat, nearestInstitute.coordinates.lng);
+    const nearestInstitute = calculateNearestInstitute(lat, lng);
+    
+    if (onNearestInstituteFound) {
+      onNearestInstituteFound(
+        nearestInstitute.coordinates.lat,
+        nearestInstitute.coordinates.lng
+      );
       
       toast({
         title: "Nächstgelegenes Institut gefunden",
