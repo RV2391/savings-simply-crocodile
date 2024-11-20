@@ -56,7 +56,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
           </div>
           {results.nearestInstitute && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Reisekosten (0,30€/km)</span>
+              <span className="text-gray-400">Reisekosten (0,30€/km)*</span>
               <span className="font-medium text-white">
                 {formatCurrency(results.nearestInstitute.travelCosts)}
               </span>

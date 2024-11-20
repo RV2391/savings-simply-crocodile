@@ -38,6 +38,22 @@ export const CostLegend = () => {
                     </p>
                   </div>
 
+                  <div>
+                    <h4 className="font-medium text-primary">Reisekosten: 0,30 € pro Kilometer</h4>
+                    <p className="mt-1 text-gray-400">
+                      Die Reisekosten werden wie folgt berechnet:
+                    </p>
+                    <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-2">
+                      <li>
+                        Zahnärzte/innen: Individuelle Berechnung pro Person, da sie häufig separate Fortbildungen besuchen.
+                      </li>
+                      <li>
+                        Assistenzkräfte: Gebündelte Berechnung in Gruppen von bis zu 5 Personen, da Fahrgemeinschaften 
+                        gebildet werden können. Dies reduziert die Gesamtreisekosten erheblich.
+                      </li>
+                    </ul>
+                  </div>
+
                   <p className="text-xs text-gray-500">
                     * Diese Schätzungen dienen als Ausgangspunkt. Tatsächliche Kosten können je nach individuellen 
                     Bedürfnissen, Praxisschwerpunkten und gewählten Fortbildungsformaten variieren.
