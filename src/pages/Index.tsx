@@ -5,6 +5,11 @@ const Index = () => {
     <div className="min-h-screen bg-[#1a1a1a]">
       <div className="container py-12">
         <div className="mb-12 text-center">
+          <img 
+            src="/logo.svg" 
+            alt="Crocodile Health Logo" 
+            className="mx-auto mb-8 h-16 w-16"
+          />
           <h1 className="text-4xl font-bold text-white sm:text-5xl">
             Kostenrechner für Fortbildungen
           </h1>
