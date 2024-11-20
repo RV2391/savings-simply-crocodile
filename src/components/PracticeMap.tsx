@@ -45,32 +45,38 @@ export const PracticeMap = ({
   }, []);
 
   useEffect(() => {
-    if (practiceLocation && nearestInstitute) {
-      const directionsService = new google.maps.DirectionsService();
-      
-      directionsService.route(
-        {
-          origin: practiceLocation,
-          destination: nearestInstitute.coordinates,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-            if (result.routes[0]?.legs[0]?.distance?.text) {
-              setDistance(result.routes[0].legs[0].distance.text);
-            }
-          } else {
-            toast({
-              title: "Fehler bei der Routenberechnung",
-              description: "Die Route konnte nicht berechnet werden. Bitte versuchen Sie es später erneut.",
-              variant: "destructive",
-            });
-          }
-        }
-      );
+    if (!practiceLocation || !nearestInstitute) {
+      setDirections(null);
+      setDistance(null);
+      return;
     }
-  }, [practiceLocation, nearestInstitute]);
+
+    const directionsService = new google.maps.DirectionsService();
+    
+    directionsService.route(
+      {
+        origin: practiceLocation,
+        destination: nearestInstitute.coordinates,
+        travelMode: google.maps.TravelMode.DRIVING,
+        optimizeWaypoints: true,
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK && result) {
+          setDirections(result);
+          if (result.routes[0]?.legs[0]?.distance?.text) {
+            setDistance(result.routes[0].legs[0].distance.text);
+          }
+        } else {
+          toast({
+            title: "Fehler bei der Routenberechnung",
+            description: "Die Route konnte nicht berechnet werden. Bitte versuchen Sie es später erneut.",
+            variant: "destructive",
+          });
+          console.error("Directions request failed:", status);
+        }
+      }
+    );
+  }, [practiceLocation, nearestInstitute, toast]);
 
   return (
     <div className="relative">
@@ -102,7 +108,7 @@ export const PracticeMap = ({
           />
         )}
 
-        {directions && <DirectionsRenderer directions={directions} />}
+        {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
 
         {selectedInstitute && (
           <InfoWindow
