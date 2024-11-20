@@ -1,3 +1,5 @@
+import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes';
+
 export interface CalculationInputs {
   teamSize: number;
   dentists: number;
@@ -40,8 +42,6 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
   const additionalBlocks = Math.ceil(additionalUsers / ADDITIONAL_USER_BLOCK_SIZE);
   return BASE_PRICE + (additionalBlocks * COST_PER_ADDITIONAL_BLOCK);
 };
-
-import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes';
 
 export const calculateResults = (inputs: CalculationInputs): CalculationResults => {
   const assistants = inputs.teamSize - inputs.dentists;

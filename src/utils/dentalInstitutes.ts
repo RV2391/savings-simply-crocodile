@@ -1,5 +1,6 @@
 import { germanInstitutes } from './dentalInstitutes/data/germanInstitutes';
-import { calculateDistance } from './calculations';
+import { swissInstitutes } from './dentalInstitutes/data/swissInstitutes';
+import { austrianInstitutes } from './dentalInstitutes/data/austrianInstitutes';
 
 export interface DentalInstitute {
   name: string;
@@ -15,31 +16,45 @@ export interface DentalInstitute {
   };
 }
 
+export const dentalInstitutes: DentalInstitute[] = [
+  ...germanInstitutes,
+  ...swissInstitutes,
+  ...austrianInstitutes,
+];
+
+export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
+const toRad = (value: number): number => {
+  return value * Math.PI / 180;
+};
+
 export const calculateNearestInstitute = (lat: number, lng: number, plz?: string): DentalInstitute => {
-  // First try to find an institute by PLZ
-  if (plz) {
-    const plzNumber = parseInt(plz, 10);
-    const instituteByPlz = germanInstitutes.find(
-      institute => institute.plzRange && 
-      plzNumber >= institute.plzRange.start && 
-      plzNumber <= institute.plzRange.end
+  let relevantInstitutes = dentalInstitutes;
+
+  if (plz && /^\d{5}$/.test(plz)) {
+    const plzNum = parseInt(plz);
+    relevantInstitutes = dentalInstitutes.filter(institute => 
+      !institute.plzRange || 
+      (institute.plzRange.start <= plzNum && institute.plzRange.end >= plzNum)
     );
-    
-    if (instituteByPlz) {
-      return instituteByPlz;
-    }
   }
 
-  // Fallback to distance-based calculation if no PLZ match
-  let nearestInstitute = germanInstitutes[0];
-  let shortestDistance = calculateDistance(
-    lat,
-    lng,
-    germanInstitutes[0].coordinates.lat,
-    germanInstitutes[0].coordinates.lng
-  );
+  let nearestInstitute = relevantInstitutes[0];
+  let shortestDistance = Number.MAX_VALUE;
 
-  germanInstitutes.forEach(institute => {
+  relevantInstitutes.forEach(institute => {
     const distance = calculateDistance(
       lat,
       lng,
@@ -55,5 +70,3 @@ export const calculateNearestInstitute = (lat: number, lng: number, plz?: string
 
   return nearestInstitute;
 };
-
-export const dentalInstitutes = germanInstitutes;
