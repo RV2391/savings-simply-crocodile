@@ -69,9 +69,9 @@ export const PracticeMap = ({
             position={selectedInstitute.coordinates}
             onCloseClick={() => setSelectedInstitute(null)}
           >
-            <div className="p-2">
-              <h3 className="font-semibold">{selectedInstitute.name}</h3>
-              <p className="text-sm">{selectedInstitute.address}</p>
+            <div className="p-2 text-black">
+              <h3 className="font-semibold text-base mb-1">{selectedInstitute.name}</h3>
+              <p className="text-sm mb-0.5">{selectedInstitute.address}</p>
               <p className="text-sm">{selectedInstitute.city}</p>
             </div>
           </InfoWindow>
