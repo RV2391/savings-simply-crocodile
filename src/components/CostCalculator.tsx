@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ResultCard } from "./ResultCard";
 import { CostLegend } from "./CostLegend";
-import { calculateResults, type CalculationInputs } from "@/utils/calculations";
+import { calculateResults, type CalculationInputs, type CalculationResults } from "@/utils/calculations";
 import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
@@ -18,8 +18,26 @@ const defaultInputs: CalculationInputs = {
   nearestInstituteLng: undefined,
 };
 
+const defaultResults: CalculationResults = {
+  traditionalCostsDentists: 0,
+  traditionalCostsAssistants: 0,
+  totalTraditionalCosts: 0,
+  crocodileCosts: 0,
+  savings: 0,
+  savingsPercentage: 0,
+};
+
 export const CostCalculator = () => {
   const [inputs, setInputs] = useState<CalculationInputs>(defaultInputs);
+  const [results, setResults] = useState<CalculationResults>(defaultResults);
+
+  useEffect(() => {
+    const updateResults = async () => {
+      const newResults = await calculateResults(inputs);
+      setResults(newResults);
+    };
+    updateResults();
+  }, [inputs]);
 
   const handleInputChange = (field: keyof CalculationInputs) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -44,7 +62,6 @@ export const CostCalculator = () => {
     }));
   };
 
-  const results = calculateResults(inputs);
   const nearestInstitute = results.nearestInstitute ? 
     dentalInstitutes.find(i => i.name === results.nearestInstitute?.name) : 
     undefined;

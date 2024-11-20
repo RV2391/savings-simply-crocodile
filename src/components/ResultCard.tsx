@@ -21,7 +21,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             {formatCurrency(results.savings)}
           </h2>
           <span className="mt-1 text-sm text-gray-400">
-            {results.savingsPercentage.toFixed(1)}% Ersparnis
+            {results.savingsPercentage?.toFixed(1)}% Ersparnis
           </span>
         </div>
 
