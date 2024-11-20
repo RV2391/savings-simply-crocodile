@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
 
@@ -28,6 +28,7 @@ export const PracticeMap = ({
   const [selectedInstitute, setSelectedInstitute] = useState<DentalInstitute | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [distance, setDistance] = useState<string | null>(null);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
@@ -41,8 +42,7 @@ export const PracticeMap = ({
     setMap(null);
   }, []);
 
-  // Calculate route when practice location and nearest institute are available
-  useCallback(() => {
+  useEffect(() => {
     if (practiceLocation && nearestInstitute) {
       const directionsService = new google.maps.DirectionsService();
       
@@ -55,6 +55,9 @@ export const PracticeMap = ({
         (result, status) => {
           if (status === google.maps.DirectionsStatus.OK) {
             setDirections(result);
+            if (result.routes[0]?.legs[0]?.distance?.text) {
+              setDistance(result.routes[0].legs[0].distance.text);
+            }
           }
         }
       );
@@ -62,48 +65,55 @@ export const PracticeMap = ({
   }, [practiceLocation, nearestInstitute]);
 
   return (
-    <GoogleMap
-      mapContainerStyle={mapContainerStyle}
-      center={practiceLocation || GERMANY_CENTER}
-      zoom={practiceLocation ? 12 : 6}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
-      onClick={(e) => onPracticeLocationChange?.(e.latLng?.toJSON())}
-    >
-      {institutes.map((institute) => (
-        <Marker
-          key={institute.name}
-          position={institute.coordinates}
-          onClick={() => setSelectedInstitute(institute)}
-          icon={{
-            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-          }}
-        />
-      ))}
+    <div className="relative">
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={practiceLocation || GERMANY_CENTER}
+        zoom={practiceLocation ? 12 : 6}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        onClick={(e) => onPracticeLocationChange?.(e.latLng?.toJSON())}
+      >
+        {institutes.map((institute) => (
+          <Marker
+            key={institute.name}
+            position={institute.coordinates}
+            onClick={() => setSelectedInstitute(institute)}
+            icon={{
+              url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+            }}
+          />
+        ))}
 
-      {practiceLocation && (
-        <Marker
-          position={practiceLocation}
-          icon={{
-            url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-          }}
-        />
+        {practiceLocation && (
+          <Marker
+            position={practiceLocation}
+            icon={{
+              url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+            }}
+          />
+        )}
+
+        {directions && <DirectionsRenderer directions={directions} />}
+
+        {selectedInstitute && (
+          <InfoWindow
+            position={selectedInstitute.coordinates}
+            onCloseClick={() => setSelectedInstitute(null)}
+          >
+            <div className="p-2 text-black">
+              <h3 className="font-semibold text-base mb-1">{selectedInstitute.name}</h3>
+              <p className="text-sm mb-0.5">{selectedInstitute.address}</p>
+              <p className="text-sm">{selectedInstitute.city}</p>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+      {distance && (
+        <div className="absolute top-4 right-4 bg-white p-2 rounded shadow-md text-sm">
+          Entfernung: {distance}
+        </div>
       )}
-
-      {directions && <DirectionsRenderer directions={directions} />}
-
-      {selectedInstitute && (
-        <InfoWindow
-          position={selectedInstitute.coordinates}
-          onCloseClick={() => setSelectedInstitute(null)}
-        >
-          <div className="p-2 text-black">
-            <h3 className="font-semibold text-base mb-1">{selectedInstitute.name}</h3>
-            <p className="text-sm mb-0.5">{selectedInstitute.address}</p>
-            <p className="text-sm">{selectedInstitute.city}</p>
-          </div>
-        </InfoWindow>
-      )}
-    </GoogleMap>
+    </div>
   );
 };
