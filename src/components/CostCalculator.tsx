@@ -18,7 +18,6 @@ const defaultInputs: CalculationInputs = {
 
 export const CostCalculator = () => {
   const [inputs, setInputs] = useState<CalculationInputs>(defaultInputs);
-  const [showMap, setShowMap] = useState(false);
 
   const handleInputChange = (field: keyof CalculationInputs) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -84,14 +83,7 @@ export const CostCalculator = () => {
             </p>
             <AddressInput onLocationChange={handleLocationChange} />
             
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className="mt-2 text-sm text-primary hover:text-primary/80"
-            >
-              {showMap ? "Karte ausblenden" : "Karte anzeigen"}
-            </button>
-
-            {showMap && (
+            {inputs.practiceLat && inputs.practiceLng && (
               <div className="mt-4">
                 <PracticeMap
                   institutes={dentalInstitutes}
