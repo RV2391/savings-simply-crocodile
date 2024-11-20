@@ -33,18 +33,8 @@ export const CostLegend = () => {
             <p className="text-xs text-gray-500">Quellen:</p>
             <ul className="text-xs text-gray-500 space-y-1">
               <li>
-                <a href="https://www.dentalxr.ai/blog/2022/fortbildungspunkte-zahnarzt/" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                  DentalXR.ai - Fortbildungspunkte für Zahnärzte
-                </a>
-              </li>
-              <li>
                 <a href="https://www.kzbv.de/vertragszahnarztliche-fortbildung.440.de.html" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
                   KZBV - Vertragszahnärztliche Fortbildung
-                </a>
-              </li>
-              <li>
-                <a href="https://www.zukunftzahn.de/fortbildung-zahngesundheit/fortbildungen-fuer-zahnaerzte/" target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                  ZukunftZahn - Fortbildungen für Zahnärzte
                 </a>
               </li>
               <li>
