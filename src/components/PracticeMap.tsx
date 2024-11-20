@@ -66,6 +66,13 @@ export const PracticeMap = ({
           if (result.routes[0]?.legs[0]?.distance?.text) {
             setDistance(result.routes[0].legs[0].distance.text);
           }
+        } else if (status === google.maps.DirectionsStatus.REQUEST_DENIED) {
+          toast({
+            title: "API-Konfigurationsfehler",
+            description: "Bitte stellen Sie sicher, dass der API-Schlüssel korrekt konfiguriert ist und die Domain autorisiert wurde.",
+            variant: "destructive",
+          });
+          console.error("API configuration error:", status);
         } else {
           toast({
             title: "Fehler bei der Routenberechnung",
