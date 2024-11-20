@@ -54,6 +54,27 @@ export const CostLegend = () => {
                     </ul>
                   </div>
 
+                  <div>
+                    <h4 className="font-medium text-primary">Crocodile Health Kosten</h4>
+                    <p className="mt-1 text-gray-400">
+                      Die Kosten für Crocodile Health setzen sich wie folgt zusammen:
+                    </p>
+                    <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-2">
+                      <li>
+                        Grundpreis: 1.699 € pro Jahr für bis zu 20 Nutzer
+                      </li>
+                      <li>
+                        Zusätzliche Nutzer: 50 € pro 10 weitere Nutzer
+                      </li>
+                      <li>
+                        Inklusive unbegrenzter Fortbildungen für das gesamte Team
+                      </li>
+                      <li>
+                        Keine zusätzlichen Reisekosten durch digitale Fortbildungen
+                      </li>
+                    </ul>
+                  </div>
+
                   <p className="text-xs text-gray-500">
                     * Diese Schätzungen dienen als Ausgangspunkt. Tatsächliche Kosten können je nach individuellen 
                     Bedürfnissen, Praxisschwerpunkten und gewählten Fortbildungsformaten variieren.
