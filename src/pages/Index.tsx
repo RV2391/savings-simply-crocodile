@@ -8,7 +8,7 @@ const Index = () => {
           <img 
             src="/logo.svg" 
             alt="Crocodile Health Logo" 
-            className="mx-auto mb-8 h-16 w-16"
+            className="mx-auto mb-12 h-24 w-24 md:h-32 md:w-32"
           />
           <h1 className="text-4xl font-bold text-white sm:text-5xl">
             Kostenrechner für Fortbildungen
