@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ResultCard } from "./ResultCard";
+import { CostLegend } from "./CostLegend";
 import { calculateResults, type CalculationInputs } from "@/utils/calculations";
 import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
@@ -105,6 +106,8 @@ export const CostCalculator = () => {
             )}
           </div>
         </div>
+
+        <CostLegend />
       </motion.div>
 
       <div className="flex items-center justify-center">
