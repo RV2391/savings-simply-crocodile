@@ -22,8 +22,30 @@ export const dentalInstitutes: DentalInstitute[] = [
   ...austrianInstitutes,
 ];
 
-export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371; // Earth's radius in kilometers
+export const calculateDistance = async (
+  lat1: number, 
+  lon1: number, 
+  lat2: number, 
+  lon2: number
+): Promise<number> => {
+  try {
+    const service = new google.maps.DistanceMatrixService();
+    const result = await service.getDistanceMatrix({
+      origins: [{ lat: lat1, lng: lon1 }],
+      destinations: [{ lat: lat2, lng: lon2 }],
+      travelMode: google.maps.TravelMode.DRIVING,
+      unitSystem: google.maps.UnitSystem.METRIC,
+    });
+
+    if (result.rows[0]?.elements[0]?.status === "OK") {
+      return result.rows[0].elements[0].distance.value / 1000; // Convert meters to kilometers
+    }
+  } catch (error) {
+    console.error('Error calculating distance:', error);
+  }
+  
+  // Fallback to air-line distance calculation if Google Maps fails
+  const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   
@@ -40,9 +62,10 @@ const toRad = (value: number): number => {
   return value * Math.PI / 180;
 };
 
-export const calculateNearestInstitute = (lat: number, lng: number, plz?: string): DentalInstitute => {
+export const calculateNearestInstitute = async (lat: number, lng: number, plz?: string): Promise<DentalInstitute> => {
   let relevantInstitutes = dentalInstitutes;
 
+  // Filter by PLZ range if provided
   if (plz && /^\d{5}$/.test(plz)) {
     const plzNum = parseInt(plz);
     relevantInstitutes = dentalInstitutes.filter(institute => 
@@ -54,8 +77,9 @@ export const calculateNearestInstitute = (lat: number, lng: number, plz?: string
   let nearestInstitute = relevantInstitutes[0];
   let shortestDistance = Number.MAX_VALUE;
 
-  relevantInstitutes.forEach(institute => {
-    const distance = calculateDistance(
+  // Calculate actual driving distances using Google Maps Distance Matrix API
+  for (const institute of relevantInstitutes) {
+    const distance = await calculateDistance(
       lat,
       lng,
       institute.coordinates.lat,
@@ -66,7 +90,7 @@ export const calculateNearestInstitute = (lat: number, lng: number, plz?: string
       shortestDistance = distance;
       nearestInstitute = institute;
     }
-  });
+  }
 
   return nearestInstitute;
 };
