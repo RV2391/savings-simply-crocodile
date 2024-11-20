@@ -30,10 +30,11 @@ const DENTIST_ANNUAL_COST = 1200;
 const ASSISTANT_ANNUAL_COST = 280;
 const BASE_USERS_INCLUDED = 20;
 const ADDITIONAL_USER_BLOCK_SIZE = 10;
-const COST_PER_ADDITIONAL_BLOCK = 50;
+const COST_PER_ADDITIONAL_BLOCK_MONTHLY = 50;
 const BASE_PRICE = 1699;
 const COST_PER_KM = 0.30;
 const ASSISTANTS_PER_CAR = 5;
+const MONTHS_PER_YEAR = 12;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -42,7 +43,8 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
   
   const additionalUsers = teamSize - BASE_USERS_INCLUDED;
   const additionalBlocks = Math.ceil(additionalUsers / ADDITIONAL_USER_BLOCK_SIZE);
-  return BASE_PRICE + (additionalBlocks * COST_PER_ADDITIONAL_BLOCK);
+  const annualAdditionalCosts = additionalBlocks * COST_PER_ADDITIONAL_BLOCK_MONTHLY * MONTHS_PER_YEAR;
+  return BASE_PRICE + annualAdditionalCosts;
 };
 
 const calculateTravelCosts = (distance: number, dentists: number, assistants: number): number => {
