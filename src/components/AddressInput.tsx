@@ -20,7 +20,7 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   const handleLocationUpdate = (lat: number, lng: number) => {
     onLocationChange({ lat, lng });
     if (onNearestInstituteFound) {
-      const nearestInstitute = calculateNearestInstitute(lat, lng);
+      const nearestInstitute = calculateNearestInstitute(lat, lng, postalCode);
       onNearestInstituteFound(nearestInstitute.coordinates.lat, nearestInstitute.coordinates.lng);
       
       toast({
