@@ -4,14 +4,14 @@ export const germanInstitutes = [
     address: "Auf der Horst 29",
     city: "48147 Münster",
     coordinates: { lat: 51.9602, lng: 7.6254 },
-    plzRange: { start: 32000, end: 33999 }, // NRW PLZ range for this region
+    plzRange: { start: 32000, end: 33999 }, // Ostwestfalen-Lippe
   },
   {
     name: "Zahnärztekammer Nordrhein",
     address: "Hammfelddamm 11",
     city: "41460 Neuss",
     coordinates: { lat: 51.1874, lng: 6.6613 },
-    plzRange: { start: 40000, end: 48999 }, // NRW PLZ range
+    plzRange: { start: 40000, end: 48999 }, // NRW
   },
   {
     name: "Zahnärztekammer Berlin",
