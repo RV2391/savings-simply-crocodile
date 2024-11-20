@@ -29,4 +29,10 @@ export const swissInstitutes = [
     city: "8604 Volketswil",
     coordinates: { lat: 47.3874, lng: 8.6977 },
   },
+  {
+    name: "SWISS BIOHEALTH EDUCATION CENTER",
+    address: "Brückenstrasse 15",
+    city: "8280 Kreuzlingen",
+    coordinates: { lat: 47.6505, lng: 9.1744 },
+  },
 ];

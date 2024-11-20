@@ -34,5 +34,11 @@ export const austrianInstitutes = [
     address: "Sperrgasse 2/9",
     city: "1150 Wien",
     coordinates: { lat: 48.1957, lng: 16.3336 },
+  },
+  {
+    name: "Danube Private University (DPU)",
+    address: "Steiner Landstraße 124",
+    city: "3500 Krems an der Donau",
+    coordinates: { lat: 48.4093, lng: 15.6002 },
   }
 ];
