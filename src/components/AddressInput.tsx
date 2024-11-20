@@ -17,11 +17,11 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleLocationUpdate = (lat: number, lng: number) => {
+  const handleLocationUpdate = async (lat: number, lng: number) => {
     onLocationChange({ lat, lng });
-    const nearestInstitute = calculateNearestInstitute(lat, lng);
+    const nearestInstitute = await calculateNearestInstitute(lat, lng);
     
-    if (onNearestInstituteFound) {
+    if (onNearestInstituteFound && nearestInstitute) {
       onNearestInstituteFound(
         nearestInstitute.coordinates.lat,
         nearestInstitute.coordinates.lng

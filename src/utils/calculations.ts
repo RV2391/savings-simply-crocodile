@@ -64,7 +64,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
 
   let nearestInstitute;
   if (inputs.practiceLat && inputs.practiceLng) {
-    const nearest = calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
+    const nearest = await calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
     
     try {
       const service = new google.maps.DistanceMatrixService();
@@ -84,7 +84,6 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
       if (result.rows[0]?.elements[0]?.status === "OK") {
         const element = result.rows[0].elements[0];
         
-        // Direktionsservice für alternative Routen nutzen
         const directionsService = new google.maps.DirectionsService();
         const directionsResult = await directionsService.route({
           origin: { lat: inputs.practiceLat, lng: inputs.practiceLng },
@@ -94,7 +93,6 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
           optimizeWaypoints: true
         });
 
-        // Kürzeste Route finden
         let shortestRoute = directionsResult.routes[0];
         let shortestDistance = Number.MAX_VALUE;
         let shortestDuration = Number.MAX_VALUE;
@@ -108,11 +106,11 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
           }
         });
 
-        const oneWayDistance = shortestDistance / 1000; // Meter in Kilometer umrechnen
-        const oneWayTime = shortestDuration / 60; // Sekunden in Minuten umrechnen
+        const oneWayDistance = shortestDistance / 1000;
+        const oneWayTime = shortestDuration / 60;
         
-        const roundTripDistance = oneWayDistance * 2; // Hin- und Rückfahrt
-        const roundTripTime = oneWayTime * 2; // Hin- und Rückfahrt
+        const roundTripDistance = oneWayDistance * 2;
+        const roundTripTime = oneWayTime * 2;
         const travelCosts = calculateTravelCosts(roundTripDistance, inputs.dentists, assistants);
 
         nearestInstitute = {
