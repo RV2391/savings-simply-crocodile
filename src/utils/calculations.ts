@@ -33,6 +33,7 @@ const ADDITIONAL_USER_BLOCK_SIZE = 10;
 const COST_PER_ADDITIONAL_BLOCK = 50;
 const BASE_PRICE = 1699;
 const COST_PER_KM = 0.30;
+const ASSISTANTS_PER_CAR = 5;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -42,6 +43,17 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
   const additionalUsers = teamSize - BASE_USERS_INCLUDED;
   const additionalBlocks = Math.ceil(additionalUsers / ADDITIONAL_USER_BLOCK_SIZE);
   return BASE_PRICE + (additionalBlocks * COST_PER_ADDITIONAL_BLOCK);
+};
+
+const calculateTravelCosts = (distance: number, dentists: number, assistants: number): number => {
+  // Zahnärzte fahren einzeln
+  const dentistsCosts = distance * COST_PER_KM * dentists;
+  
+  // Assistenten fahren in Gruppen von bis zu 5 Personen
+  const assistantGroups = Math.ceil(assistants / ASSISTANTS_PER_CAR);
+  const assistantsCosts = distance * COST_PER_KM * assistantGroups;
+  
+  return Math.round(dentistsCosts + assistantsCosts);
 };
 
 export const calculateResults = async (inputs: CalculationInputs): Promise<CalculationResults> => {
@@ -69,7 +81,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
         
         const roundTripDistance = oneWayDistance * 2; // Hin- und Rückfahrt
         const roundTripTime = oneWayTime * 2; // Hin- und Rückfahrt
-        const travelCosts = roundTripDistance * COST_PER_KM * inputs.teamSize;
+        const travelCosts = calculateTravelCosts(roundTripDistance, inputs.dentists, assistants);
 
         nearestInstitute = {
           name: nearest.name,
@@ -77,7 +89,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
           distance: Math.round(roundTripDistance), // Hin- und Rückfahrt
           oneWayTravelTime: oneWayTime, // Einfache Fahrtzeit
           travelTime: roundTripTime, // Hin- und Rückfahrt
-          travelCosts: Math.round(travelCosts)
+          travelCosts
         };
       }
     } catch (error) {
