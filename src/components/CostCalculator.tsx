@@ -14,6 +14,8 @@ const defaultInputs: CalculationInputs = {
   dentists: 3,
   practiceLat: undefined,
   practiceLng: undefined,
+  nearestInstituteLat: undefined,
+  nearestInstituteLng: undefined,
 };
 
 export const CostCalculator = () => {
@@ -31,6 +33,14 @@ export const CostCalculator = () => {
       ...prev,
       practiceLat: location.lat,
       practiceLng: location.lng,
+    }));
+  };
+
+  const handleNearestInstituteFound = (lat: number, lng: number) => {
+    setInputs((prev) => ({
+      ...prev,
+      nearestInstituteLat: lat,
+      nearestInstituteLng: lng,
     }));
   };
 
@@ -81,7 +91,10 @@ export const CostCalculator = () => {
             <p className="text-sm text-gray-400">
               Geben Sie Ihren Standort ein, um die Reisekosten zu berechnen
             </p>
-            <AddressInput onLocationChange={handleLocationChange} />
+            <AddressInput 
+              onLocationChange={handleLocationChange}
+              onNearestInstituteFound={handleNearestInstituteFound}
+            />
             
             {inputs.practiceLat && inputs.practiceLng && (
               <div className="mt-4">

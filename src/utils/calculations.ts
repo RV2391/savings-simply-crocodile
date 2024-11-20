@@ -3,6 +3,8 @@ export interface CalculationInputs {
   dentists: number;
   practiceLat?: number;
   practiceLng?: number;
+  nearestInstituteLat?: number;
+  nearestInstituteLng?: number;
 }
 
 export interface CalculationResults {

@@ -1,17 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 
 interface AddressInputProps {
   onLocationChange: (location: { lat: number; lng: number }) => void;
+  onNearestInstituteFound?: (lat: number, lng: number) => void;
 }
 
-export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
+export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: AddressInputProps) => {
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleLocationUpdate = (lat: number, lng: number) => {
+    onLocationChange({ lat, lng });
+    if (onNearestInstituteFound) {
+      const nearestInstitute = calculateNearestInstitute(lat, lng);
+      onNearestInstituteFound(nearestInstitute.coordinates.lat, nearestInstitute.coordinates.lng);
+    }
+  };
 
   useEffect(() => {
     if (!inputRef.current || !window.google) return;
@@ -58,10 +68,10 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
       setCity(newCity);
       setPostalCode(newPostalCode);
 
-      onLocationChange({
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      });
+      handleLocationUpdate(
+        place.geometry.location.lat(),
+        place.geometry.location.lng()
+      );
     });
 
     return () => {
@@ -69,7 +79,7 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
         window.google.maps.event.removeListener(listener);
       }
     };
-  }, [onLocationChange]);
+  }, [onLocationChange, onNearestInstituteFound]);
 
   const geocodeAddress = async () => {
     if (!window.google) return;
@@ -85,7 +95,7 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
 
       if (data.results && data.results[0]) {
         const { lat, lng } = data.results[0].geometry.location;
-        onLocationChange({ lat, lng });
+        handleLocationUpdate(lat, lng);
       }
     } catch (error) {
       console.error("Geocoding error:", error);
