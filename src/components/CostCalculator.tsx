@@ -136,7 +136,7 @@ export const CostCalculator = () => {
         <CostLegend />
       </motion.div>
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-start justify-center">
         <ResultCard results={results} />
       </div>
     </div>
