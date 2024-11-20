@@ -79,8 +79,8 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
 
       if (result.rows[0]?.elements[0]?.status === "OK") {
         const element = result.rows[0].elements[0];
-        const oneWayDistance = Math.round(element.distance.value / 1000); // Convert meters to kilometers
-        const oneWayTime = Math.round(element.duration.value / 60); // Convert seconds to minutes
+        const oneWayDistance = Math.round(element.distance.value / 1000); // Meter in Kilometer umrechnen
+        const oneWayTime = Math.round(element.duration.value / 60); // Sekunden in Minuten umrechnen
         
         const roundTripDistance = oneWayDistance * 2; // Hin- und Rückfahrt
         const roundTripTime = oneWayTime * 2; // Hin- und Rückfahrt
