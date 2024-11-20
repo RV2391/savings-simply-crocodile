@@ -27,7 +27,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
 
         <div className="mt-6 space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-400">Traditionelle Kosten</span>
+            <span className="text-gray-400">Traditionelle Kosten*</span>
             <span className="font-medium text-white">
               {formatCurrency(results.totalTraditionalCosts)}
             </span>
