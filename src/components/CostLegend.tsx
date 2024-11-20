@@ -7,10 +7,10 @@ export const CostLegend = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <Alert className="mt-6 bg-[#1a1a1a] text-white border-gray-700 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+    <Alert className="mt-6 bg-[#1a1a1a] text-white border-gray-700 cursor-pointer hover:bg-[#222]" onClick={() => setIsExpanded(!isExpanded)}>
       <div className="flex items-start">
         <InfoIcon className="h-4 w-4 text-primary shrink-0" />
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {isExpanded ? (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
