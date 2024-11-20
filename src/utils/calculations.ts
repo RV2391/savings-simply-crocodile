@@ -57,7 +57,7 @@ export const calculateResults = (inputs: CalculationInputs): CalculationResults 
       nearest.coordinates.lng
     );
     const travelTime = (distance / AVERAGE_SPEED_KMH) * 60; // Convert to minutes
-    const travelCosts = distance * COST_PER_KM * 2; // Round trip
+    const travelCosts = distance * COST_PER_KM * 2 * inputs.teamSize; // Round trip for entire team
 
     nearestInstitute = {
       name: nearest.name,
