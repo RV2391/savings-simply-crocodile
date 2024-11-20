@@ -47,61 +47,56 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
       options
     );
 
-    const listener = autocompleteRef.current.addListener("place_changed", async () => {
+    const listener = autocompleteRef.current.addListener("place_changed", () => {
+      if (isProcessingSelection) return;
       setIsProcessingSelection(true);
       
-      try {
-        const place = autocompleteRef.current?.getPlace();
-        if (!place?.geometry?.location) {
-          toast({
-            title: "Fehler",
-            description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const addressComponents = place.address_components || [];
-        let streetNumber = "";
-        let route = "";
-        let newCity = "";
-        let newPostalCode = "";
-
-        for (const component of addressComponents) {
-          const type = component.types[0];
-          switch (type) {
-            case "street_number":
-              streetNumber = component.long_name;
-              break;
-            case "route":
-              route = component.long_name;
-              break;
-            case "locality":
-              newCity = component.long_name;
-              break;
-            case "postal_code":
-              newPostalCode = component.long_name;
-              break;
-          }
-        }
-
-        const newStreet = `${route} ${streetNumber}`.trim();
-        
-        // Update state in a single batch
-        setStreet(newStreet);
-        setCity(newCity);
-        setPostalCode(newPostalCode);
-
-        // Small delay to ensure state updates are processed
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        handleLocationUpdate(
-          place.geometry.location.lat(),
-          place.geometry.location.lng()
-        );
-      } finally {
+      const place = autocompleteRef.current?.getPlace();
+      if (!place?.geometry?.location) {
+        toast({
+          title: "Fehler",
+          description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
+          variant: "destructive",
+        });
         setIsProcessingSelection(false);
+        return;
       }
+
+      const addressComponents = place.address_components || [];
+      let streetNumber = "";
+      let route = "";
+      let newCity = "";
+      let newPostalCode = "";
+
+      for (const component of addressComponents) {
+        const type = component.types[0];
+        switch (type) {
+          case "street_number":
+            streetNumber = component.long_name;
+            break;
+          case "route":
+            route = component.long_name;
+            break;
+          case "locality":
+            newCity = component.long_name;
+            break;
+          case "postal_code":
+            newPostalCode = component.long_name;
+            break;
+        }
+      }
+
+      const newStreet = `${route} ${streetNumber}`.trim();
+      
+      setStreet(newStreet);
+      setCity(newCity);
+      setPostalCode(newPostalCode);
+
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      
+      handleLocationUpdate(lat, lng);
+      setIsProcessingSelection(false);
     });
 
     return () => {
@@ -112,8 +107,9 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   }, [onLocationChange, onNearestInstituteFound]);
 
   const geocodeAddress = async () => {
-    if (!window.google || !street) return;
+    if (!window.google || !street || isProcessingSelection) return;
     
+    setIsProcessingSelection(true);
     try {
       const address = `${street}, ${postalCode} ${city}, Germany`;
       const geocoder = new google.maps.Geocoder();
@@ -139,6 +135,8 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
         variant: "destructive",
       });
       console.error("Geocoding error:", error);
+    } finally {
+      setIsProcessingSelection(false);
     }
   };
 
