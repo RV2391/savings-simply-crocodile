@@ -72,21 +72,21 @@ export const ResultCard = ({ results }: ResultCardProps) => {
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Entfernung (einfach)</span>
-                  <span className="font-medium text-white">{results.nearestInstitute.oneWayDistance} km</span>
+                  <span className="font-medium text-white">{Math.round(results.nearestInstitute.oneWayDistance)} km</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Entfernung (Hin- und Rückfahrt)</span>
-                  <span className="font-medium text-white">{results.nearestInstitute.distance} km</span>
+                  <span className="font-medium text-white">{Math.round(results.nearestInstitute.distance)} km</span>
                 </div>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Fahrzeit (einfach)</span>
-                  <span className="font-medium text-white">{results.nearestInstitute.oneWayTravelTime} min</span>
+                  <span className="font-medium text-white">{Math.round(results.nearestInstitute.oneWayTravelTime)} min</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Fahrzeit (Hin- und Rückfahrt)</span>
-                  <span className="font-medium text-white">{results.nearestInstitute.travelTime} min</span>
+                  <span className="font-medium text-white">{Math.round(results.nearestInstitute.travelTime)} min</span>
                 </div>
               </div>
             </div>
