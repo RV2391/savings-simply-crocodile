@@ -13,11 +13,14 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
+  const [isProcessingSelection, setIsProcessingSelection] = useState(false);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleLocationUpdate = (lat: number, lng: number) => {
+    if (isProcessingSelection) return;
+    
     onLocationChange({ lat, lng });
     if (onNearestInstituteFound && postalCode) {
       const nearestInstitute = calculateNearestInstitute(lat, lng, postalCode);
@@ -44,50 +47,61 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
       options
     );
 
-    const listener = autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current?.getPlace();
-      if (!place?.geometry?.location) {
-        toast({
-          title: "Fehler",
-          description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const addressComponents = place.address_components || [];
-      let streetNumber = "";
-      let route = "";
-      let newCity = "";
-      let newPostalCode = "";
-
-      for (const component of addressComponents) {
-        const type = component.types[0];
-        switch (type) {
-          case "street_number":
-            streetNumber = component.long_name;
-            break;
-          case "route":
-            route = component.long_name;
-            break;
-          case "locality":
-            newCity = component.long_name;
-            break;
-          case "postal_code":
-            newPostalCode = component.long_name;
-            break;
+    const listener = autocompleteRef.current.addListener("place_changed", async () => {
+      setIsProcessingSelection(true);
+      
+      try {
+        const place = autocompleteRef.current?.getPlace();
+        if (!place?.geometry?.location) {
+          toast({
+            title: "Fehler",
+            description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
+            variant: "destructive",
+          });
+          return;
         }
+
+        const addressComponents = place.address_components || [];
+        let streetNumber = "";
+        let route = "";
+        let newCity = "";
+        let newPostalCode = "";
+
+        for (const component of addressComponents) {
+          const type = component.types[0];
+          switch (type) {
+            case "street_number":
+              streetNumber = component.long_name;
+              break;
+            case "route":
+              route = component.long_name;
+              break;
+            case "locality":
+              newCity = component.long_name;
+              break;
+            case "postal_code":
+              newPostalCode = component.long_name;
+              break;
+          }
+        }
+
+        const newStreet = `${route} ${streetNumber}`.trim();
+        
+        // Update state in a single batch
+        setStreet(newStreet);
+        setCity(newCity);
+        setPostalCode(newPostalCode);
+
+        // Small delay to ensure state updates are processed
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        handleLocationUpdate(
+          place.geometry.location.lat(),
+          place.geometry.location.lng()
+        );
+      } finally {
+        setIsProcessingSelection(false);
       }
-
-      const newStreet = `${route} ${streetNumber}`.trim();
-      setStreet(newStreet);
-      setCity(newCity);
-      setPostalCode(newPostalCode);
-
-      handleLocationUpdate(
-        place.geometry.location.lat(),
-        place.geometry.location.lng()
-      );
     });
 
     return () => {
