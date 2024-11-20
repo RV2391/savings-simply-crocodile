@@ -70,13 +70,16 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
       const service = new google.maps.DistanceMatrixService();
       const result = await service.getDistanceMatrix({
         origins: [{ lat: inputs.practiceLat, lng: inputs.practiceLng }],
-        destinations: [nearest.coordinates],
+        destinations: [{ lat: nearest.coordinates.lat, lng: nearest.coordinates.lng }],
         travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+        avoidHighways: false,
+        avoidTolls: false,
       });
 
-      if (result.rows[0]?.elements[0]) {
+      if (result.rows[0]?.elements[0]?.status === "OK") {
         const element = result.rows[0].elements[0];
-        const oneWayDistance = element.distance.value / 1000; // Convert meters to kilometers
+        const oneWayDistance = Math.round(element.distance.value / 1000); // Convert meters to kilometers
         const oneWayTime = Math.round(element.duration.value / 60); // Convert seconds to minutes
         
         const roundTripDistance = oneWayDistance * 2; // Hin- und Rückfahrt
@@ -85,10 +88,10 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
 
         nearestInstitute = {
           name: nearest.name,
-          oneWayDistance: Math.round(oneWayDistance), // Einfache Strecke
-          distance: Math.round(roundTripDistance), // Hin- und Rückfahrt
-          oneWayTravelTime: oneWayTime, // Einfache Fahrtzeit
-          travelTime: roundTripTime, // Hin- und Rückfahrt
+          oneWayDistance: oneWayDistance,
+          distance: roundTripDistance,
+          oneWayTravelTime: oneWayTime,
+          travelTime: roundTripTime,
           travelCosts
         };
       }
