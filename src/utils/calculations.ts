@@ -31,7 +31,6 @@ const ADDITIONAL_USER_BLOCK_SIZE = 10;
 const COST_PER_ADDITIONAL_BLOCK = 50;
 const BASE_PRICE = 1699;
 const COST_PER_KM = 0.30;
-const AVERAGE_SPEED_KMH = 60;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -53,28 +52,34 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
   if (inputs.practiceLat && inputs.practiceLng) {
     const nearest = calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
     
-    const service = new google.maps.DistanceMatrixService();
-    const result = await service.getDistanceMatrix({
-      origins: [{ lat: inputs.practiceLat, lng: inputs.practiceLng }],
-      destinations: [nearest.coordinates],
-      travelMode: google.maps.TravelMode.DRIVING,
-    });
-
-    if (result.rows[0]?.elements[0]) {
-      const element = result.rows[0].elements[0];
-      const oneWayDistance = element.distance.value / 1000; // Convert meters to kilometers
-      const oneWayTime = Math.round(element.duration.value / 60); // Convert seconds to minutes
+    try {
+      // Calculate distance using the Haversine formula as a fallback
+      const R = 6371; // Earth's radius in kilometers
+      const dLat = (nearest.coordinates.lat - inputs.practiceLat) * Math.PI / 180;
+      const dLon = (nearest.coordinates.lng - inputs.practiceLng) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(inputs.practiceLat * Math.PI / 180) * Math.cos(nearest.coordinates.lat * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const oneWayDistance = R * c;
+      
+      // Estimate travel time based on average speed (60 km/h)
+      const oneWayTimeHours = oneWayDistance / 60;
+      const oneWayTimeMinutes = Math.round(oneWayTimeHours * 60);
       
       const roundTripDistance = oneWayDistance * 2;
-      const roundTripTime = oneWayTime * 2;
+      const roundTripTime = oneWayTimeMinutes * 2;
       const travelCosts = roundTripDistance * COST_PER_KM * inputs.teamSize;
 
       nearestInstitute = {
         name: nearest.name,
         distance: Math.round(roundTripDistance), // Round trip distance
-        travelTime: roundTripTime, // Round trip time
+        travelTime: roundTripTime, // Round trip time in minutes
         travelCosts: Math.round(travelCosts)
       };
+    } catch (error) {
+      console.error('Error calculating distance:', error);
     }
   }
 
