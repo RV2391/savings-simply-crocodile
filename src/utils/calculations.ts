@@ -75,12 +75,41 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
         unitSystem: google.maps.UnitSystem.METRIC,
         avoidHighways: false,
         avoidTolls: false,
+        drivingOptions: {
+          departureTime: new Date(),
+          trafficModel: google.maps.TrafficModel.BEST_GUESS
+        }
       });
 
       if (result.rows[0]?.elements[0]?.status === "OK") {
         const element = result.rows[0].elements[0];
-        const oneWayDistance = element.distance.value / 1000; // Meter in Kilometer umrechnen
-        const oneWayTime = element.duration.value / 60; // Sekunden in Minuten umrechnen
+        
+        // Direktionsservice für alternative Routen nutzen
+        const directionsService = new google.maps.DirectionsService();
+        const directionsResult = await directionsService.route({
+          origin: { lat: inputs.practiceLat, lng: inputs.practiceLng },
+          destination: { lat: nearest.coordinates.lat, lng: nearest.coordinates.lng },
+          travelMode: google.maps.TravelMode.DRIVING,
+          provideRouteAlternatives: true,
+          optimizeWaypoints: true
+        });
+
+        // Kürzeste Route finden
+        let shortestRoute = directionsResult.routes[0];
+        let shortestDistance = Number.MAX_VALUE;
+        let shortestDuration = Number.MAX_VALUE;
+
+        directionsResult.routes.forEach(route => {
+          const distance = route.legs[0].distance.value;
+          if (distance < shortestDistance) {
+            shortestDistance = distance;
+            shortestDuration = route.legs[0].duration.value;
+            shortestRoute = route;
+          }
+        });
+
+        const oneWayDistance = shortestDistance / 1000; // Meter in Kilometer umrechnen
+        const oneWayTime = shortestDuration / 60; // Sekunden in Minuten umrechnen
         
         const roundTripDistance = oneWayDistance * 2; // Hin- und Rückfahrt
         const roundTripTime = oneWayTime * 2; // Hin- und Rückfahrt
