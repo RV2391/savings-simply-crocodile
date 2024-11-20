@@ -11,9 +11,6 @@ import { dentalInstitutes } from "@/utils/dentalInstitutes";
 const defaultInputs: CalculationInputs = {
   teamSize: 10,
   dentists: 3,
-  cmePointCost: 40,
-  travelCosts: 200,
-  growthRate: 5,
   practiceLat: undefined,
   practiceLng: undefined,
 };
@@ -79,45 +76,11 @@ export const CostCalculator = () => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="cmePointCost" className="text-gray-300">Kosten pro CME-Punkt (€)</Label>
-            <Input
-              id="cmePointCost"
-              type="number"
-              value={inputs.cmePointCost}
-              onChange={handleInputChange("cmePointCost")}
-              min="0"
-              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="travelCosts" className="text-gray-300">Reisekosten pro Veranstaltung (€)</Label>
-            <Input
-              id="travelCosts"
-              type="number"
-              value={inputs.travelCosts}
-              onChange={handleInputChange("travelCosts")}
-              min="0"
-              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="growthRate" className="text-gray-300">Jährliche Wachstumsrate (%)</Label>
-            <Input
-              id="growthRate"
-              type="number"
-              value={inputs.growthRate}
-              onChange={handleInputChange("growthRate")}
-              min="0"
-              max="100"
-              className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-            />
-          </div>
-
           <div className="space-y-2 border-t border-gray-700 pt-4">
             <h3 className="text-lg font-medium text-white">Standort der Praxis</h3>
+            <p className="text-sm text-gray-400">
+              Geben Sie Ihren Standort ein, um die Reisekosten zu berechnen
+            </p>
             <AddressInput onLocationChange={handleLocationChange} />
             
             <button

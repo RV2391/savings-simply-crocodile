@@ -1,9 +1,6 @@
 export interface CalculationInputs {
   teamSize: number;
   dentists: number;
-  cmePointCost: number;
-  travelCosts: number;
-  growthRate: number;
   practiceLat?: number;
   practiceLng?: number;
 }
@@ -19,6 +16,7 @@ export interface CalculationResults {
     name: string;
     distance: number;
     travelTime: number;
+    travelCosts: number;
   };
 }
 
@@ -28,7 +26,8 @@ const BASE_USERS_INCLUDED = 20;
 const ADDITIONAL_USER_BLOCK_SIZE = 10;
 const COST_PER_ADDITIONAL_BLOCK = 50;
 const BASE_PRICE = 1699;
-const AVERAGE_SPEED_KMH = 60; // Average travel speed in km/h
+const COST_PER_KM = 0.30;
+const AVERAGE_SPEED_KMH = 60;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -48,11 +47,6 @@ export const calculateResults = (inputs: CalculationInputs): CalculationResults 
   const traditionalCostsDentists = inputs.dentists * DENTIST_ANNUAL_COST;
   const traditionalCostsAssistants = assistants * ASSISTANT_ANNUAL_COST;
 
-  const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants;
-  const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
-  const savings = totalTraditionalCosts - crocodileCosts;
-  const savingsPercentage = (savings / totalTraditionalCosts) * 100;
-
   let nearestInstitute;
   if (inputs.practiceLat && inputs.practiceLng) {
     const nearest = calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
@@ -63,13 +57,21 @@ export const calculateResults = (inputs: CalculationInputs): CalculationResults 
       nearest.coordinates.lng
     );
     const travelTime = (distance / AVERAGE_SPEED_KMH) * 60; // Convert to minutes
+    const travelCosts = distance * COST_PER_KM * 2; // Round trip
 
     nearestInstitute = {
       name: nearest.name,
       distance: Math.round(distance),
-      travelTime: Math.round(travelTime)
+      travelTime: Math.round(travelTime),
+      travelCosts: Math.round(travelCosts)
     };
   }
+
+  const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants + 
+    (nearestInstitute?.travelCosts || 0);
+  const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
+  const savings = totalTraditionalCosts - crocodileCosts;
+  const savingsPercentage = (savings / totalTraditionalCosts) * 100;
 
   return {
     traditionalCostsDentists,
