@@ -14,19 +14,19 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!inputRef.current) return;
+    if (!inputRef.current || !window.google) return;
 
     const options = {
       componentRestrictions: { country: "de" },
       fields: ["address_components", "geometry"],
     };
 
-    autocompleteRef.current = new google.maps.places.Autocomplete(
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       options
     );
 
-    autocompleteRef.current.addListener("place_changed", () => {
+    const listener = autocompleteRef.current.addListener("place_changed", () => {
       const place = autocompleteRef.current?.getPlace();
       if (!place?.geometry?.location) return;
 
@@ -65,13 +65,15 @@ export const AddressInput = ({ onLocationChange }: AddressInputProps) => {
     });
 
     return () => {
-      if (google.maps.event && autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      if (window.google?.maps?.event && listener) {
+        window.google.maps.event.removeListener(listener);
       }
     };
   }, [onLocationChange]);
 
   const geocodeAddress = async () => {
+    if (!window.google) return;
+    
     try {
       const address = `${street}, ${postalCode} ${city}, Germany`;
       const response = await fetch(
