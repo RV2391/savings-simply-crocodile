@@ -1,4 +1,4 @@
-import { calculateNearestInstitute, calculateDistance } from './dentalInstitutes';
+import { calculateNearestInstitute } from './dentalInstitutes';
 
 export interface CalculationInputs {
   teamSize: number;
@@ -43,7 +43,7 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
   return BASE_PRICE + (additionalBlocks * COST_PER_ADDITIONAL_BLOCK);
 };
 
-export const calculateResults = (inputs: CalculationInputs): CalculationResults => {
+export const calculateResults = async (inputs: CalculationInputs): Promise<CalculationResults> => {
   const assistants = inputs.teamSize - inputs.dentists;
   
   const traditionalCostsDentists = inputs.dentists * DENTIST_ANNUAL_COST;
@@ -52,21 +52,30 @@ export const calculateResults = (inputs: CalculationInputs): CalculationResults 
   let nearestInstitute;
   if (inputs.practiceLat && inputs.practiceLng) {
     const nearest = calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
-    const distance = calculateDistance(
-      inputs.practiceLat,
-      inputs.practiceLng,
-      nearest.coordinates.lat,
-      nearest.coordinates.lng
-    );
-    const travelTime = (distance / AVERAGE_SPEED_KMH) * 60; // Convert to minutes
-    const travelCosts = distance * COST_PER_KM * 2 * inputs.teamSize; // Round trip for entire team
+    
+    const service = new google.maps.DistanceMatrixService();
+    const result = await service.getDistanceMatrix({
+      origins: [{ lat: inputs.practiceLat, lng: inputs.practiceLng }],
+      destinations: [nearest.coordinates],
+      travelMode: google.maps.TravelMode.DRIVING,
+    });
 
-    nearestInstitute = {
-      name: nearest.name,
-      distance: Math.round(distance),
-      travelTime: Math.round(travelTime),
-      travelCosts: Math.round(travelCosts)
-    };
+    if (result.rows[0]?.elements[0]) {
+      const element = result.rows[0].elements[0];
+      const oneWayDistance = element.distance.value / 1000; // Convert meters to kilometers
+      const oneWayTime = Math.round(element.duration.value / 60); // Convert seconds to minutes
+      
+      const roundTripDistance = oneWayDistance * 2;
+      const roundTripTime = oneWayTime * 2;
+      const travelCosts = roundTripDistance * COST_PER_KM * inputs.teamSize;
+
+      nearestInstitute = {
+        name: nearest.name,
+        distance: Math.round(roundTripDistance), // Round trip distance
+        travelTime: roundTripTime, // Round trip time
+        travelCosts: Math.round(travelCosts)
+      };
+    }
   }
 
   const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants + 

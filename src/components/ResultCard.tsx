@@ -70,11 +70,11 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             <div className="space-y-2 text-sm">
               <div className="font-medium text-white">{results.nearestInstitute.name}</div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Entfernung</span>
+                <span className="text-gray-400">Entfernung (Hin- und Rückfahrt)</span>
                 <span className="font-medium text-white">{results.nearestInstitute.distance} km</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Fahrzeit (ca.)</span>
+                <span className="text-gray-400">Fahrzeit (Hin- und Rückfahrt)</span>
                 <span className="font-medium text-white">{results.nearestInstitute.travelTime} min</span>
               </div>
             </div>

@@ -45,6 +45,9 @@ export const CostCalculator = () => {
   };
 
   const results = calculateResults(inputs);
+  const nearestInstitute = results.nearestInstitute ? 
+    dentalInstitutes.find(i => i.name === results.nearestInstitute?.name) : 
+    undefined;
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-2 lg:px-8">
@@ -100,11 +103,11 @@ export const CostCalculator = () => {
               <div className="mt-4">
                 <PracticeMap
                   institutes={dentalInstitutes}
-                  practiceLocation={
-                    inputs.practiceLat && inputs.practiceLng
-                      ? { lat: inputs.practiceLat, lng: inputs.practiceLng }
-                      : undefined
-                  }
+                  practiceLocation={{
+                    lat: inputs.practiceLat,
+                    lng: inputs.practiceLng
+                  }}
+                  nearestInstitute={nearestInstitute}
                   onPracticeLocationChange={handleLocationChange}
                 />
               </div>

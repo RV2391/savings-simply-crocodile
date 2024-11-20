@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
+import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
 
 const GERMANY_CENTER = {
@@ -15,16 +15,19 @@ const mapContainerStyle = {
 interface PracticeMapProps {
   institutes: DentalInstitute[];
   practiceLocation?: google.maps.LatLngLiteral;
+  nearestInstitute?: DentalInstitute;
   onPracticeLocationChange?: (location: google.maps.LatLngLiteral) => void;
 }
 
 export const PracticeMap = ({
   institutes,
   practiceLocation,
+  nearestInstitute,
   onPracticeLocationChange,
 }: PracticeMapProps) => {
   const [selectedInstitute, setSelectedInstitute] = useState<DentalInstitute | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
@@ -37,6 +40,26 @@ export const PracticeMap = ({
   const onUnmount = useCallback(() => {
     setMap(null);
   }, []);
+
+  // Calculate route when practice location and nearest institute are available
+  useCallback(() => {
+    if (practiceLocation && nearestInstitute) {
+      const directionsService = new google.maps.DirectionsService();
+      
+      directionsService.route(
+        {
+          origin: practiceLocation,
+          destination: nearestInstitute.coordinates,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK) {
+            setDirections(result);
+          }
+        }
+      );
+    }
+  }, [practiceLocation, nearestInstitute]);
 
   return (
     <GoogleMap
@@ -66,6 +89,8 @@ export const PracticeMap = ({
           }}
         />
       )}
+
+      {directions && <DirectionsRenderer directions={directions} />}
 
       {selectedInstitute && (
         <InfoWindow
