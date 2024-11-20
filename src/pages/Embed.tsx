@@ -2,7 +2,7 @@ import { CostCalculator } from "@/components/CostCalculator";
 
 const Embed = () => {
   return (
-    <div className="embed-container bg-[#111] min-h-screen">
+    <div className="bg-[#111]">
       <CostCalculator />
     </div>
   );
