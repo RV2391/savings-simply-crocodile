@@ -102,7 +102,7 @@ export const germanInstitutes = [
     address: "Schützenhöhe 11",
     city: "01099 Dresden",
     coordinates: { lat: 51.0559, lng: 13.7385 },
-    plzRange: { start: 01000, end: 01999 },
+    plzRange: { start: 1000, end: 1999 }, // Fixed: Removed leading zeros
   },
   {
     name: "Zahnärztekammer Sachsen-Anhalt",
