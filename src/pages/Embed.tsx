@@ -1,9 +1,8 @@
 import { CostCalculator } from "@/components/CostCalculator";
 
 const Embed = () => {
-  // Remove any padding/margins when in embed mode
   return (
-    <div className="embed-container">
+    <div className="embed-container bg-[#111] min-h-screen">
       <CostCalculator />
     </div>
   );
