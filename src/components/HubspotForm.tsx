@@ -37,36 +37,50 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
           const webhookData = {
             email,
             practice_name: practiceName,
-            team_size: calculatorData.teamSize,
-            dentists: calculatorData.dentists,
-            assistants: calculatorData.teamSize - calculatorData.dentists,
-            traditional_costs: results.totalTraditionalCosts,
-            crocodile_costs: results.crocodileCosts,
-            savings: results.savings,
-            location: calculatorData.location || ''
+            team_size: Number(calculatorData.teamSize) || 0,
+            dentists: Number(calculatorData.dentists) || 0,
+            assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
+            traditional_costs: Number(results.totalTraditionalCosts) || 0,
+            crocodile_costs: Number(results.crocodileCosts) || 0,
+            savings: Number(results.savings) || 0,
+            location: calculatorData.location || '',
+            timestamp: new Date().toISOString()
           };
+
+          console.log('Sending webhook data:', webhookData);
 
           try {
             const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
               },
               body: JSON.stringify(webhookData)
             });
 
-            if (response.ok) {
-              toast({
-                title: "Erfolg!",
-                description: "Ihre Berechnung wurde gespeichert und an Ihre E-Mail-Adresse gesendet.",
-              });
-              onSuccess();
+            console.log('Webhook response status:', response.status);
+            
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error('Webhook error:', errorText);
+              throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const responseData = await response.json();
+            console.log('Webhook response:', responseData);
+
+            toast({
+              title: "Erfolg!",
+              description: "Ihre Berechnung wurde gespeichert und an Ihre E-Mail-Adresse gesendet.",
+            });
+            onSuccess();
           } catch (error) {
+            console.error('Error sending webhook:', error);
             toast({
               variant: "destructive",
               title: "Fehler",
-              description: "Beim Senden der Daten ist ein Fehler aufgetreten.",
+              description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
             });
           }
         }
