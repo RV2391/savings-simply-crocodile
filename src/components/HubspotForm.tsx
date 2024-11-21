@@ -22,7 +22,7 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
     if (formContainerRef.current && window.hbspt) {
       window.hbspt.forms.create({
         portalId: "24951213",
-        formId: "dc947922-514a-4e3f-b471-a3fbf38920a0",
+        formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
         target: formContainerRef.current,
         region: "eu1",
         css: "",
@@ -48,8 +48,6 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
           const practiceName = formData.practice_name || '';
           
           const calculatorData = JSON.parse(sessionStorage.getItem('calculatorData') || '{}');
-          
-          // Extract address components from sessionStorage
           const addressComponents = JSON.parse(sessionStorage.getItem('addressComponents') || '{}');
           
           const webhookData = {
