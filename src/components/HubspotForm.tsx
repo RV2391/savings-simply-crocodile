@@ -43,14 +43,22 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
           }
         },
         onFormSubmitted: async (submission: any) => {
-          const email = submission.submittedAt ? submission.values.email : '';
-          const practiceName = submission.values?.practice_name || '';
+          // Extrahiere alle verfügbaren Formulardaten
+          const formData = submission.values || {};
+          const email = formData.email || '';
+          const practiceName = formData.practice_name || '';
+          const firstName = formData.firstname || '';
+          const lastName = formData.lastname || '';
+          const phone = formData.phone || '';
           
           const calculatorData = JSON.parse(sessionStorage.getItem('calculatorData') || '{}');
           
           const webhookData = {
             email,
             practice_name: practiceName,
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone,
             team_size: Number(calculatorData.teamSize) || 0,
             dentists: Number(calculatorData.dentists) || 0,
             assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
@@ -58,7 +66,8 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
             crocodile_costs: Number(results.crocodileCosts) || 0,
             savings: Number(results.savings) || 0,
             location: calculatorData.location || '',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            form_submission_data: formData // Alle Rohdaten vom Formular
           };
 
           try {
