@@ -1,5 +1,14 @@
 import { calculateNearestInstitute } from './dentalInstitutes';
 
+export interface NearestInstitute {
+  name: string;
+  distance: number;
+  oneWayDistance: number;
+  travelTime: number;
+  oneWayTravelTime: number;
+  travelCosts: number;
+}
+
 export interface CalculationInputs {
   teamSize: number;
   dentists: number;
@@ -16,14 +25,7 @@ export interface CalculationResults {
   crocodileCosts: number;
   savings: number;
   savingsPercentage: number;
-  nearestInstitute?: {
-    name: string;
-    distance: number;
-    oneWayDistance: number;
-    travelTime: number;
-    oneWayTravelTime: number;
-    travelCosts: number;
-  };
+  nearestInstitute?: NearestInstitute;
 }
 
 const DENTIST_ANNUAL_COST = 1200;
