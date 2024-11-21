@@ -94,7 +94,7 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
   }, [results, onSuccess]);
 
   return (
-    <Card className="w-full max-w-[600px] mx-auto bg-white/5 backdrop-blur-sm border-primary/20">
+    <Card className="bg-white/5 backdrop-blur-sm border-primary/20">
       <CardContent className="p-6">
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-center text-primary">
