@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency } from "@/utils/calculations";
 import type { CalculationResults } from "@/utils/calculations";
-import { HubspotForm } from "./HubspotForm";
 import { ArrowDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResultCardProps {
   results: CalculationResults;
@@ -12,7 +15,69 @@ interface ResultCardProps {
 
 export const ResultCard = ({ results }: ResultCardProps) => {
   const [showForm, setShowForm] = useState(false);
+  const [email, setEmail] = useState("");
+  const [practiceName, setPracticeName] = useState("");
+  const [consent, setConsent] = useState(false);
+  const { toast } = useToast();
   const savingsColor = results.savings > 0 ? "text-green-500" : "text-primary";
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !practiceName || !consent) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Bitte füllen Sie alle Pflichtfelder aus und stimmen Sie den Bedingungen zu.",
+      });
+      return;
+    }
+
+    const calculatorData = JSON.parse(sessionStorage.getItem('calculatorData') || '{}');
+    const addressComponents = JSON.parse(sessionStorage.getItem('addressComponents') || '{}');
+
+    const webhookData = {
+      email,
+      practice_name: practiceName,
+      team_size: Number(calculatorData.teamSize) || 0,
+      dentists: Number(calculatorData.dentists) || 0,
+      assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
+      traditional_costs: Number(results.totalTraditionalCosts) || 0,
+      crocodile_costs: Number(results.crocodileCosts) || 0,
+      savings: Number(results.savings) || 0,
+      street_address: addressComponents.street || '',
+      city: addressComponents.city || '',
+      postal_code: addressComponents.postalCode || '',
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      toast({
+        title: "Erfolg!",
+        description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
+      });
+      setShowForm(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+      });
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -134,10 +199,59 @@ export const ResultCard = ({ results }: ResultCardProps) => {
           className="w-full max-w-md mx-auto mt-6"
         >
           <div className="p-1 rounded-2xl bg-gradient-to-r from-primary/50 via-primary to-primary/50">
-            <HubspotForm 
-              results={results} 
-              onSuccess={() => setShowForm(false)}
-            />
+            <div className="bg-card p-6 rounded-xl space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">E-Mail-Adresse*</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="bg-secondary border-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="practiceName">Name der Praxis*</Label>
+                    <Input
+                      id="practiceName"
+                      type="text"
+                      value={practiceName}
+                      onChange={(e) => setPracticeName(e.target.value)}
+                      required
+                      className="bg-secondary border-input"
+                    />
+                  </div>
+                  <div className="flex items-start space-x-3 pt-4">
+                    <Checkbox
+                      id="consent"
+                      checked={consent}
+                      onCheckedChange={(checked) => setConsent(checked as boolean)}
+                      className="mt-1"
+                    />
+                    <Label htmlFor="consent" className="text-sm leading-relaxed">
+                      Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*<br /><br />
+                      Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
+                      <a 
+                        href="https://www.crocodile-health.com/datenschutz" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Datenschutzvereinbarung
+                      </a>
+                      .<br /><br />
+                      Indem Sie auf „Anmelden" klicken, stimmen Sie zu, dass Crocodile Health GmbH die oben angegebenen persönlichen Daten speichert und verarbeitet, um Ihnen die angeforderten Inhalte bereitzustellen.
+                    </Label>
+                  </div>
+                </div>
+                <Button type="submit" className="w-full">
+                  Anmelden
+                </Button>
+              </form>
+            </div>
           </div>
         </motion.div>
       )}
