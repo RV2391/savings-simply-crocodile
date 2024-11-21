@@ -43,16 +43,17 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
           }
         },
         onFormSubmitted: async (submission: any) => {
+          // Extract form data from the submission
           const formData = submission.values || {};
-          const email = formData.email || '';
-          const practiceName = formData.practice_name || '';
           
+          // Get calculator data and address components from sessionStorage
           const calculatorData = JSON.parse(sessionStorage.getItem('calculatorData') || '{}');
           const addressComponents = JSON.parse(sessionStorage.getItem('addressComponents') || '{}');
           
+          // Create webhook data object with all required fields
           const webhookData = {
-            email,
-            practice_name: practiceName,
+            email: formData.email || '',
+            practice_name: formData.practice_name || '',
             team_size: Number(calculatorData.teamSize) || 0,
             dentists: Number(calculatorData.dentists) || 0,
             assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
