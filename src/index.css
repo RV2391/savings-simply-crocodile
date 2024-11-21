@@ -50,3 +50,41 @@
     @apply transition-transform duration-200 ease-in-out hover:scale-[1.02];
   }
 }
+
+/* HubSpot Form Custom Styling */
+.hubspot-form-wrapper {
+  @apply w-full max-w-[400px] mx-auto;
+}
+
+.hubspot-form-custom {
+  @apply space-y-4;
+}
+
+.hubspot-form-custom .hs-form-field {
+  @apply mb-4;
+}
+
+.hubspot-form-custom .hs-form-field label {
+  @apply block text-sm font-medium text-foreground mb-2;
+}
+
+.hubspot-form-custom .hs-input {
+  @apply w-full px-3 py-2 bg-secondary border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+}
+
+.hubspot-form-custom .hs-submit .actions {
+  @apply mt-6;
+}
+
+.hubspot-form-custom .hs-button {
+  @apply w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors;
+}
+
+.hubspot-form-custom .submitted-message {
+  @apply p-4 rounded-md bg-primary/10 border border-primary/20 text-center;
+  @apply text-sm text-foreground/90;
+}
+
+.hubspot-form-custom .submitted-message p {
+  @apply mb-2 font-medium;
+}

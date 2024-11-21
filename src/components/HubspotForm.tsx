@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { CalculationResults } from '@/utils/calculations';
+import { Card, CardContent } from "@/components/ui/card";
 
 interface HubspotFormProps {
   results: CalculationResults;
@@ -25,15 +26,13 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
         target: formContainerRef.current,
         region: "eu1",
         css: "",
-        cssClass: "w-full max-w-[400px] mx-auto",
+        cssClass: "hubspot-form-custom",
         onFormSubmitted: async (form: any) => {
           const email = form.getEmail();
           const practiceName = form.getField('practice_name')?.getValue();
           
-          // Get calculation data from sessionStorage
           const calculatorData = JSON.parse(sessionStorage.getItem('calculatorData') || '{}');
           
-          // Prepare data for webhook
           const webhookData = {
             email,
             practice_name: practiceName,
@@ -88,5 +87,22 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
     }
   }, [results, onSuccess]);
 
-  return <div ref={formContainerRef} />;
+  return (
+    <Card className="w-full max-w-[600px] mx-auto bg-white/5 backdrop-blur-sm border-primary/20">
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-center text-primary">
+            Ihre persönliche Kostenanalyse
+          </h3>
+          <p className="text-sm text-center text-muted-foreground mb-6">
+            Füllen Sie das Formular aus, um Ihre individuelle Kostenanalyse zu erhalten.
+          </p>
+          <div 
+            ref={formContainerRef} 
+            className="hubspot-form-wrapper"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
