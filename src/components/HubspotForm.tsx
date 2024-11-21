@@ -27,9 +27,9 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
         region: "eu1",
         css: "",
         cssClass: "hubspot-form-custom",
-        onFormSubmitted: async (form: any) => {
-          const email = form.getEmail();
-          const practiceName = form.getField('practice_name')?.getValue();
+        onFormSubmitted: async (submission: any) => {
+          const email = submission.submittedAt ? submission.values.email : '';
+          const practiceName = submission.values?.practice_name || '';
           
           const calculatorData = JSON.parse(sessionStorage.getItem('calculatorData') || '{}');
           
