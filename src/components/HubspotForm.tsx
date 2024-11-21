@@ -25,7 +25,7 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
         target: formContainerRef.current,
         region: "eu1",
         css: "",
-        cssClass: "bg-[#2a2a2a] rounded-lg max-w-sm mx-auto w-full",
+        cssClass: "bg-[#2a2a2a] rounded-lg w-full max-w-[400px] mx-auto",
         onFormSubmitted: async (form: any) => {
           const email = form.getEmail();
           const practiceName = form.getField('practice_name')?.getValue();
@@ -74,5 +74,5 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
     }
   }, [results, onSuccess]);
 
-  return <div ref={formContainerRef} className="mt-4" />;
+  return <div ref={formContainerRef} className="mt-2" />;
 };
