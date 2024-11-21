@@ -27,6 +27,21 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
         region: "eu1",
         css: "",
         cssClass: "hubspot-form-custom",
+        translations: {
+          de: {
+            submitText: "Ergebnisse anfordern",
+            submitButtonClass: "hs-button primary large",
+            successMessage: `
+              <div class="success-message-content">
+                <h4 class="text-xl font-semibold mb-3">Vielen Dank!</h4>
+                <p class="text-base">
+                  Bitte bestätigen Sie noch kurz Ihre E-Mail-Adresse.<br/>
+                  Wir haben Ihnen dafür eine E-Mail an die angegebene Adresse geschickt.
+                </p>
+              </div>
+            `
+          }
+        },
         onFormSubmitted: async (submission: any) => {
           const email = submission.submittedAt ? submission.values.email : '';
           const practiceName = submission.values?.practice_name || '';
@@ -46,8 +61,6 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
             timestamp: new Date().toISOString()
           };
 
-          console.log('Sending webhook data:', webhookData);
-
           try {
             const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
               method: 'POST',
@@ -58,16 +71,9 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
               body: JSON.stringify(webhookData)
             });
 
-            console.log('Webhook response status:', response.status);
-            
             if (!response.ok) {
-              const errorText = await response.text();
-              console.error('Webhook error:', errorText);
               throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            const responseData = await response.json();
-            console.log('Webhook response:', responseData);
 
             toast({
               title: "Erfolg!",

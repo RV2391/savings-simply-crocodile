@@ -81,10 +81,15 @@
 }
 
 .hubspot-form-custom .submitted-message {
-  @apply p-4 rounded-md bg-primary/10 border border-primary/20 text-center;
+  @apply p-6 rounded-lg bg-primary/10 border border-primary/20 text-center animate-fadeIn;
   @apply text-sm text-foreground/90;
 }
 
 .hubspot-form-custom .submitted-message p {
-  @apply mb-2 font-medium;
+  @apply mb-4 text-lg font-medium;
+}
+
+.hubspot-form-custom .submitted-message:before {
+  content: '✉️';
+  @apply block text-3xl mb-4;
 }
