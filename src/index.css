@@ -53,7 +53,7 @@
 
 /* HubSpot Form Custom Styling */
 .hubspot-form-wrapper {
-  @apply w-full max-w-[400px] mx-auto;
+  @apply w-full mx-auto;
 }
 
 .hubspot-form-custom {
