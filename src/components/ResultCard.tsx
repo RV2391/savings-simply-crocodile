@@ -114,6 +114,11 @@ export const ResultCard = ({ results }: ResultCardProps) => {
               >
                 Ergebnisse per E-Mail erhalten
               </Button>
+              {!showForm && (
+                <p className="text-sm text-gray-400 mt-2">
+                  Bitte füllen Sie das Formular unten aus, um Ihre detaillierte Kostenanalyse zu erhalten.
+                </p>
+              )}
             </div>
           </div>
         </div>
