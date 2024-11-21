@@ -99,10 +99,10 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
   }, [results, onSuccess]);
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-white/5 backdrop-blur-sm border-primary/20">
+    <Card className="w-full max-w-md mx-auto bg-black/20 backdrop-blur-sm border-primary/10">
       <CardContent className="p-6">
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-center text-primary">
+          <h3 className="text-xl font-semibold text-center text-foreground/90">
             Ihre persönliche Kostenanalyse
           </h3>
           <p className="text-sm text-center text-muted-foreground mb-6">
