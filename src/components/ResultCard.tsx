@@ -110,7 +110,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             onClick={() => setShowForm(true)}
             className="w-full bg-green-500 hover:bg-green-600"
           >
-            Fortbildungskosten-Rechner – Ergebnisse per E-Mail
+            Ergebnisse per E-Mail erhalten
           </Button>
         </div>
 
