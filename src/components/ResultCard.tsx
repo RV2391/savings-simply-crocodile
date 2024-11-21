@@ -14,13 +14,13 @@ export const ResultCard = ({ results }: ResultCardProps) => {
   const savingsColor = results.savings > 0 ? "text-green-500" : "text-primary";
 
   return (
-    <div className="flex flex-col items-center w-full gap-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md rounded-2xl bg-[#2a2a2a] p-6 shadow-lg"
-      >
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full max-w-md space-y-4"
+    >
+      <div className="rounded-2xl bg-[#2a2a2a] p-6 shadow-lg">
         <div className="space-y-4">
           <div className="text-center">
             <span className="text-sm font-medium text-gray-400">Jährliches Einsparpotenzial</span>
@@ -115,14 +115,14 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             </Button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {showForm && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="w-full max-w-md rounded-2xl bg-[#2a2a2a] p-6 shadow-lg"
+          className="rounded-2xl bg-[#2a2a2a] p-6 shadow-lg"
         >
           <HubspotForm 
             results={results} 
@@ -130,6 +130,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
           />
         </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
