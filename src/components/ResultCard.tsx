@@ -14,7 +14,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
   const savingsColor = results.savings > 0 ? "text-green-500" : "text-primary";
 
   return (
-    <div className="flex flex-col items-center w-full gap-2">
+    <div className="flex flex-col items-center w-full gap-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
             </div>
           )}
 
-          <div className="mt-6 text-center">
+          <div className="mt-6">
             <Button
               onClick={() => setShowForm(true)}
               className="w-full bg-green-500 hover:bg-green-600"
@@ -122,7 +122,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="w-full max-w-md"
+          className="w-full max-w-md rounded-2xl bg-[#2a2a2a] p-6 shadow-lg"
         >
           <HubspotForm 
             results={results} 
