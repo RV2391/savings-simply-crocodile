@@ -115,7 +115,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         </div>
 
         {showForm && (
-          <div className="mt-6 w-full">
+          <div className="mt-2">
             <HubspotForm 
               results={results} 
               onSuccess={() => setShowForm(false)}
