@@ -115,10 +115,12 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         </div>
 
         {showForm && (
-          <HubspotForm 
-            results={results} 
-            onSuccess={() => setShowForm(false)}
-          />
+          <div className="mt-6 w-full">
+            <HubspotForm 
+              results={results} 
+              onSuccess={() => setShowForm(false)}
+            />
+          </div>
         )}
       </div>
     </motion.div>

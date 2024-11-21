@@ -23,6 +23,9 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
         portalId: "24951213",
         formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
         target: formContainerRef.current,
+        region: "eu1",
+        css: "",
+        cssClass: "bg-[#2a2a2a] rounded-lg",
         onFormSubmitted: async (form: any) => {
           const email = form.getEmail();
           const practiceName = form.getField('practice_name')?.getValue();
@@ -71,5 +74,5 @@ export const HubspotForm = ({ results, onSuccess }: HubspotFormProps) => {
     }
   }, [results, onSuccess]);
 
-  return <div ref={formContainerRef} className="mt-6" />;
+  return <div ref={formContainerRef} className="mt-0" />;
 };
