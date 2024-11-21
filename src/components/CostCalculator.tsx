@@ -28,13 +28,22 @@ const defaultResults: CalculationResults = {
 };
 
 export const CostCalculator = () => {
-  const [inputs, setInputs] = useState<CalculationInputs>(defaultInputs);
+  const [inputs, setInputs] = useState<CalculationInputs>(() => {
+    const savedInputs = sessionStorage.getItem('calculatorData');
+    return savedInputs ? JSON.parse(savedInputs) : defaultInputs;
+  });
   const [results, setResults] = useState<CalculationResults>(defaultResults);
 
   useEffect(() => {
     const updateResults = async () => {
       const newResults = await calculateResults(inputs);
       setResults(newResults);
+      // Save to sessionStorage
+      sessionStorage.setItem('calculatorData', JSON.stringify({
+        ...inputs,
+        location: inputs.practiceLat && inputs.practiceLng ? 
+          `${inputs.practiceLat},${inputs.practiceLng}` : ''
+      }));
     };
     updateResults();
   }, [inputs]);

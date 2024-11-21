@@ -1,12 +1,16 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/utils/calculations";
 import type { CalculationResults } from "@/utils/calculations";
+import { HubspotForm } from "./HubspotForm";
 
 interface ResultCardProps {
   results: CalculationResults;
 }
 
 export const ResultCard = ({ results }: ResultCardProps) => {
+  const [showForm, setShowForm] = useState(false);
   const savingsColor = results.savings > 0 ? "text-green-500" : "text-primary";
 
   return (
@@ -99,6 +103,22 @@ export const ResultCard = ({ results }: ResultCardProps) => {
               </div>
             </div>
           </div>
+        )}
+
+        <div className="mt-6 text-center">
+          <Button
+            onClick={() => setShowForm(true)}
+            className="w-full bg-green-500 hover:bg-green-600"
+          >
+            Fortbildungskosten-Rechner – Ergebnisse per E-Mail
+          </Button>
+        </div>
+
+        {showForm && (
+          <HubspotForm 
+            results={results} 
+            onSuccess={() => setShowForm(false)}
+          />
         )}
       </div>
     </motion.div>
