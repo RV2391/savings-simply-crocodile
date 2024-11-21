@@ -89,6 +89,13 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
       setCity(newCity);
       setPostalCode(newPostalCode);
 
+      // Store address components in sessionStorage
+      sessionStorage.setItem('addressComponents', JSON.stringify({
+        street: newStreet,
+        city: newCity,
+        postalCode: newPostalCode
+      }));
+
       const lat = place.geometry.location.lat();
       const lng = place.geometry.location.lng();
       
