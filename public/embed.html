@@ -38,20 +38,22 @@
     <p>Um den Kostenkalkulator auf Ihrer Website einzubetten, fügen Sie bitte den folgenden Code an der gewünschten Stelle ein:</p>
     
     <pre><code>&lt;iframe 
-    src="https://savings.crocodile.health/embed"
+    src="https://savings-simply-crocodile.lovable.app/embed"
     style="width: 100%; min-width: 320px; height: 1200px; border: none; overflow: hidden;"
     title="Crocodile Kostenkalkulator"
     allow="clipboard-write"
 &gt;&lt;/iframe&gt;</code></pre>
 
     <div class="warning">
-        <strong>Wichtige Hinweise:</strong>
+        <strong>Wichtige Hinweise für Webflow:</strong>
         <ul>
+            <li>Fügen Sie den Code in ein "Embed"-Element in Webflow ein</li>
+            <li>Stellen Sie sicher, dass das Embed-Element auf "Full Width" gesetzt ist</li>
             <li>Die minimale empfohlene Breite beträgt 320px</li>
             <li>Die minimale empfohlene Höhe beträgt 1200px</li>
             <li>Stellen Sie sicher, dass Ihre Website HTTPS verwendet</li>
             <li>Der Kalkulator ist responsiv und passt sich der Breite des iframes an</li>
-            <li>Wenn Sie den Kalkulator auf einer HubSpot-Landingpage einbetten, fügen Sie bitte den iframe-Code in ein "Custom HTML"-Modul ein</li>
+            <li>Wenn der Kalkulator nicht erscheint, überprüfen Sie die Browser-Konsole auf CORS-Fehler</li>
         </ul>
     </div>
 
@@ -59,7 +61,7 @@
     <p>Hier sehen Sie, wie der Kalkulator eingebettet aussieht:</p>
     
     <iframe 
-        src="/embed"
+        src="https://savings-simply-crocodile.lovable.app/embed"
         style="width: 100%; min-width: 320px; height: 1200px; border: none; overflow: hidden;"
         title="Crocodile Kostenkalkulator"
         allow="clipboard-write"
