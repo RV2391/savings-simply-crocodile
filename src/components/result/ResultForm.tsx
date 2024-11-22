@@ -17,7 +17,20 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (window.hbspt) {
+    let retries = 0;
+    const maxRetries = 5;
+
+    const initHubSpotForm = () => {
+      if (!window.hbspt) {
+        if (retries < maxRetries) {
+          retries++;
+          setTimeout(initHubSpotForm, 1000);
+          return;
+        }
+        console.error("HubSpot script not loaded after maximum retries");
+        return;
+      }
+
       try {
         window.hbspt.forms.create({
           region: "eu1",
@@ -28,13 +41,16 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             console.log("HubSpot form ready");
             setIsHubSpotReady(true);
           },
+          onFormSubmitted: () => {
+            console.log("HubSpot form submitted");
+          },
         });
       } catch (err) {
         console.error("Error creating HubSpot form:", err);
       }
-    } else {
-      console.error("HubSpot script not loaded");
-    }
+    };
+
+    initHubSpotForm();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +70,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     try {
       await onSubmit(email, practiceName);
       
-      // Find and fill HubSpot form
+      // Find and submit HubSpot form
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       if (hubspotForm) {
         const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
@@ -73,6 +89,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             });
           }
         }
+      } else {
+        throw new Error('HubSpot form not found in DOM');
       }
     } catch (error) {
       console.error('Form submission error:', error);
