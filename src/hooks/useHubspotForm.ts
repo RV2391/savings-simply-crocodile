@@ -11,9 +11,17 @@ export const useHubspotForm = ({ portalId, formId, target }: UseHubspotFormProps
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let retries = 0;
+    const maxRetries = 5;
+    
     const initHubSpotForm = () => {
       if (!window.hbspt) {
-        console.error("HubSpot script not loaded");
+        if (retries < maxRetries) {
+          retries++;
+          setTimeout(initHubSpotForm, 1000);
+          return;
+        }
+        console.error("HubSpot script not loaded after maximum retries");
         setError("HubSpot script not loaded");
         return;
       }
@@ -38,13 +46,10 @@ export const useHubspotForm = ({ portalId, formId, target }: UseHubspotFormProps
       }
     };
 
-    // Wait a short moment to ensure the HubSpot script is loaded
-    const timer = setTimeout(() => {
-      initHubSpotForm();
-    }, 1000);
+    initHubSpotForm();
 
     return () => {
-      clearTimeout(timer);
+      // Cleanup if needed
     };
   }, [portalId, formId, target]);
 

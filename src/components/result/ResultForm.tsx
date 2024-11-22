@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useHubspotForm } from "@/hooks/useHubspotForm";
 import { FormFields } from "./FormFields";
 
 interface ResultFormProps {
@@ -14,13 +13,24 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const [practiceName, setPracticeName] = useState("");
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isHubSpotReady, setIsHubSpotReady] = useState(false);
   const { toast } = useToast();
 
-  const { isLoaded, error } = useHubspotForm({
-    portalId: "24951213",
-    formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
-    target: "#hubspot-form-container",
-  });
+  useEffect(() => {
+    // Initialize HubSpot form
+    if (window.hbspt) {
+      window.hbspt.forms.create({
+        region: "eu1",
+        portalId: "24951213",
+        formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
+        target: "#hubspot-form-container",
+        onFormReady: () => {
+          console.log("HubSpot form ready");
+          setIsHubSpotReady(true);
+        },
+      });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,36 +62,31 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       // First submit to Make webhook
       await onSubmit(email, practiceName);
 
-      // Then find and submit HubSpot form
-      const hubspotForm = document.querySelector<HTMLFormElement>('form.hs-form');
-      
+      // Find HubSpot form
+      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       if (!hubspotForm) {
-        console.error('HubSpot form not found in DOM');
         throw new Error('HubSpot form not found');
       }
 
-      // Find and set email field
+      // Set form values
       const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
-      if (emailInput) {
-        emailInput.value = email;
-      }
-
-      // Find and set consent checkbox
       const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
-      if (consentInput) {
+      
+      if (emailInput && consentInput) {
+        emailInput.value = email;
         consentInput.checked = consent;
+        
+        // Submit HubSpot form
+        const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
+        if (submitButton) {
+          submitButton.click();
+          
+          toast({
+            title: "Erfolg!",
+            description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
+          });
+        }
       }
-
-      // Submit the form
-      const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
-      if (submitButton) {
-        submitButton.click();
-      }
-
-      toast({
-        title: "Erfolg!",
-        description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
-      });
     } catch (error) {
       console.error('Form submission error:', error);
       toast({
@@ -116,13 +121,13 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isSubmitting || !isLoaded}
+              disabled={isSubmitting || !isHubSpotReady}
             >
               {isSubmitting ? "Wird gesendet..." : "Anmelden"}
             </Button>
           </form>
           
-          <div id="hubspot-form-container" className="hidden" />
+          <div id="hubspot-form-container" style={{ display: 'none' }} />
         </div>
       </div>
     </motion.div>
