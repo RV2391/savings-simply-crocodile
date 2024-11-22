@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,45 +22,53 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const [consent, setConsent] = useState(false);
   const { toast } = useToast();
   const [isHubSpotLoaded, setIsHubSpotLoaded] = useState(false);
+  const hubspotFormRef = useRef<HTMLDivElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Remove any existing HubSpot form script
-    const existingScript = document.querySelector('script[src*="hsforms"]');
-    if (existingScript) {
-      existingScript.remove();
-    }
+    let formCreated = false;
 
-    // Initialize HubSpot form
-    const script = document.createElement('script');
-    script.src = "//js-eu1.hsforms.net/forms/embed/v2.js";
-    script.charset = "utf-8";
-    script.type = "text/javascript";
-    
-    script.onload = () => {
-      if (window.hbspt) {
+    const initHubSpotForm = () => {
+      if (window.hbspt && !formCreated && hubspotFormRef.current) {
+        formCreated = true;
         window.hbspt.forms.create({
           region: "eu1",
           portalId: "24951213",
           formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
-          target: "#hidden-hubspot-form",
+          target: "#hubspot-form-container",
           onFormReady: () => {
+            console.log("HubSpot form ready");
             setIsHubSpotLoaded(true);
+          },
+          onFormSubmitted: () => {
+            console.log("HubSpot form submitted successfully");
           }
         });
       }
     };
 
-    document.body.appendChild(script);
+    // Load HubSpot script
+    const script = document.createElement('script');
+    script.src = "//js-eu1.hsforms.net/forms/embed/v2.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("HubSpot script loaded");
+      initHubSpotForm();
+    };
+    document.head.appendChild(script);
 
     return () => {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
+      formCreated = false;
     };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
     
     if (!email || !practiceName || !consent) {
       toast({
@@ -71,7 +79,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
@@ -82,34 +89,41 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       // Find the HubSpot form
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-      
       if (!hubspotForm) {
+        console.error('HubSpot form not found in DOM');
         throw new Error('HubSpot form not found');
       }
 
-      // Set the values in HubSpot form
+      // Get the email and consent inputs
       const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
-      const optInInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
-      
-      if (!emailInput || !optInInput) {
+      const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
+
+      if (!emailInput || !consentInput) {
+        console.error('Required HubSpot form fields not found', { emailInput, consentInput });
         throw new Error('Required HubSpot form fields not found');
       }
 
-      // Set the values
+      // Set values
       emailInput.value = email;
-      optInInput.checked = consent;
+      consentInput.checked = consent;
 
-      // Submit to HubSpot
+      // Submit HubSpot form
       const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
-      if (submitButton) {
-        submitButton.click();
+      if (!submitButton) {
+        console.error('HubSpot submit button not found');
+        throw new Error('HubSpot submit button not found');
       }
 
-      // Submit to Make webhook
+      // Submit to Make webhook first
       await onSubmit(email, practiceName);
+
+      // Then trigger HubSpot submission
+      submitButton.click();
       
       toast({
         title: "Erfolg!",
@@ -122,6 +136,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         title: "Fehler",
         description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -145,6 +161,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="bg-secondary border-input"
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -156,6 +173,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
                   onChange={(e) => setPracticeName(e.target.value)}
                   required
                   className="bg-secondary border-input"
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="flex items-start space-x-3 pt-4">
@@ -164,6 +182,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
                   checked={consent}
                   onCheckedChange={(checked) => setConsent(checked as boolean)}
                   className="mt-1"
+                  disabled={isSubmitting}
                 />
                 <Label htmlFor="consent" className="text-sm leading-relaxed">
                   Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*<br /><br />
@@ -181,13 +200,13 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
                 </Label>
               </div>
             </div>
-            <Button type="submit" className="w-full">
-              Anmelden
+            <Button type="submit" className="w-full" disabled={isSubmitting || !isHubSpotLoaded}>
+              {isSubmitting ? "Wird gesendet..." : "Anmelden"}
             </Button>
           </form>
           
-          {/* Hidden HubSpot form container */}
-          <div id="hidden-hubspot-form" style={{ display: 'none' }} />
+          {/* HubSpot form container */}
+          <div id="hubspot-form-container" ref={hubspotFormRef} style={{ display: 'none' }} />
         </div>
       </div>
     </motion.div>
