@@ -41,7 +41,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-[#1a1a1a] text-foreground antialiased;
+    @apply bg-[#1a141b] text-foreground antialiased;
   }
   .input-transition {
     @apply transition-all duration-200 ease-in-out;
