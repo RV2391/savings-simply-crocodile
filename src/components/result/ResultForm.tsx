@@ -21,27 +21,41 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const [practiceName, setPracticeName] = useState("");
   const [consent, setConsent] = useState(false);
   const { toast } = useToast();
+  const [isHubSpotLoaded, setIsHubSpotLoaded] = useState(false);
 
   useEffect(() => {
+    // Remove any existing HubSpot form script
+    const existingScript = document.querySelector('script[src*="hsforms"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
     // Initialize HubSpot form
     const script = document.createElement('script');
     script.src = "//js-eu1.hsforms.net/forms/embed/v2.js";
     script.charset = "utf-8";
     script.type = "text/javascript";
-    document.body.appendChild(script);
-
+    
     script.onload = () => {
       if (window.hbspt) {
         window.hbspt.forms.create({
+          region: "eu1",
           portalId: "24951213",
           formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
-          target: "#hidden-hubspot-form"
+          target: "#hidden-hubspot-form",
+          onFormReady: () => {
+            setIsHubSpotLoaded(true);
+          }
         });
       }
     };
 
+    document.body.appendChild(script);
+
     return () => {
-      document.body.removeChild(script);
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
     };
   }, []);
 
@@ -69,20 +83,29 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     }
 
     try {
-      // Submit to HubSpot
+      // Find the HubSpot form
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-      if (hubspotForm) {
-        const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
-        const optInInput = hubspotForm.querySelector<HTMLInputElement>('input[name="opt_in"]');
-        
-        if (emailInput && optInInput) {
-          emailInput.value = email;
-          optInInput.value = consent.toString();
-          
-          // Trigger HubSpot form submission
-          const submitButton = hubspotForm.querySelector<HTMLButtonElement>('input[type="submit"]');
-          submitButton?.click();
-        }
+      
+      if (!hubspotForm) {
+        throw new Error('HubSpot form not found');
+      }
+
+      // Set the values in HubSpot form
+      const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
+      const optInInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
+      
+      if (!emailInput || !optInInput) {
+        throw new Error('Required HubSpot form fields not found');
+      }
+
+      // Set the values
+      emailInput.value = email;
+      optInInput.checked = consent;
+
+      // Submit to HubSpot
+      const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
+      if (submitButton) {
+        submitButton.click();
       }
 
       // Submit to Make webhook
@@ -93,6 +116,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
       });
     } catch (error) {
+      console.error('Form submission error:', error);
       toast({
         variant: "destructive",
         title: "Fehler",
