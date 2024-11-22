@@ -18,9 +18,10 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
 
   // Check if we're in test mode
   const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
+  const debugMode = new URLSearchParams(window.location.search).get('debug') === 'true';
 
   useEffect(() => {
-    if (isTestMode) {
+    if (isTestMode && !debugMode) {
       console.log('Test mode active - HubSpot form integration disabled');
       setIsHubSpotReady(true);
       return;
@@ -61,7 +62,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         formContainer.innerHTML = '';
       }
     };
-  }, [isTestMode]);
+  }, [isTestMode, debugMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +81,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     try {
       await onSubmit(email, practiceName);
       
-      if (isTestMode) {
+      if (isTestMode && !debugMode) {
         console.log('Test mode - skipping HubSpot form submission');
         toast({
           title: "Test-Modus",
@@ -90,7 +91,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         return;
       }
 
-      // Nur im normalen Modus das HubSpot-Formular ausfüllen
+      // HubSpot-Formular ausfüllen
       console.log('Attempting to find HubSpot form...');
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       
@@ -114,15 +115,30 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             });
           } else {
             console.error('Submit button not found in HubSpot form');
+            toast({
+              variant: "destructive",
+              title: "Fehler",
+              description: "Submit-Button nicht gefunden",
+            });
           }
         } else {
           console.error('Required form fields not found:', {
             emailInput: !!emailInput,
             consentInput: !!consentInput
           });
+          toast({
+            variant: "destructive",
+            title: "Fehler",
+            description: "Erforderliche Formularfelder nicht gefunden",
+          });
         }
       } else {
         console.error('HubSpot form not found in DOM');
+        toast({
+          variant: "destructive",
+          title: "Fehler",
+          description: "HubSpot-Formular nicht gefunden",
+        });
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -158,13 +174,13 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isSubmitting || (!isTestMode && !isHubSpotReady)}
+              disabled={isSubmitting || (!isTestMode && !debugMode && !isHubSpotReady)}
             >
               {isSubmitting ? "Wird gesendet..." : "Anmelden"}
             </Button>
           </form>
           
-          {!isTestMode && <div id="hubspot-form-container" style={{ display: 'none' }} />}
+          <div id="hubspot-form-container" style={{ display: 'none' }} />
         </div>
       </div>
     </motion.div>
