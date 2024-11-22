@@ -186,7 +186,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             </Button>
           </form>
           
-          <div id="hubspot-form-container" />
+          <div id="hubspot-form-container" className="hidden" />
         </div>
       </div>
     </motion.div>
