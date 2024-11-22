@@ -28,18 +28,20 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
 
     const loadHubSpotForm = () => {
       if (typeof window.hbspt === 'undefined') {
+        console.log('HubSpot script not yet loaded, retrying...');
         setTimeout(loadHubSpotForm, 500);
         return;
       }
 
       try {
+        console.log('Creating HubSpot form...');
         window.hbspt.forms.create({
           region: "eu1",
           portalId: "24951213",
           formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
           target: "#hubspot-form-container",
           onFormReady: () => {
-            console.log("HubSpot form ready");
+            console.log("HubSpot form ready and mounted");
             setIsHubSpotReady(true);
           },
           onFormSubmitted: () => {
@@ -79,6 +81,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       await onSubmit(email, practiceName);
       
       if (isTestMode) {
+        console.log('Test mode - skipping HubSpot form submission');
         toast({
           title: "Test-Modus",
           description: "Formular erfolgreich getestet - keine HubSpot-Integration ausgeführt",
@@ -88,24 +91,38 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       }
 
       // Nur im normalen Modus das HubSpot-Formular ausfüllen
+      console.log('Attempting to find HubSpot form...');
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
+      
       if (hubspotForm) {
+        console.log('HubSpot form found, attempting to fill and submit...');
         const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
         const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
         
         if (emailInput && consentInput) {
+          console.log('Form fields found, setting values...');
           emailInput.value = email;
           consentInput.checked = consent;
           
           const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
           if (submitButton) {
+            console.log('Submitting HubSpot form...');
             submitButton.click();
             toast({
               title: "Erfolg!",
               description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
             });
+          } else {
+            console.error('Submit button not found in HubSpot form');
           }
+        } else {
+          console.error('Required form fields not found:', {
+            emailInput: !!emailInput,
+            consentInput: !!consentInput
+          });
         }
+      } else {
+        console.error('HubSpot form not found in DOM');
       }
     } catch (error) {
       console.error('Form submission error:', error);
