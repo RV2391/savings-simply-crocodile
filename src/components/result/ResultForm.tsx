@@ -27,10 +27,10 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       return;
     }
 
-    const loadHubSpotForm = () => {
+    const initHubSpotForm = () => {
       if (typeof window.hbspt === 'undefined') {
         console.log('HubSpot script not yet loaded, retrying...');
-        setTimeout(loadHubSpotForm, 500);
+        setTimeout(initHubSpotForm, 500);
         return;
       }
 
@@ -47,14 +47,24 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
           },
           onFormSubmitted: () => {
             console.log("HubSpot form submitted successfully");
+            toast({
+              title: "Erfolg!",
+              description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
+            });
           },
         });
       } catch (err) {
         console.error("Error creating HubSpot form:", err);
+        toast({
+          variant: "destructive",
+          title: "Fehler",
+          description: "Fehler beim Erstellen des HubSpot-Formulars",
+        });
       }
     };
 
-    loadHubSpotForm();
+    // Initialize HubSpot form
+    initHubSpotForm();
 
     return () => {
       const formContainer = document.getElementById('hubspot-form-container');
@@ -62,7 +72,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         formContainer.innerHTML = '';
       }
     };
-  }, [isTestMode, debugMode]);
+  }, [isTestMode, debugMode, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +89,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     setIsSubmitting(true);
 
     try {
+      // Send data to Make webhook
       await onSubmit(email, practiceName);
       
       if (isTestMode && !debugMode) {
@@ -91,8 +102,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         return;
       }
 
-      // HubSpot-Formular ausfüllen
-      console.log('Attempting to find HubSpot form...');
+      // Submit to HubSpot
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       
       if (hubspotForm) {
@@ -109,10 +119,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
           if (submitButton) {
             console.log('Submitting HubSpot form...');
             submitButton.click();
-            toast({
-              title: "Erfolg!",
-              description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
-            });
           } else {
             console.error('Submit button not found in HubSpot form');
             toast({
@@ -180,7 +186,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             </Button>
           </form>
           
-          <div id="hubspot-form-container" style={{ display: 'none' }} />
+          <div id="hubspot-form-container" />
         </div>
       </div>
     </motion.div>
