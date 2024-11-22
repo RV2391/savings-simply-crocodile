@@ -16,7 +16,16 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const [isHubSpotReady, setIsHubSpotReady] = useState(false);
   const { toast } = useToast();
 
+  // Check if we're in test mode
+  const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
+
   useEffect(() => {
+    if (isTestMode) {
+      console.log('Test mode active - HubSpot form integration disabled');
+      setIsHubSpotReady(true);
+      return;
+    }
+
     const loadHubSpotForm = () => {
       if (typeof window.hbspt === 'undefined') {
         setTimeout(loadHubSpotForm, 500);
@@ -50,7 +59,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         formContainer.innerHTML = '';
       }
     };
-  }, []);
+  }, [isTestMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +78,15 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     try {
       await onSubmit(email, practiceName);
       
+      if (isTestMode) {
+        toast({
+          title: "Test-Modus",
+          description: "Formular erfolgreich getestet - keine HubSpot-Integration ausgeführt",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const waitForHubSpotForm = () => {
         const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
         if (!hubspotForm) {
@@ -129,13 +147,13 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isSubmitting || !isHubSpotReady}
+              disabled={isSubmitting || (!isTestMode && !isHubSpotReady)}
             >
               {isSubmitting ? "Wird gesendet..." : "Anmelden"}
             </Button>
           </form>
           
-          <div id="hubspot-form-container" style={{ display: 'none' }} />
+          {!isTestMode && <div id="hubspot-form-container" style={{ display: 'none' }} />}
         </div>
       </div>
     </motion.div>
