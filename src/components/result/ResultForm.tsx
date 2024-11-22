@@ -25,15 +25,22 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       return;
     }
 
+    const formContainer = document.getElementById('hubspot-form-container');
+    if (!formContainer) return;
+
+    // Clear any existing content
+    formContainer.innerHTML = '';
+
     let retryCount = 0;
-    const maxRetries = 15;
-    const retryInterval = 4000; // 4 seconds
+    const maxRetries = 20;
+    const retryInterval = 2000; // 2 seconds
 
     const initHubSpotForm = () => {
+      console.log(`Attempting to initialize HubSpot form (attempt ${retryCount + 1}/${maxRetries})`);
+      
       if (typeof window.hbspt === 'undefined') {
         if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`Retry attempt ${retryCount} of ${maxRetries} for HubSpot form initialization`);
           setTimeout(initHubSpotForm, retryInterval);
         } else {
           console.error('HubSpot script failed to load after maximum retries');
@@ -42,19 +49,14 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         return;
       }
 
-      const formContainer = document.getElementById('hubspot-form-container');
-      if (!formContainer) return;
-
       try {
-        formContainer.innerHTML = '';
-        
         window.hbspt.forms.create({
           region: "eu1",
           portalId: "24951213",
           formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
           target: "#hubspot-form-container",
           onFormReady: () => {
-            console.log('HubSpot form is ready');
+            console.log('HubSpot form successfully created and ready');
             setIsHubSpotReady(true);
           },
           onFormSubmitted: () => {
@@ -66,16 +68,15 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         });
       } catch (err) {
         console.error("Error creating HubSpot form:", err);
-        setIsHubSpotReady(true); // Allow form submission even if HubSpot fails
+        setIsHubSpotReady(true);
       }
     };
 
     // Initial delay before first attempt
-    console.log('Starting HubSpot form initialization with 8 second delay');
-    setTimeout(initHubSpotForm, 8000);
+    console.log('Starting HubSpot form initialization with delay');
+    setTimeout(initHubSpotForm, 1000);
 
     return () => {
-      const formContainer = document.getElementById('hubspot-form-container');
       if (formContainer) {
         formContainer.innerHTML = '';
       }
@@ -107,9 +108,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         setIsSubmitting(false);
         return;
       }
-
-      // Wait for HubSpot form to be fully ready
-      await new Promise(resolve => setTimeout(resolve, 3000));
 
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       if (!hubspotForm) {
@@ -175,7 +173,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
           <div 
             id="hubspot-form-container" 
             style={{ 
-              position: 'fixed',
+              position: 'absolute',
               left: '-9999px',
               top: '-9999px',
               width: '1px',
