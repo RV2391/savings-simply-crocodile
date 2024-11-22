@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,11 +10,40 @@ interface ResultFormProps {
   onSubmit: (email: string, practiceName: string) => Promise<void>;
 }
 
+declare global {
+  interface Window {
+    hbspt: any;
+  }
+}
+
 export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const [email, setEmail] = useState("");
   const [practiceName, setPracticeName] = useState("");
   const [consent, setConsent] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Initialize HubSpot form
+    const script = document.createElement('script');
+    script.src = "//js-eu1.hsforms.net/forms/embed/v2.js";
+    script.charset = "utf-8";
+    script.type = "text/javascript";
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      if (window.hbspt) {
+        window.hbspt.forms.create({
+          portalId: "24951213",
+          formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
+          target: "#hidden-hubspot-form"
+        });
+      }
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +68,37 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       return;
     }
 
-    await onSubmit(email, practiceName);
+    try {
+      // Submit to HubSpot
+      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
+      if (hubspotForm) {
+        const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
+        const optInInput = hubspotForm.querySelector<HTMLInputElement>('input[name="opt_in"]');
+        
+        if (emailInput && optInInput) {
+          emailInput.value = email;
+          optInInput.value = consent.toString();
+          
+          // Trigger HubSpot form submission
+          const submitButton = hubspotForm.querySelector<HTMLButtonElement>('input[type="submit"]');
+          submitButton?.click();
+        }
+      }
+
+      // Submit to Make webhook
+      await onSubmit(email, practiceName);
+      
+      toast({
+        title: "Erfolg!",
+        description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+      });
+    }
   };
 
   return (
@@ -102,6 +161,9 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
               Anmelden
             </Button>
           </form>
+          
+          {/* Hidden HubSpot form container */}
+          <div id="hidden-hubspot-form" style={{ display: 'none' }} />
         </div>
       </div>
     </motion.div>
