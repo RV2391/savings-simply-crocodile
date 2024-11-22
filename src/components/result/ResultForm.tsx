@@ -17,17 +17,9 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    let retries = 0;
-    const maxRetries = 5;
-
-    const initHubSpotForm = () => {
-      if (!window.hbspt) {
-        if (retries < maxRetries) {
-          retries++;
-          setTimeout(initHubSpotForm, 1000);
-          return;
-        }
-        console.error("HubSpot script not loaded after maximum retries");
+    const loadHubSpotForm = () => {
+      if (typeof window.hbspt === 'undefined') {
+        setTimeout(loadHubSpotForm, 500);
         return;
       }
 
@@ -42,7 +34,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             setIsHubSpotReady(true);
           },
           onFormSubmitted: () => {
-            console.log("HubSpot form submitted");
+            console.log("HubSpot form submitted successfully");
           },
         });
       } catch (err) {
@@ -50,7 +42,14 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       }
     };
 
-    initHubSpotForm();
+    loadHubSpotForm();
+
+    return () => {
+      const formContainer = document.getElementById('hubspot-form-container');
+      if (formContainer) {
+        formContainer.innerHTML = '';
+      }
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,9 +69,13 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     try {
       await onSubmit(email, practiceName);
       
-      // Find and submit HubSpot form
-      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-      if (hubspotForm) {
+      const waitForHubSpotForm = () => {
+        const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
+        if (!hubspotForm) {
+          setTimeout(waitForHubSpotForm, 500);
+          return;
+        }
+
         const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
         const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
         
@@ -89,9 +92,9 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             });
           }
         }
-      } else {
-        throw new Error('HubSpot form not found in DOM');
-      }
+      };
+
+      waitForHubSpotForm();
     } catch (error) {
       console.error('Form submission error:', error);
       toast({

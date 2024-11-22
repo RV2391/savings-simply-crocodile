@@ -12,7 +12,7 @@ export const useHubspotForm = ({ portalId, formId, target }: UseHubspotFormProps
 
   useEffect(() => {
     let retries = 0;
-    const maxRetries = 5;
+    const maxRetries = 10;
     
     const initHubSpotForm = () => {
       if (!window.hbspt) {
@@ -49,7 +49,10 @@ export const useHubspotForm = ({ portalId, formId, target }: UseHubspotFormProps
     initHubSpotForm();
 
     return () => {
-      // Cleanup if needed
+      const formContainer = document.querySelector(target);
+      if (formContainer) {
+        formContainer.innerHTML = '';
+      }
     };
   }, [portalId, formId, target]);
 
