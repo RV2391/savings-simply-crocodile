@@ -87,13 +87,9 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         return;
       }
 
-      const waitForHubSpotForm = () => {
-        const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-        if (!hubspotForm) {
-          setTimeout(waitForHubSpotForm, 500);
-          return;
-        }
-
+      // Nur im normalen Modus das HubSpot-Formular ausfüllen
+      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
+      if (hubspotForm) {
         const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
         const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
         
@@ -110,9 +106,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             });
           }
         }
-      };
-
-      waitForHubSpotForm();
+      }
     } catch (error) {
       console.error('Form submission error:', error);
       toast({
