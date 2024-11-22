@@ -40,10 +40,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       }
 
       try {
-        // Entferne vorhandene Formulare
         formContainer.innerHTML = '';
         
-        console.log('Creating HubSpot form...');
         window.hbspt.forms.create({
           region: "eu1",
           portalId: "24951213",
@@ -71,10 +69,12 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       }
     };
 
-    // Warte kurz, bis das DOM vollständig geladen ist
-    setTimeout(initHubSpotForm, 500);
+    const timer = setTimeout(() => {
+      initHubSpotForm();
+    }, 2000);
 
     return () => {
+      clearTimeout(timer);
       const formContainer = document.getElementById('hubspot-form-container');
       if (formContainer) {
         formContainer.innerHTML = '';
@@ -109,13 +109,14 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         return;
       }
 
+      // Warte kurz, bis das Formular garantiert geladen ist
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-      
       if (!hubspotForm) {
         throw new Error('HubSpot form not found in DOM');
       }
 
-      console.log('HubSpot form found, attempting to fill and submit...');
       const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
       const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
       
@@ -123,7 +124,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         throw new Error('Required form fields not found');
       }
 
-      console.log('Form fields found, setting values...');
       emailInput.value = email;
       consentInput.checked = consent;
       
@@ -132,7 +132,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         throw new Error('Submit button not found in HubSpot form');
       }
 
-      console.log('Submitting HubSpot form...');
       submitButton.click();
     } catch (error) {
       console.error('Form submission error:', error);
@@ -174,7 +173,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             </Button>
           </form>
           
-          <div id="hubspot-form-container" className="hidden" style={{ position: 'absolute', left: '-9999px' }} />
+          <div id="hubspot-form-container" style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
         </div>
       </div>
     </motion.div>
