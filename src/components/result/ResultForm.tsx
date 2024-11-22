@@ -17,25 +17,28 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize HubSpot form
     if (window.hbspt) {
-      window.hbspt.forms.create({
-        region: "eu1",
-        portalId: "24951213",
-        formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
-        target: "#hubspot-form-container",
-        onFormReady: () => {
-          console.log("HubSpot form ready");
-          setIsHubSpotReady(true);
-        },
-      });
+      try {
+        window.hbspt.forms.create({
+          region: "eu1",
+          portalId: "24951213",
+          formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
+          target: "#hubspot-form-container",
+          onFormReady: () => {
+            console.log("HubSpot form ready");
+            setIsHubSpotReady(true);
+          },
+        });
+      } catch (err) {
+        console.error("Error creating HubSpot form:", err);
+      }
+    } else {
+      console.error("HubSpot script not loaded");
     }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (isSubmitting) return;
     
     if (!email || !practiceName || !consent) {
       toast({
@@ -46,45 +49,29 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      // First submit to Make webhook
       await onSubmit(email, practiceName);
-
-      // Find HubSpot form
-      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-      if (!hubspotForm) {
-        throw new Error('HubSpot form not found');
-      }
-
-      // Set form values
-      const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
-      const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
       
-      if (emailInput && consentInput) {
-        emailInput.value = email;
-        consentInput.checked = consent;
+      // Find and fill HubSpot form
+      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
+      if (hubspotForm) {
+        const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
+        const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
         
-        // Submit HubSpot form
-        const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
-        if (submitButton) {
-          submitButton.click();
+        if (emailInput && consentInput) {
+          emailInput.value = email;
+          consentInput.checked = consent;
           
-          toast({
-            title: "Erfolg!",
-            description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
-          });
+          const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
+          if (submitButton) {
+            submitButton.click();
+            toast({
+              title: "Erfolg!",
+              description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
+            });
+          }
         }
       }
     } catch (error) {
