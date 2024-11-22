@@ -26,8 +26,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     }
 
     let retryCount = 0;
-    const maxRetries = 5;
-    const retryInterval = 2000; // 2 seconds
+    const maxRetries = 10;
+    const retryInterval = 3000; // 3 seconds
 
     const initHubSpotForm = () => {
       if (typeof window.hbspt === 'undefined') {
@@ -69,10 +69,9 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     };
 
     // Initial delay before first attempt
-    const timer = setTimeout(initHubSpotForm, 3000);
+    setTimeout(initHubSpotForm, 5000); // Increased initial delay to 5 seconds
 
     return () => {
-      clearTimeout(timer);
       const formContainer = document.getElementById('hubspot-form-container');
       if (formContainer) {
         formContainer.innerHTML = '';
@@ -107,7 +106,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       }
 
       // Wait for HubSpot form to be fully ready
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       if (!hubspotForm) {
@@ -173,12 +172,15 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
           <div 
             id="hubspot-form-container" 
             style={{ 
-              position: 'absolute', 
+              position: 'fixed',
               left: '-9999px',
-              visibility: 'hidden',
-              height: '0',
+              top: '-9999px',
+              width: '1px',
+              height: '1px',
               overflow: 'hidden',
-              pointerEvents: 'none'
+              visibility: 'hidden',
+              pointerEvents: 'none',
+              opacity: 0
             }} 
           />
         </div>
