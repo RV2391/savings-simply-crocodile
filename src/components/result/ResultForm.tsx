@@ -52,29 +52,32 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       // First submit to Make webhook
       await onSubmit(email, practiceName);
 
-      // Then submit HubSpot form
-      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
+      // Then find and submit HubSpot form
+      const hubspotForm = document.querySelector<HTMLFormElement>('form.hs-form');
+      
       if (!hubspotForm) {
+        console.error('HubSpot form not found in DOM');
         throw new Error('HubSpot form not found');
       }
 
+      // Find and set email field
       const emailInput = hubspotForm.querySelector<HTMLInputElement>('input[name="email"]');
+      if (emailInput) {
+        emailInput.value = email;
+      }
+
+      // Find and set consent checkbox
       const consentInput = hubspotForm.querySelector<HTMLInputElement>('input[name="LEGAL_CONSENT.subscription_type_10947229"]');
-      
-      if (!emailInput || !consentInput) {
-        throw new Error('Required HubSpot form fields not found');
+      if (consentInput) {
+        consentInput.checked = consent;
       }
 
-      emailInput.value = email;
-      consentInput.checked = consent;
-
+      // Submit the form
       const submitButton = hubspotForm.querySelector<HTMLInputElement>('input[type="submit"]');
-      if (!submitButton) {
-        throw new Error('HubSpot submit button not found');
+      if (submitButton) {
+        submitButton.click();
       }
 
-      submitButton.click();
-      
       toast({
         title: "Erfolg!",
         description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
@@ -90,10 +93,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       setIsSubmitting(false);
     }
   };
-
-  if (error) {
-    console.error('HubSpot form error:', error);
-  }
 
   return (
     <motion.div
@@ -123,7 +122,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             </Button>
           </form>
           
-          <div id="hubspot-form-container" style={{ display: 'none' }} />
+          <div id="hubspot-form-container" className="hidden" />
         </div>
       </div>
     </motion.div>

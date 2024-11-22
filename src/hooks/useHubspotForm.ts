@@ -13,6 +13,7 @@ export const useHubspotForm = ({ portalId, formId, target }: UseHubspotFormProps
   useEffect(() => {
     const initHubSpotForm = () => {
       if (!window.hbspt) {
+        console.error("HubSpot script not loaded");
         setError("HubSpot script not loaded");
         return;
       }
@@ -37,23 +38,13 @@ export const useHubspotForm = ({ portalId, formId, target }: UseHubspotFormProps
       }
     };
 
-    // Load HubSpot script
-    const script = document.createElement("script");
-    script.src = "//js-eu1.hsforms.net/forms/embed/v2.js";
-    script.async = true;
-    script.onload = () => {
-      console.log("HubSpot script loaded");
+    // Wait a short moment to ensure the HubSpot script is loaded
+    const timer = setTimeout(() => {
       initHubSpotForm();
-    };
-    script.onerror = () => {
-      setError("Failed to load HubSpot script");
-    };
-    document.head.appendChild(script);
+    }, 1000);
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
+      clearTimeout(timer);
     };
   }, [portalId, formId, target]);
 
