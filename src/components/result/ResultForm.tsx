@@ -21,23 +21,28 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
 
   useEffect(() => {
     if (isTestMode && !debugMode) {
-      console.log('Test mode active - HubSpot form integration disabled');
       setIsHubSpotReady(true);
       return;
     }
 
+    let retryCount = 0;
+    const maxRetries = 5;
+    const retryInterval = 2000; // 2 seconds
+
     const initHubSpotForm = () => {
       if (typeof window.hbspt === 'undefined') {
-        console.log('HubSpot script not yet loaded, retrying...');
-        setTimeout(initHubSpotForm, 1000);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(initHubSpotForm, retryInterval);
+        } else {
+          console.error('HubSpot script failed to load after maximum retries');
+          setIsHubSpotReady(true); // Allow form submission even if HubSpot fails
+        }
         return;
       }
 
       const formContainer = document.getElementById('hubspot-form-container');
-      if (!formContainer) {
-        console.error('HubSpot form container not found');
-        return;
-      }
+      if (!formContainer) return;
 
       try {
         formContainer.innerHTML = '';
@@ -48,11 +53,9 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
           formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
           target: "#hubspot-form-container",
           onFormReady: () => {
-            console.log("HubSpot form ready and mounted");
             setIsHubSpotReady(true);
           },
           onFormSubmitted: () => {
-            console.log("HubSpot form submitted successfully");
             toast({
               title: "Erfolg!",
               description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
@@ -61,17 +64,12 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         });
       } catch (err) {
         console.error("Error creating HubSpot form:", err);
-        toast({
-          variant: "destructive",
-          title: "Fehler",
-          description: "Fehler beim Erstellen des HubSpot-Formulars",
-        });
+        setIsHubSpotReady(true); // Allow form submission even if HubSpot fails
       }
     };
 
-    const timer = setTimeout(() => {
-      initHubSpotForm();
-    }, 2000);
+    // Initial delay before first attempt
+    const timer = setTimeout(initHubSpotForm, 3000);
 
     return () => {
       clearTimeout(timer);
@@ -100,7 +98,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       await onSubmit(email, practiceName);
       
       if (isTestMode && !debugMode) {
-        console.log('Test mode - skipping HubSpot form submission');
         toast({
           title: "Test-Modus",
           description: "Formular erfolgreich getestet - keine HubSpot-Integration ausgeführt",
@@ -109,8 +106,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         return;
       }
 
-      // Warte kurz, bis das Formular garantiert geladen ist
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for HubSpot form to be fully ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       if (!hubspotForm) {
@@ -173,7 +170,17 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
             </Button>
           </form>
           
-          <div id="hubspot-form-container" style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none' }} />
+          <div 
+            id="hubspot-form-container" 
+            style={{ 
+              position: 'absolute', 
+              left: '-9999px',
+              visibility: 'hidden',
+              height: '0',
+              overflow: 'hidden',
+              pointerEvents: 'none'
+            }} 
+          />
         </div>
       </div>
     </motion.div>
