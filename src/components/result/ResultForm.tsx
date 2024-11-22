@@ -26,13 +26,14 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     }
 
     let retryCount = 0;
-    const maxRetries = 10;
-    const retryInterval = 3000; // 3 seconds
+    const maxRetries = 15;
+    const retryInterval = 4000; // 4 seconds
 
     const initHubSpotForm = () => {
       if (typeof window.hbspt === 'undefined') {
         if (retryCount < maxRetries) {
           retryCount++;
+          console.log(`Retry attempt ${retryCount} of ${maxRetries} for HubSpot form initialization`);
           setTimeout(initHubSpotForm, retryInterval);
         } else {
           console.error('HubSpot script failed to load after maximum retries');
@@ -53,6 +54,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
           formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
           target: "#hubspot-form-container",
           onFormReady: () => {
+            console.log('HubSpot form is ready');
             setIsHubSpotReady(true);
           },
           onFormSubmitted: () => {
@@ -69,7 +71,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     };
 
     // Initial delay before first attempt
-    setTimeout(initHubSpotForm, 5000); // Increased initial delay to 5 seconds
+    console.log('Starting HubSpot form initialization with 8 second delay');
+    setTimeout(initHubSpotForm, 8000);
 
     return () => {
       const formContainer = document.getElementById('hubspot-form-container');
@@ -106,7 +109,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       }
 
       // Wait for HubSpot form to be fully ready
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
       const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
       if (!hubspotForm) {
@@ -180,7 +183,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
               overflow: 'hidden',
               visibility: 'hidden',
               pointerEvents: 'none',
-              opacity: 0
+              opacity: 0,
+              zIndex: -1
             }} 
           />
         </div>
