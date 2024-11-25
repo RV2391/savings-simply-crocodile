@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useHubspotForm } from "@/hooks/useHubspotForm";
 
@@ -22,10 +21,10 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-md mx-auto mt-6"
+      className="w-full max-w-2xl mx-auto mt-6"
     >
-      <div className="p-1 rounded-2xl bg-gradient-to-r from-primary/50 via-primary to-primary/50">
-        <div className="bg-card p-8 rounded-xl">
+      <div className="bg-card rounded-2xl shadow-xl">
+        <div className="hubspot-form-custom">
           <div id="hubspotForm" className="hubspot-form-wrapper" />
         </div>
       </div>
