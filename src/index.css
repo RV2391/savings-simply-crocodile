@@ -6,32 +6,23 @@
   :root {
     --background: 0 0% 10%;
     --foreground: 0 0% 100%;
- 
     --card: 0 0% 10%;
     --card-foreground: 0 0% 100%;
- 
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 100%;
- 
     --primary: 353 83% 57%;
     --primary-foreground: 0 0% 100%;
- 
     --secondary: 0 0% 16%;
     --secondary-foreground: 0 0% 100%;
- 
     --muted: 0 0% 16%;
     --muted-foreground: 0 0% 63%;
- 
     --accent: 353 83% 57%;
     --accent-foreground: 0 0% 100%;
- 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
- 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
     --ring: 353 83% 57%;
- 
     --radius: 0.75rem;
   }
 }
@@ -57,49 +48,49 @@
 }
 
 .hubspot-form-custom {
-  @apply space-y-4 bg-card p-6 rounded-xl;
+  @apply space-y-6 bg-card p-8 rounded-xl;
 }
 
 .hubspot-form-custom .hs-form-field {
-  @apply mb-4;
+  @apply mb-6;
 }
 
 .hubspot-form-custom .hs-form-field label {
-  @apply block text-base font-medium text-foreground mb-2;
+  @apply block text-lg font-medium text-foreground mb-3;
 }
 
 .hubspot-form-custom .hs-input {
-  @apply w-full px-4 py-3 bg-secondary border border-input rounded-md text-base
+  @apply w-full px-5 py-4 bg-secondary border-2 border-input rounded-md text-lg
          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .hubspot-form-custom .hs-submit .actions {
-  @apply mt-6;
+  @apply mt-8;
 }
 
 .hubspot-form-custom .hs-button {
-  @apply w-full px-6 py-3 bg-primary text-lg font-medium text-primary-foreground rounded-md 
+  @apply w-full px-8 py-4 bg-primary text-xl font-medium text-primary-foreground rounded-md 
          hover:bg-primary/90 transition-colors;
 }
 
 .hubspot-form-custom .submitted-message {
-  @apply p-6 rounded-lg bg-primary/10 border border-primary/20 text-center animate-fadeIn;
-  @apply text-base text-foreground/90;
+  @apply p-8 rounded-lg bg-primary/10 border border-primary/20 text-center animate-fadeIn;
+  @apply text-lg text-foreground/90;
 }
 
 .hubspot-form-custom .submitted-message p {
-  @apply mb-4 text-lg font-medium;
+  @apply mb-4 text-xl font-medium;
 }
 
 .hubspot-form-custom .submitted-message:before {
   content: '✉️';
-  @apply block text-3xl mb-4;
+  @apply block text-4xl mb-4;
 }
 
 .hubspot-form-custom .hs-error-msgs {
-  @apply mt-2 text-sm text-red-500 list-none p-0;
+  @apply mt-3 text-base text-red-500 list-none p-0;
 }
 
 .hubspot-form-custom .hs-error-msgs label {
-  @apply text-sm font-normal text-red-500;
+  @apply text-base font-normal text-red-500;
 }
