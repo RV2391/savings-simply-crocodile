@@ -3,6 +3,7 @@ interface HubSpotFormOptions {
   formId: string;
   target: string;
   region?: string;
+  css?: string;
   onFormReady?: () => void;
   onFormSubmitted?: () => void;
 }

@@ -32,7 +32,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
         portalId: "24951213",
         formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
         target: "#hubspot-form-container",
-        css: "",
         onFormReady: () => {
           console.log('HubSpot form ready');
           // Hide the HubSpot form's submit button as we'll use our own
