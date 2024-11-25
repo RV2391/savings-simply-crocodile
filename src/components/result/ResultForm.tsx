@@ -23,10 +23,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       transition={{ duration: 0.3 }}
       className="w-full max-w-2xl mx-auto mt-6"
     >
-      <div className="bg-card rounded-2xl shadow-xl">
-        <div className="hubspot-form-custom">
-          <div id="hubspotForm" className="hubspot-form-wrapper" />
-        </div>
+      <div className="bg-[#2a2a2a] rounded-2xl p-8">
+        <div id="hubspotForm" className="hubspot-form-wrapper" />
       </div>
     </motion.div>
   );

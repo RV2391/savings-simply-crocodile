@@ -48,51 +48,34 @@
 }
 
 .hubspot-form-custom {
-  @apply p-8 rounded-xl;
+  @apply p-6;
 }
 
 .hubspot-form-custom .hs-form-field {
-  @apply mb-6;
+  @apply mb-4;
 }
 
 .hubspot-form-custom .hs-form-field label {
-  @apply block text-lg font-medium text-white mb-3;
+  @apply block text-base font-medium text-white mb-2;
 }
 
 .hubspot-form-custom .hs-input {
-  @apply w-full px-5 py-4 bg-[#2a2a2a] border-2 border-[#3a3a3a] rounded-md text-lg text-white
+  @apply w-full px-4 py-3 bg-[#1a1a1a] border border-[#3a3a3a] rounded-md text-base text-white
          focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .hubspot-form-custom .hs-submit .actions {
-  @apply mt-8;
+  @apply mt-6;
 }
 
 .hubspot-form-custom .hs-button {
-  @apply w-full px-8 py-4 bg-primary text-xl font-medium text-white rounded-md 
+  @apply w-full px-6 py-3 bg-primary text-base font-medium text-white rounded-md 
          hover:bg-primary/90 transition-colors cursor-pointer;
 }
 
 .hubspot-form-custom .submitted-message {
-  @apply p-8 rounded-lg bg-primary/10 border border-primary/20 text-center animate-fadeIn;
-  @apply text-lg text-white;
-}
-
-.hubspot-form-custom .submitted-message p {
-  @apply mb-4 text-xl font-medium text-white;
-}
-
-.hubspot-form-custom .submitted-message:before {
-  content: '✉️';
-  @apply block text-4xl mb-4;
-}
-
-.hubspot-form-custom .hs-error-msgs {
-  @apply mt-3 text-base text-red-500 list-none p-0;
-}
-
-.hubspot-form-custom .hs-error-msgs label {
-  @apply text-base font-normal text-red-500;
+  @apply p-6 rounded-lg bg-primary/10 border border-primary/20 text-center;
+  @apply text-base text-white;
 }
 
 .hubspot-form-custom form {
@@ -104,9 +87,13 @@
 }
 
 .hubspot-form-custom .hs-richtext {
-  @apply text-white text-base mb-4;
+  @apply text-white text-sm mb-4;
 }
 
 .hubspot-form-custom .legal-consent-container {
-  @apply text-white text-base;
+  @apply text-white text-sm;
+}
+
+.hubspot-form-custom .hs-error-msgs {
+  @apply mt-2 text-sm text-red-500 list-none p-0;
 }
