@@ -65,11 +65,12 @@
 }
 
 .hubspot-form-custom .hs-form-field label {
-  @apply block text-sm font-medium text-foreground mb-2;
+  @apply block text-base font-medium text-foreground mb-2;
 }
 
 .hubspot-form-custom .hs-input {
-  @apply w-full px-3 py-2 bg-secondary border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply w-full px-4 py-3 bg-secondary border border-input rounded-md text-base
+         focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .hubspot-form-custom .hs-submit .actions {
@@ -77,12 +78,13 @@
 }
 
 .hubspot-form-custom .hs-button {
-  @apply w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors;
+  @apply w-full px-6 py-3 bg-primary text-lg font-medium text-primary-foreground rounded-md 
+         hover:bg-primary/90 transition-colors;
 }
 
 .hubspot-form-custom .submitted-message {
   @apply p-6 rounded-lg bg-primary/10 border border-primary/20 text-center animate-fadeIn;
-  @apply text-sm text-foreground/90;
+  @apply text-base text-foreground/90;
 }
 
 .hubspot-form-custom .submitted-message p {
@@ -92,4 +94,12 @@
 .hubspot-form-custom .submitted-message:before {
   content: '✉️';
   @apply block text-3xl mb-4;
+}
+
+.hubspot-form-custom .hs-error-msgs {
+  @apply mt-2 text-sm text-red-500 list-none p-0;
+}
+
+.hubspot-form-custom .hs-error-msgs label {
+  @apply text-sm font-normal text-red-500;
 }

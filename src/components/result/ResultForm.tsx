@@ -25,8 +25,8 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       className="w-full max-w-md mx-auto mt-6"
     >
       <div className="p-1 rounded-2xl bg-gradient-to-r from-primary/50 via-primary to-primary/50">
-        <div className="bg-card p-6 rounded-xl space-y-6">
-          <div id="hubspotForm" className="hubspot-form-container" />
+        <div className="bg-card p-8 rounded-xl">
+          <div id="hubspotForm" className="hubspot-form-wrapper" />
         </div>
       </div>
     </motion.div>
