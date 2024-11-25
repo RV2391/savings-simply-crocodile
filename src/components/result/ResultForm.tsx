@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -15,52 +15,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
-  const debugMode = new URLSearchParams(window.location.search).get('debug') === 'true';
-
-  useEffect(() => {
-    if (isTestMode) return;
-
-    const formContainer = document.getElementById('hubspot-form-container');
-    if (!formContainer) return;
-
-    formContainer.innerHTML = '';
-
-    try {
-      window.hbspt.forms.create({
-        region: "eu1",
-        portalId: "24951213",
-        formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
-        target: "#hubspot-form-container",
-        onFormReady: () => {
-          console.log('HubSpot form ready');
-          // Hide the HubSpot form's submit button as we'll use our own
-          const hubspotForm = document.querySelector('.hs-form');
-          if (hubspotForm) {
-            const submitBtn = hubspotForm.querySelector('.hs-button');
-            if (submitBtn) {
-              (submitBtn as HTMLElement).style.display = 'none';
-            }
-          }
-        },
-        onFormSubmitted: () => {
-          toast({
-            title: "Erfolg!",
-            description: "Bitte bestätigen Sie Ihre E-Mail-Adresse über den Link, den wir Ihnen zugesendet haben.",
-          });
-        },
-      });
-    } catch (err) {
-      console.error("Error creating HubSpot form:", err);
-    }
-
-    return () => {
-      if (formContainer) {
-        formContainer.innerHTML = '';
-      }
-    };
-  }, [toast, isTestMode]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -76,39 +30,12 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
     setIsSubmitting(true);
 
     try {
-      // 1. First send data to Make webhook
       await onSubmit(email, practiceName);
       
-      if (isTestMode && !debugMode) {
-        toast({
-          title: "Test-Modus",
-          description: "Formular erfolgreich getestet - keine HubSpot-Integration ausgeführt",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 2. Then handle HubSpot form submission
-      const hubspotForm = document.querySelector<HTMLFormElement>('.hs-form');
-      if (!hubspotForm) {
-        throw new Error('HubSpot form not found in DOM');
-      }
-
-      // Find and fill all HubSpot form fields
-      const inputs = hubspotForm.querySelectorAll('input');
-      inputs.forEach(input => {
-        if (input.name === 'email') {
-          input.value = email;
-        }
-        if (input.name === 'LEGAL_CONSENT.subscription_type_10947229') {
-          input.checked = consent;
-        }
+      toast({
+        title: "Erfolg!",
+        description: "Ihre Berechnung wurde gespeichert. Sie erhalten in Kürze eine E-Mail mit den Details.",
       });
-
-      // Trigger form submission
-      const formData = new FormData(hubspotForm);
-      const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-      hubspotForm.dispatchEvent(submitEvent);
 
       // Clear form
       setEmail("");
@@ -154,11 +81,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
               {isSubmitting ? "Wird gesendet..." : "Anmelden"}
             </Button>
           </form>
-          
-          <div 
-            id="hubspot-form-container" 
-            className="hidden"
-          />
         </div>
       </div>
     </motion.div>
