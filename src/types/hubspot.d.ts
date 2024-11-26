@@ -1,8 +1,8 @@
 interface HubSpotFormOptions {
-  region: string;
   portalId: string;
   formId: string;
   target: string;
+  region?: string;
   onFormReady?: () => void;
   onFormSubmitted?: () => void;
 }
