@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { GoogleMap, Marker, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
+import { GoogleMap, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
 import { useToast } from "./ui/use-toast";
 import { Card } from "./ui/card";
@@ -52,7 +52,53 @@ export const PracticeMap = ({
   }, []);
 
   useEffect(() => {
-    if (!practiceLocation || !nearestInstitute) {
+    if (!map) return;
+
+    // Clear existing markers
+    map.getDiv().querySelectorAll('.advanced-marker').forEach(el => el.remove());
+
+    // Add institute markers
+    institutes.forEach((institute, index) => {
+      const markerElement = document.createElement('div');
+      markerElement.className = 'advanced-marker';
+      markerElement.innerHTML = `
+        <div style="background: #4285F4; width: 24px; height: 24px; border-radius: 50%; position: relative; cursor: pointer;">
+          <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        </div>
+      `;
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: institute.coordinates,
+        content: markerElement,
+        title: institute.name,
+      });
+
+      marker.addListener('click', () => {
+        setSelectedInstitute(institute);
+      });
+    });
+
+    // Add practice location marker if exists
+    if (practiceLocation) {
+      const practiceMarkerElement = document.createElement('div');
+      practiceMarkerElement.className = 'advanced-marker';
+      practiceMarkerElement.innerHTML = `
+        <div style="background: #EA4335; width: 24px; height: 24px; border-radius: 50%; position: relative;">
+          <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        </div>
+      `;
+
+      new google.maps.marker.AdvancedMarkerElement({
+        map,
+        position: practiceLocation,
+        content: practiceMarkerElement,
+      });
+    }
+  }, [map, institutes, practiceLocation]);
+
+  useEffect(() => {
+    if (!practiceLocation || !nearestInstitute || !map) {
       setDirections(null);
       setRouteDetails(null);
       return;
@@ -98,7 +144,7 @@ export const PracticeMap = ({
         }
       }
     );
-  }, [practiceLocation, nearestInstitute, toast]);
+  }, [practiceLocation, nearestInstitute, map, toast]);
 
   return (
     <div className="relative space-y-4">
@@ -109,27 +155,12 @@ export const PracticeMap = ({
         onLoad={onLoad}
         onUnmount={onUnmount}
         onClick={(e) => onPracticeLocationChange?.(e.latLng?.toJSON())}
+        options={{
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        }}
       >
-        {institutes.map((institute, index) => (
-          <Marker
-            key={`${institute.name}-${index}`}
-            position={institute.coordinates}
-            onClick={() => setSelectedInstitute(institute)}
-            icon={{
-              url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-            }}
-          />
-        ))}
-
-        {practiceLocation && (
-          <Marker
-            position={practiceLocation}
-            icon={{
-              url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-            }}
-          />
-        )}
-
         {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
 
         {selectedInstitute && (
