@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { GoogleMap, InfoWindow, DirectionsRenderer } from "@react-google-maps/api";
+import { GoogleMap, InfoWindow, DirectionsRenderer, useLoadScript } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
 import { useToast } from "./ui/use-toast";
 import { Card } from "./ui/card";
@@ -13,6 +13,8 @@ const mapContainerStyle = {
   width: "100%",
   height: "400px",
 };
+
+const libraries: ("places" | "marker")[] = ["places", "marker"];
 
 interface PracticeMapProps {
   institutes: DentalInstitute[];
@@ -38,6 +40,11 @@ export const PracticeMap = ({
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [routeDetails, setRouteDetails] = useState<RouteDetails | null>(null);
   const { toast } = useToast();
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    libraries,
+  });
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
@@ -78,7 +85,7 @@ export const PracticeMap = ({
 
   // Effect zum Aktualisieren der Marker
   useEffect(() => {
-    if (!map) return;
+    if (!map || !isLoaded) return;
 
     // Bestehende Marker entfernen
     map.getDiv().querySelectorAll('.advanced-marker').forEach(el => el.remove());
@@ -96,7 +103,7 @@ export const PracticeMap = ({
     if (practiceLocation) {
       createMarker(practiceLocation, '#EA4335');
     }
-  }, [map, institutes, practiceLocation, createMarker]);
+  }, [map, institutes, practiceLocation, createMarker, isLoaded]);
 
   // Effect für die Routenberechnung
   useEffect(() => {
@@ -147,6 +154,14 @@ export const PracticeMap = ({
       }
     );
   }, [practiceLocation, nearestInstitute, map, toast]);
+
+  if (loadError) {
+    return <div>Error loading maps</div>;
+  }
+
+  if (!isLoaded) {
+    return <div>Loading maps...</div>;
+  }
 
   return (
     <div className="relative space-y-4">
