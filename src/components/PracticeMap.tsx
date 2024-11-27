@@ -1,8 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
-import { GoogleMap, InfoWindow, DirectionsRenderer, useLoadScript } from "@react-google-maps/api";
+import { useState, useCallback } from "react";
+import { GoogleMap, InfoWindow, useLoadScript } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
-import { useToast } from "./ui/use-toast";
-import { Card } from "./ui/card";
+import { createMarker } from "./map/MapMarker";
+import { MapDirections } from "./map/MapDirections";
 
 const GERMANY_CENTER = {
   lat: 51.1657,
@@ -23,12 +23,6 @@ interface PracticeMapProps {
   onPracticeLocationChange?: (location: google.maps.LatLngLiteral) => void;
 }
 
-interface RouteDetails {
-  distance: string;
-  duration: string;
-  trafficDuration?: string;
-}
-
 export const PracticeMap = ({
   institutes,
   practiceLocation,
@@ -37,9 +31,6 @@ export const PracticeMap = ({
 }: PracticeMapProps) => {
   const [selectedInstitute, setSelectedInstitute] = useState<DentalInstitute | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
-  const [routeDetails, setRouteDetails] = useState<RouteDetails | null>(null);
-  const { toast } = useToast();
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
@@ -58,102 +49,27 @@ export const PracticeMap = ({
     setMap(null);
   }, []);
 
-  // Funktion zum Erstellen eines Markers
-  const createMarker = useCallback((position: google.maps.LatLngLiteral, color: string, onClick?: () => void) => {
-    if (!map) return;
-
-    const markerElement = document.createElement('div');
-    markerElement.className = 'advanced-marker';
-    markerElement.innerHTML = `
-      <div style="background: ${color}; width: 24px; height: 24px; border-radius: 50%; position: relative; cursor: pointer;">
-        <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
-      </div>
-    `;
-
-    const marker = new google.maps.marker.AdvancedMarkerElement({
-      map,
-      position,
-      content: markerElement,
-    });
-
-    if (onClick) {
-      marker.addListener('click', onClick);
-    }
-
-    return marker;
-  }, [map]);
-
-  // Effect zum Aktualisieren der Marker
-  useEffect(() => {
+  useCallback(() => {
     if (!map || !isLoaded) return;
 
-    // Bestehende Marker entfernen
+    // Remove existing markers
     map.getDiv().querySelectorAll('.advanced-marker').forEach(el => el.remove());
 
-    // Institute-Marker hinzufügen
+    // Add institute markers
     institutes.forEach((institute) => {
       createMarker(
+        map,
         institute.coordinates,
         '#4285F4',
         () => setSelectedInstitute(institute)
       );
     });
 
-    // Praxis-Marker hinzufügen
+    // Add practice marker
     if (practiceLocation) {
-      createMarker(practiceLocation, '#EA4335');
+      createMarker(map, practiceLocation, '#EA4335');
     }
-  }, [map, institutes, practiceLocation, createMarker, isLoaded]);
-
-  // Effect für die Routenberechnung
-  useEffect(() => {
-    if (!practiceLocation || !nearestInstitute || !map) {
-      setDirections(null);
-      setRouteDetails(null);
-      return;
-    }
-
-    const directionsService = new google.maps.DirectionsService();
-    
-    directionsService.route(
-      {
-        origin: practiceLocation,
-        destination: nearestInstitute.coordinates,
-        travelMode: google.maps.TravelMode.DRIVING,
-        drivingOptions: {
-          departureTime: new Date(),
-          trafficModel: google.maps.TrafficModel.BEST_GUESS,
-        },
-      },
-      (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK && result) {
-          setDirections(result);
-          const leg = result.routes[0]?.legs[0];
-          if (leg) {
-            setRouteDetails({
-              distance: leg.distance?.text || "",
-              duration: leg.duration?.text || "",
-              trafficDuration: leg.duration_in_traffic?.text,
-            });
-          }
-        } else if (status === google.maps.DirectionsStatus.REQUEST_DENIED) {
-          toast({
-            title: "API-Konfigurationsfehler",
-            description: "Bitte stellen Sie sicher, dass der API-Schlüssel korrekt konfiguriert ist und die Domain autorisiert wurde.",
-            variant: "destructive",
-          });
-          console.error("API configuration error:", status);
-        } else {
-          toast({
-            title: "Fehler bei der Routenberechnung",
-            description: "Die Route konnte nicht berechnet werden. Bitte versuchen Sie es später erneut.",
-            variant: "destructive",
-          });
-          console.error("Directions request failed:", status);
-        }
-      }
-    );
-  }, [practiceLocation, nearestInstitute, map, toast]);
+  }, [map, institutes, practiceLocation, isLoaded]);
 
   if (loadError) {
     return <div>Error loading maps</div>;
@@ -178,7 +94,13 @@ export const PracticeMap = ({
           fullscreenControl: false,
         }}
       >
-        {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
+        {nearestInstitute && practiceLocation && (
+          <MapDirections
+            map={map}
+            practiceLocation={practiceLocation}
+            nearestInstitute={nearestInstitute}
+          />
+        )}
 
         {selectedInstitute && (
           <InfoWindow
@@ -193,21 +115,6 @@ export const PracticeMap = ({
           </InfoWindow>
         )}
       </GoogleMap>
-      
-      {routeDetails && (
-        <Card className="p-4 bg-white/10 backdrop-blur-sm">
-          <div className="space-y-2 text-white">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">Entfernung:</span>
-              <span>{routeDetails.distance}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">Fahrzeit:</span>
-              <span>{routeDetails.trafficDuration || routeDetails.duration}</span>
-            </div>
-          </div>
-        </Card>
-      )}
     </div>
   );
 };
