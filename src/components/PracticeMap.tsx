@@ -51,52 +51,54 @@ export const PracticeMap = ({
     setMap(null);
   }, []);
 
+  // Funktion zum Erstellen eines Markers
+  const createMarker = useCallback((position: google.maps.LatLngLiteral, color: string, onClick?: () => void) => {
+    if (!map) return;
+
+    const markerElement = document.createElement('div');
+    markerElement.className = 'advanced-marker';
+    markerElement.innerHTML = `
+      <div style="background: ${color}; width: 24px; height: 24px; border-radius: 50%; position: relative; cursor: pointer;">
+        <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+      </div>
+    `;
+
+    const marker = new google.maps.marker.AdvancedMarkerElement({
+      map,
+      position,
+      content: markerElement,
+    });
+
+    if (onClick) {
+      marker.addListener('click', onClick);
+    }
+
+    return marker;
+  }, [map]);
+
+  // Effect zum Aktualisieren der Marker
   useEffect(() => {
     if (!map) return;
 
-    // Clear existing markers
+    // Bestehende Marker entfernen
     map.getDiv().querySelectorAll('.advanced-marker').forEach(el => el.remove());
 
-    // Add institute markers
-    institutes.forEach((institute, index) => {
-      const markerElement = document.createElement('div');
-      markerElement.className = 'advanced-marker';
-      markerElement.innerHTML = `
-        <div style="background: #4285F4; width: 24px; height: 24px; border-radius: 50%; position: relative; cursor: pointer;">
-          <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
-        </div>
-      `;
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: institute.coordinates,
-        content: markerElement,
-        title: institute.name,
-      });
-
-      marker.addListener('click', () => {
-        setSelectedInstitute(institute);
-      });
+    // Institute-Marker hinzufügen
+    institutes.forEach((institute) => {
+      createMarker(
+        institute.coordinates,
+        '#4285F4',
+        () => setSelectedInstitute(institute)
+      );
     });
 
-    // Add practice location marker if exists
+    // Praxis-Marker hinzufügen
     if (practiceLocation) {
-      const practiceMarkerElement = document.createElement('div');
-      practiceMarkerElement.className = 'advanced-marker';
-      practiceMarkerElement.innerHTML = `
-        <div style="background: #EA4335; width: 24px; height: 24px; border-radius: 50%; position: relative;">
-          <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
-        </div>
-      `;
-
-      new google.maps.marker.AdvancedMarkerElement({
-        map,
-        position: practiceLocation,
-        content: practiceMarkerElement,
-      });
+      createMarker(practiceLocation, '#EA4335');
     }
-  }, [map, institutes, practiceLocation]);
+  }, [map, institutes, practiceLocation, createMarker]);
 
+  // Effect für die Routenberechnung
   useEffect(() => {
     if (!practiceLocation || !nearestInstitute || !map) {
       setDirections(null);
