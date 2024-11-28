@@ -25,9 +25,9 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       team_size: Number(calculatorData.teamSize) || 0,
       dentists: Number(calculatorData.dentists) || 0,
       assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
-      traditional_costs: Number(results.totalTraditionalCosts) || 0,
-      crocodile_costs: Number(results.crocodileCosts) || 0,
-      savings: Number(results.savings) || 0,
+      traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
+      crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
+      savings: Math.round(Number(results.savings)) || 0,
       street_address: addressComponents.street || '',
       city: addressComponents.city || '',
       postal_code: addressComponents.postalCode || '',
@@ -38,7 +38,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
-      // Verwende einen Proxy-Endpunkt auf unserem Server
+      console.log('Sending webhook data:', webhookData);
       const response = await fetch('/api/webhook', {
         method: 'POST',
         headers: {
@@ -53,6 +53,9 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const responseData = await response.json();
+      console.log('Webhook response:', responseData);
 
       toast({
         title: "Erfolg!",

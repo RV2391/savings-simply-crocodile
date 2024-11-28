@@ -6,6 +6,8 @@ export default async function handler(req: any, res: any) {
   const { url, data } = req.body;
 
   try {
+    console.log('Webhook request:', { url, data });
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -14,11 +16,20 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify(data)
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const responseData = await response.text();
+    console.log('Webhook response:', responseData);
     
-    return res.status(response.status).json({ success: true, data: responseData });
+    return res.status(200).json({ success: true, data: responseData });
   } catch (error) {
     console.error('Webhook error:', error);
-    return res.status(500).json({ success: false, error: 'Failed to send webhook' });
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send webhook',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
