@@ -5,8 +5,17 @@ export default async function handler(req: any, res: any) {
 
   const { url, data } = req.body;
 
+  if (!url || !data) {
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Missing required fields',
+      details: 'URL and data are required'
+    });
+  }
+
   try {
-    console.log('Webhook request:', { url, data });
+    console.log('Webhook request URL:', url);
+    console.log('Webhook request data:', JSON.stringify(data, null, 2));
     
     const response = await fetch(url, {
       method: 'POST',
@@ -16,20 +25,35 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify(data)
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const responseText = await response.text();
+    console.log('Raw webhook response:', responseText);
+
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (e) {
+      responseData = responseText;
     }
 
-    const responseData = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}, response: ${JSON.stringify(responseData)}`);
+    }
+
     console.log('Webhook response:', responseData);
     
-    return res.status(200).json({ success: true, data: responseData });
+    return res.status(200).json({ 
+      success: true, 
+      data: responseData,
+      status: response.status,
+      statusText: response.statusText
+    });
   } catch (error) {
     console.error('Webhook error:', error);
     return res.status(500).json({ 
       success: false, 
       error: 'Failed to send webhook',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 }
