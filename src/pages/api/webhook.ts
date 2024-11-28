@@ -14,28 +14,40 @@ export default async function handler(req: any, res: any) {
 
   try {
     console.log('Webhook URL:', url);
-    console.log('Sending data:', data);
+    console.log('Sending data:', JSON.stringify(data, null, 2));
     
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Origin': 'https://kalkulator.crocodile.dev'
+        'Origin': 'https://kalkulator.crocodile.dev',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(data)
     });
 
+    const responseText = await response.text();
+    console.log('Raw webhook response:', responseText);
+
     let responseData;
     try {
-      const text = await response.text();
-      responseData = JSON.parse(text);
+      responseData = JSON.parse(responseText);
     } catch (e) {
       console.error('Error parsing response:', e);
-      responseData = null;
+      responseData = { success: false, error: 'Invalid JSON response' };
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error('Webhook error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData
+      });
+      return res.status(response.status).json({
+        success: false,
+        error: `HTTP error! status: ${response.status}`,
+        details: responseData
+      });
     }
 
     return res.status(200).json({ 
@@ -46,7 +58,8 @@ export default async function handler(req: any, res: any) {
     console.error('Webhook error:', error);
     return res.status(500).json({ 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 }
