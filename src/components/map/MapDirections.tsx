@@ -30,51 +30,59 @@ export const MapDirections = ({ map, practiceLocation, nearestInstitute }: MapDi
 
     const directionsService = new google.maps.DirectionsService();
     
-    directionsService.route(
-      {
-        origin: practiceLocation,
-        destination: nearestInstitute.coordinates,
-        travelMode: google.maps.TravelMode.DRIVING,
-        drivingOptions: {
-          departureTime: new Date(),
-          trafficModel: google.maps.TrafficModel.BEST_GUESS,
+    const calculateRoute = () => {
+      directionsService.route(
+        {
+          origin: practiceLocation,
+          destination: nearestInstitute.coordinates,
+          travelMode: google.maps.TravelMode.DRIVING,
+          drivingOptions: {
+            departureTime: new Date(),
+            trafficModel: google.maps.TrafficModel.BEST_GUESS,
+          },
         },
-      },
-      (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK && result) {
-          setDirections(result);
-          const leg = result.routes[0]?.legs[0];
-          if (leg) {
-            setRouteDetails({
-              distance: leg.distance?.text || "",
-              duration: leg.duration?.text || "",
-              trafficDuration: leg.duration_in_traffic?.text,
-            });
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            setDirections(result);
+            const leg = result.routes[0]?.legs[0];
+            if (leg) {
+              setRouteDetails({
+                distance: leg.distance?.text || "",
+                duration: leg.duration?.text || "",
+                trafficDuration: leg.duration_in_traffic?.text,
+              });
+            }
+          } else if (status === google.maps.DirectionsStatus.ZERO_RESULTS) {
+            // Keine Route gefunden - leise fehlschlagen
+            setDirections(null);
+            setRouteDetails(null);
+          } else {
+            // Nur bei anderen Fehlern Toast anzeigen
+            console.error('Directions request failed due to ' + status);
           }
-        } else {
-          toast({
-            title: "Fehler bei der Routenberechnung",
-            description: "Die Route konnte nicht berechnet werden. Bitte versuchen Sie es später erneut.",
-            variant: "destructive",
-          });
         }
-      }
-    );
-  }, [practiceLocation, nearestInstitute, map, toast]);
+      );
+    };
+
+    // Verzögerung hinzufügen, um sicherzustellen, dass die Map vollständig geladen ist
+    const timeoutId = setTimeout(calculateRoute, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [practiceLocation, nearestInstitute, map]);
 
   return (
     <>
       {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
       {routeDetails && (
-        <Card className="absolute top-4 left-4 p-4 bg-black/80 backdrop-blur-sm border-none shadow-lg">
+        <Card className="absolute top-4 left-4 p-4 bg-black/90 backdrop-blur-sm border-none shadow-lg">
           <div className="space-y-2 text-white">
             <div className="flex items-center gap-2">
               <span className="font-medium">Entfernung:</span>
-              <span className="text-white/90">{routeDetails.distance}</span>
+              <span className="text-white">{routeDetails.distance}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium">Fahrzeit:</span>
-              <span className="text-white/90">{routeDetails.trafficDuration || routeDetails.duration}</span>
+              <span className="text-white">{routeDetails.trafficDuration || routeDetails.duration}</span>
             </div>
           </div>
         </Card>
