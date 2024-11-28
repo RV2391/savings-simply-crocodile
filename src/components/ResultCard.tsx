@@ -38,16 +38,19 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
-      const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
+      // Verwende einen Proxy-Endpunkt auf unserem Server
+      const response = await fetch('/api/webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(webhookData)
+        body: JSON.stringify({
+          url: 'https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj',
+          data: webhookData
+        })
       });
 
       if (!response.ok) {
-        console.error('Webhook error:', response.status, response.statusText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
