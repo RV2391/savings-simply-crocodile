@@ -1,24 +1,26 @@
-import { MarkerF } from "@react-google-maps/api";
+export const createMarker = (
+  map: google.maps.Map,
+  position: google.maps.LatLngLiteral,
+  color: string,
+  onClick?: () => void
+) => {
+  const markerElement = document.createElement('div');
+  markerElement.className = 'advanced-marker';
+  markerElement.innerHTML = `
+    <div style="background: ${color}; width: 24px; height: 24px; border-radius: 50%; position: relative; cursor: pointer;">
+      <div style="background: white; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+    </div>
+  `;
 
-interface MapMarkerProps {
-  position: google.maps.LatLngLiteral;
-  isNearest?: boolean;
-  name: string;
-}
+  const marker = new google.maps.marker.AdvancedMarkerElement({
+    map,
+    position,
+    content: markerElement,
+  });
 
-export const MapMarker = ({ position, isNearest, name }: MapMarkerProps) => {
-  return (
-    <MarkerF
-      position={position}
-      icon={{
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
-        fillColor: isNearest ? '#22c55e' : '#64748b',
-        fillOpacity: 1,
-        strokeWeight: 2,
-        strokeColor: '#ffffff',
-      }}
-      title={name}
-    />
-  );
+  if (onClick) {
+    marker.addListener('click', onClick);
+  }
+
+  return marker;
 };
