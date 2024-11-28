@@ -1,26 +1,29 @@
-import { useState, useCallback, useEffect } from "react";
-import { GoogleMap, InfoWindow, useLoadScript } from "@react-google-maps/api";
-import { DentalInstitute } from "@/utils/dentalInstitutes";
-import { createMarker } from "./map/MapMarker";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { GoogleMap, useLoadScript, MarkerF } from "@react-google-maps/api";
+import type { DentalInstitute } from "@/utils/dentalInstitutes";
 import { MapDirections } from "./map/MapDirections";
+import { MapMarker } from "./map/MapMarker";
 
-const GERMANY_CENTER = {
-  lat: 51.1657,
-  lng: 10.4515,
-};
+const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
 const mapContainerStyle = {
   width: "100%",
   height: "400px",
 };
 
-const libraries: ("places" | "marker")[] = ["places", "marker"];
+const options = {
+  disableDefaultUI: true,
+  zoomControl: true,
+};
 
 interface PracticeMapProps {
   institutes: DentalInstitute[];
-  practiceLocation?: google.maps.LatLngLiteral;
+  practiceLocation: {
+    lat: number;
+    lng: number;
+  };
   nearestInstitute?: DentalInstitute;
-  onPracticeLocationChange?: (location: google.maps.LatLngLiteral) => void;
+  onPracticeLocationChange: (location: { lat: number; lng: number }) => void;
 }
 
 export const PracticeMap = ({
@@ -29,98 +32,103 @@ export const PracticeMap = ({
   nearestInstitute,
   onPracticeLocationChange,
 }: PracticeMapProps) => {
-  const [selectedInstitute, setSelectedInstitute] = useState<DentalInstitute | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyA4a5Hayoa4YYlDiGmZDqIJg0F06hKQYyk",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
     libraries,
   });
 
-  const onLoad = useCallback((map: google.maps.Map) => {
+  const mapRef = useRef<google.maps.Map>();
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
     setMap(map);
-    if (practiceLocation) {
-      map.setCenter(practiceLocation);
-      map.setZoom(12);
-    }
-  }, [practiceLocation]);
-
-  const onUnmount = useCallback(() => {
-    setMap(null);
   }, []);
 
+  const handleMarkerDragEnd = useCallback(
+    (e: google.maps.MapMouseEvent) => {
+      if (e.latLng) {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        onPracticeLocationChange({ lat, lng });
+      }
+    },
+    [onPracticeLocationChange]
+  );
+
   useEffect(() => {
-    if (!map || !isLoaded) return;
+    if (map) {
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend(practiceLocation);
+      
+      if (nearestInstitute) {
+        bounds.extend({
+          lat: nearestInstitute.coordinates.lat,
+          lng: nearestInstitute.coordinates.lng,
+        });
+      }
 
-    // Remove existing markers
-    map.getDiv().querySelectorAll('.advanced-marker').forEach(el => el.remove());
+      map.fitBounds(bounds);
 
-    // Add institute markers
-    institutes.forEach((institute) => {
-      createMarker(
-        map,
-        institute.coordinates,
-        '#4285F4',
-        () => setSelectedInstitute(institute)
-      );
-    });
+      // Zoom out a bit to give some padding
+      const listener = google.maps.event.addListenerOnce(map, 'idle', () => {
+        if (map.getZoom()! > 12) {
+          map.setZoom(12);
+        }
+      });
 
-    // Add practice marker
-    if (practiceLocation) {
-      createMarker(map, practiceLocation, '#EA4335');
+      return () => {
+        google.maps.event.removeListener(listener);
+      };
     }
-  }, [map, institutes, practiceLocation, isLoaded]);
+  }, [map, practiceLocation, nearestInstitute]);
 
-  // Force map to re-center when practice location changes
-  useEffect(() => {
-    if (map && practiceLocation) {
-      map.setCenter(practiceLocation);
-      map.setZoom(12);
-    }
-  }, [map, practiceLocation]);
-
-  if (loadError) {
-    return <div>Error loading maps</div>;
-  }
-
-  if (!isLoaded) {
-    return <div>Loading maps...</div>;
-  }
+  if (loadError) return <div>Error loading maps</div>;
+  if (!isLoaded) return <div>Loading...</div>;
 
   return (
-    <div className="relative space-y-4">
+    <div className="relative w-full rounded-lg overflow-hidden border border-gray-700">
       <GoogleMap
+        id="practice-map"
         mapContainerStyle={mapContainerStyle}
-        center={practiceLocation || GERMANY_CENTER}
-        zoom={practiceLocation ? 12 : 6}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-        onClick={(e) => onPracticeLocationChange?.(e.latLng?.toJSON())}
-        options={{
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-        }}
+        zoom={12}
+        center={practiceLocation}
+        options={options}
+        onLoad={onMapLoad}
       >
-        {nearestInstitute && practiceLocation && (
-          <MapDirections
-            map={map}
-            practiceLocation={practiceLocation}
-            nearestInstitute={nearestInstitute}
-          />
-        )}
+        {/* Practice Location Marker */}
+        <MarkerF
+          position={practiceLocation}
+          draggable={true}
+          onDragEnd={handleMarkerDragEnd}
+          icon={{
+            url: "/logo.svg",
+            scaledSize: new google.maps.Size(40, 40),
+          }}
+        />
 
-        {selectedInstitute && (
-          <InfoWindow
-            position={selectedInstitute.coordinates}
-            onCloseClick={() => setSelectedInstitute(null)}
-          >
-            <div className="p-2 text-black">
-              <h3 className="font-semibold text-base mb-1">{selectedInstitute.name}</h3>
-              <p className="text-sm mb-0.5">{selectedInstitute.address}</p>
-              <p className="text-sm">{selectedInstitute.city}</p>
-            </div>
-          </InfoWindow>
+        {/* Institute Markers */}
+        {institutes.map((institute) => (
+          <MapMarker
+            key={institute.name}
+            position={{
+              lat: institute.coordinates.lat,
+              lng: institute.coordinates.lng,
+            }}
+            isNearest={nearestInstitute?.name === institute.name}
+            name={institute.name}
+          />
+        ))}
+
+        {/* Directions */}
+        {nearestInstitute && (
+          <MapDirections
+            origin={practiceLocation}
+            destination={{
+              lat: nearestInstitute.coordinates.lat,
+              lng: nearestInstitute.coordinates.lng,
+            }}
+          />
         )}
       </GoogleMap>
     </div>
