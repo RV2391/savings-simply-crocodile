@@ -70,7 +70,6 @@ export const PracticeMap = ({
 
       map.fitBounds(bounds);
 
-      // Zoom out a bit to give some padding
       const listener = google.maps.event.addListenerOnce(map, 'idle', () => {
         if (map.getZoom()! > 12) {
           map.setZoom(12);
@@ -96,7 +95,6 @@ export const PracticeMap = ({
         options={options}
         onLoad={onMapLoad}
       >
-        {/* Practice Location Marker */}
         <MarkerF
           position={practiceLocation}
           draggable={true}
@@ -107,7 +105,6 @@ export const PracticeMap = ({
           }}
         />
 
-        {/* Institute Markers */}
         {institutes.map((institute) => (
           <MapMarker
             key={institute.name}
@@ -120,7 +117,6 @@ export const PracticeMap = ({
           />
         ))}
 
-        {/* Directions */}
         {nearestInstitute && (
           <MapDirections
             origin={practiceLocation}
