@@ -52,18 +52,23 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         })
       });
 
-      const responseText = await response.text();
-      console.log('Raw server response:', responseText);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error('Server responded with an error status: ' + response.status);
+      }
 
       let responseData;
       try {
+        const responseText = await response.text();
+        console.log('Raw server response:', responseText);
         responseData = JSON.parse(responseText);
       } catch (e) {
         console.error('Error parsing response:', e);
         throw new Error('Invalid JSON response from server');
       }
 
-      if (!response.ok || !responseData.success) {
+      if (!responseData.success) {
         throw new Error(responseData.error || 'Server responded with an error');
       }
 

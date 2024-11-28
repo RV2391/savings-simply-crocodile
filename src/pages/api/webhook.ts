@@ -20,8 +20,8 @@ export default async function handler(req: any, res: any) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Origin': 'https://kalkulator.crocodile.dev',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Origin': 'https://kalkulator.crocodile.dev'
       },
       body: JSON.stringify(data)
     });
@@ -29,12 +29,23 @@ export default async function handler(req: any, res: any) {
     const responseText = await response.text();
     console.log('Raw webhook response:', responseText);
 
+    if (!responseText) {
+      return res.status(500).json({
+        success: false,
+        error: 'Empty response from server'
+      });
+    }
+
     let responseData;
     try {
       responseData = JSON.parse(responseText);
     } catch (e) {
       console.error('Error parsing response:', e);
-      responseData = { success: false, error: 'Invalid JSON response' };
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid JSON response from server',
+        details: responseText
+      });
     }
 
     if (!response.ok) {
