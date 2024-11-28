@@ -35,7 +35,6 @@ export const PracticeMap = ({
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
     libraries,
-    version: "weekly"
   });
 
   const onLoad = useCallback((map: google.maps.Map) => {
