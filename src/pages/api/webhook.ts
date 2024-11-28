@@ -14,8 +14,8 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    console.log('Webhook request URL:', url);
-    console.log('Webhook request data:', JSON.stringify(data, null, 2));
+    console.log('Webhook URL:', url);
+    console.log('Sending data:', JSON.stringify(data, null, 2));
     
     const response = await fetch(url, {
       method: 'POST',
@@ -36,10 +36,15 @@ export default async function handler(req: any, res: any) {
     }
 
     if (!response.ok) {
+      console.error('Webhook error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData
+      });
       throw new Error(`HTTP error! status: ${response.status}, response: ${JSON.stringify(responseData)}`);
     }
 
-    console.log('Webhook response:', responseData);
+    console.log('Webhook success:', responseData);
     
     return res.status(200).json({ 
       success: true, 
