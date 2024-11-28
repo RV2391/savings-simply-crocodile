@@ -31,10 +31,6 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
 
     try {
       await onSubmit(email, practiceName);
-      toast({
-        title: "Erfolg!",
-        description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
-      });
     } catch (error) {
       console.error('Form submission error:', error);
       toast({

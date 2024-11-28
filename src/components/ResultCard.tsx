@@ -74,11 +74,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       
       setShowForm(false);
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
-      });
+      throw error; // Re-throw the error to be handled by the form component
     }
   };
 
