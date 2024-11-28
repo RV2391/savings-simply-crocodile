@@ -38,25 +38,18 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
-      console.log('Sending webhook data:', webhookData);
-      
-      const response = await fetch('/api/webhook', {
+      const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          url: 'https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj',
-          data: webhookData
-        })
+        body: JSON.stringify(webhookData)
       });
 
-      const result = await response.json();
-      console.log('Webhook response:', result);
-
+      const result = await response.json().catch(() => ({ success: false, error: 'Invalid JSON response' }));
+      
       if (!result.success) {
-        console.error('Webhook error:', result.error);
-        throw new Error(result.error || 'Unknown error occurred');
+        throw new Error(result.error || 'Fehler beim Senden der Daten');
       }
 
       toast({
