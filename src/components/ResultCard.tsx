@@ -35,6 +35,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
+      // Send data to webhook
       const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
         method: 'POST',
         headers: {
@@ -46,6 +47,14 @@ export const ResultCard = ({ results }: ResultCardProps) => {
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Track form submission in HubSpot
+      if (window._hsq) {
+        window._hsq.push(['trackEvent', {
+          id: "calculator_form_submitted",
+          value: results.savings
+        }]);
       }
 
       toast({

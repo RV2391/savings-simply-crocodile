@@ -11,6 +11,10 @@ interface HubSpotForms {
   create: (options: HubSpotFormOptions) => void;
 }
 
+interface HubSpotTrackingObject {
+  push: (args: any[]) => void;
+}
+
 interface HubSpot {
   forms: HubSpotForms;
 }
@@ -18,6 +22,7 @@ interface HubSpot {
 declare global {
   interface Window {
     hbspt: HubSpot;
+    _hsq: HubSpotTrackingObject;
   }
 }
 
