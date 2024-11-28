@@ -66,15 +66,15 @@ export const MapDirections = ({ map, practiceLocation, nearestInstitute }: MapDi
     <>
       {directions && <DirectionsRenderer directions={directions} options={{ suppressMarkers: true }} />}
       {routeDetails && (
-        <Card className="p-4 bg-white/10 backdrop-blur-sm">
+        <Card className="absolute top-4 left-4 p-4 bg-black/80 backdrop-blur-sm border-none shadow-lg">
           <div className="space-y-2 text-white">
             <div className="flex items-center gap-2">
-              <span className="font-semibold">Entfernung:</span>
-              <span>{routeDetails.distance}</span>
+              <span className="font-medium">Entfernung:</span>
+              <span className="text-white/90">{routeDetails.distance}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold">Fahrzeit:</span>
-              <span>{routeDetails.trafficDuration || routeDetails.duration}</span>
+              <span className="font-medium">Fahrzeit:</span>
+              <span className="text-white/90">{routeDetails.trafficDuration || routeDetails.duration}</span>
             </div>
           </div>
         </Card>
