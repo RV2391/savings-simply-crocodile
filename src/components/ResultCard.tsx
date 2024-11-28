@@ -48,16 +48,23 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       });
 
       if (!response.ok) {
+        console.error('Webhook error:', response.status, response.statusText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      toast({
-        title: "Erfolg!",
-        description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
-      });
+      const responseData = await response.json();
       
-      setShowForm(false);
+      if (responseData && responseData.success) {
+        toast({
+          title: "Erfolg!",
+          description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
+        });
+        setShowForm(false);
+      } else {
+        throw new Error('Webhook response indicated failure');
+      }
     } catch (error) {
+      console.error('Form submission error:', error);
       toast({
         variant: "destructive",
         title: "Fehler",
