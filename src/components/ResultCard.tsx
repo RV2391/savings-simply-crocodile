@@ -38,7 +38,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
-      // Send data to webhook
       const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
         method: 'POST',
         headers: {
@@ -52,21 +51,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Track marketing event in HubSpot
-      if (window._hsq) {
-        window._hsq.push(['trackEvent', {
-          name: "Savings Calculator Form Submitted",
-          value: results.savings
-        }]);
-        
-        // Set UTM parameters and identify contact in HubSpot
-        window._hsq.push(['setPath', '/blackdeal']);
-        window._hsq.push(['identify', {
-          email: email,
-          practice_name: practiceName
-        }]);
-      }
-
       toast({
         title: "Erfolg!",
         description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
@@ -74,7 +58,11 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       
       setShowForm(false);
     } catch (error) {
-      throw error; // Re-throw the error to be handled by the form component
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+      });
     }
   };
 
