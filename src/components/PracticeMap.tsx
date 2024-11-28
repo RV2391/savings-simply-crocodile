@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { GoogleMap, InfoWindow, useLoadScript } from "@react-google-maps/api";
 import { DentalInstitute } from "@/utils/dentalInstitutes";
 import { createMarker } from "./map/MapMarker";
@@ -49,7 +49,7 @@ export const PracticeMap = ({
     setMap(null);
   }, []);
 
-  useCallback(() => {
+  useEffect(() => {
     if (!map || !isLoaded) return;
 
     // Remove existing markers
@@ -70,6 +70,14 @@ export const PracticeMap = ({
       createMarker(map, practiceLocation, '#EA4335');
     }
   }, [map, institutes, practiceLocation, isLoaded]);
+
+  // Force map to re-center when practice location changes
+  useEffect(() => {
+    if (map && practiceLocation) {
+      map.setCenter(practiceLocation);
+      map.setZoom(12);
+    }
+  }, [map, practiceLocation]);
 
   if (loadError) {
     return <div>Error loading maps</div>;
