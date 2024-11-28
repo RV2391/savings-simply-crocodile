@@ -40,7 +40,7 @@ export const MapMarker: React.FC<MapMarkerProps> = ({ position, isNearest, name 
     const map = (window as any).google.maps.map;
     if (map) {
       if (markerRef.current) {
-        markerRef.current.setMap(null);
+        markerRef.current.map = null;
       }
       markerRef.current = createMarker(
         map,
@@ -53,7 +53,7 @@ export const MapMarker: React.FC<MapMarkerProps> = ({ position, isNearest, name 
 
       return () => {
         if (markerRef.current) {
-          markerRef.current.setMap(null);
+          markerRef.current.map = null;
         }
       };
     }
