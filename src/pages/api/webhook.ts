@@ -8,57 +8,45 @@ export default async function handler(req: any, res: any) {
   if (!url || !data) {
     return res.status(400).json({ 
       success: false, 
-      error: 'Missing required fields',
-      details: 'URL and data are required'
+      error: 'Missing required fields' 
     });
   }
 
   try {
     console.log('Webhook URL:', url);
-    console.log('Sending data:', JSON.stringify(data, null, 2));
+    console.log('Sending data:', data);
     
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Origin': 'https://kalkulator.crocodile.dev'
       },
       body: JSON.stringify(data)
     });
 
-    const responseText = await response.text();
-    console.log('Raw webhook response:', responseText);
-
     let responseData;
     try {
-      responseData = JSON.parse(responseText);
+      const text = await response.text();
+      responseData = JSON.parse(text);
     } catch (e) {
-      responseData = responseText;
+      console.error('Error parsing response:', e);
+      responseData = null;
     }
 
     if (!response.ok) {
-      console.error('Webhook error response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: responseData
-      });
-      throw new Error(`HTTP error! status: ${response.status}, response: ${JSON.stringify(responseData)}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    console.log('Webhook success:', responseData);
-    
     return res.status(200).json({ 
       success: true, 
-      data: responseData,
-      status: response.status,
-      statusText: response.statusText
+      data: responseData 
     });
   } catch (error) {
     console.error('Webhook error:', error);
     return res.status(500).json({ 
       success: false, 
-      error: 'Failed to send webhook',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+      error: error instanceof Error ? error.message : 'Unknown error' 
     });
   }
 }

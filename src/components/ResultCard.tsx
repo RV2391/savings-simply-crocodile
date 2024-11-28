@@ -38,7 +38,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
-      console.log('Sending data to webhook:', webhookData);
       const response = await fetch('/api/webhook', {
         method: 'POST',
         headers: {
@@ -50,10 +49,15 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         })
       });
 
-      const responseData = await response.json();
-      console.log('API Response:', responseData);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        throw new Error('Server responded with an error');
+      }
 
-      if (!response.ok || !responseData.success) {
+      const responseData = await response.json();
+      
+      if (!responseData.success) {
         throw new Error(responseData.error || 'Fehler beim Senden der Daten');
       }
 
@@ -65,8 +69,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       setShowForm(false);
     } catch (error) {
       console.error('Form submission error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
-      console.error('Detailed error:', errorMessage);
       
       toast({
         variant: "destructive",
