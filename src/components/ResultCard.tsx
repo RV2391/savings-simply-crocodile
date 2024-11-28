@@ -52,10 +52,10 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Track form submission in HubSpot
+      // Track marketing event in HubSpot
       if (window._hsq) {
         window._hsq.push(['trackEvent', {
-          id: "calculator_form_submitted",
+          name: "Savings Calculator Form Submitted",
           value: results.savings
         }]);
         
