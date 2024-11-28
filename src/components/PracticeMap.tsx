@@ -33,7 +33,7 @@ export const PracticeMap = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: "AIzaSyA4a5Hayoa4YYlDiGmZDqIJg0F06hKQYyk",
     libraries,
   });
 
