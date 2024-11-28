@@ -38,13 +38,12 @@ export const ResultCard = ({ results }: ResultCardProps) => {
     };
 
     try {
-      console.log('Attempting to send webhook data:', webhookData);
+      console.log('Sending webhook data:', webhookData);
       
       const response = await fetch('/api/webhook', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           url: 'https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj',
@@ -53,23 +52,13 @@ export const ResultCard = ({ results }: ResultCardProps) => {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error response:', errorText);
-        throw new Error('Server responded with an error status: ' + response.status);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      let responseData;
-      try {
-        const responseText = await response.text();
-        console.log('Raw server response:', responseText);
-        responseData = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Error parsing response:', e);
-        throw new Error('Invalid JSON response from server');
-      }
+      const result = await response.json();
 
-      if (!responseData.success) {
-        throw new Error(responseData.error || 'Server responded with an error');
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error occurred');
       }
 
       toast({

@@ -20,51 +20,32 @@ export default async function handler(req: any, res: any) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Origin': 'https://kalkulator.crocodile.dev'
       },
       body: JSON.stringify(data)
     });
 
-    const responseText = await response.text();
-    console.log('Raw webhook response:', responseText);
-
-    if (!responseText) {
-      return res.status(500).json({
-        success: false,
-        error: 'Empty response from server'
-      });
-    }
-
-    let responseData;
-    try {
-      responseData = JSON.parse(responseText);
-    } catch (e) {
-      console.error('Error parsing response:', e);
-      return res.status(500).json({
-        success: false,
-        error: 'Invalid JSON response from server',
-        details: responseText
-      });
-    }
-
     if (!response.ok) {
-      console.error('Webhook error response:', {
+      const errorText = await response.text();
+      console.error('Webhook error:', {
         status: response.status,
         statusText: response.statusText,
-        data: responseData
+        body: errorText
       });
       return res.status(response.status).json({
         success: false,
         error: `HTTP error! status: ${response.status}`,
-        details: responseData
+        details: errorText
       });
     }
 
+    const responseText = await response.text();
+    console.log('Webhook response:', responseText);
+
     return res.status(200).json({ 
-      success: true, 
-      data: responseData 
+      success: true,
+      message: 'Webhook sent successfully'
     });
+
   } catch (error) {
     console.error('Webhook error:', error);
     return res.status(500).json({ 
