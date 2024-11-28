@@ -42,7 +42,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         body: JSON.stringify(webhookData)
       });
@@ -52,17 +51,12 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const responseData = await response.json();
+      toast({
+        title: "Erfolg!",
+        description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
+      });
       
-      if (responseData && responseData.success) {
-        toast({
-          title: "Erfolg!",
-          description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
-        });
-        setShowForm(false);
-      } else {
-        throw new Error('Webhook response indicated failure');
-      }
+      setShowForm(false);
     } catch (error) {
       console.error('Form submission error:', error);
       toast({
