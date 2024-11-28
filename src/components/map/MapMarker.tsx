@@ -1,3 +1,11 @@
+import { useEffect, useRef } from 'react';
+
+interface MapMarkerProps {
+  position: google.maps.LatLngLiteral;
+  isNearest?: boolean;
+  name: string;
+}
+
 export const createMarker = (
   map: google.maps.Map,
   position: google.maps.LatLngLiteral,
@@ -23,4 +31,33 @@ export const createMarker = (
   }
 
   return marker;
+};
+
+export const MapMarker: React.FC<MapMarkerProps> = ({ position, isNearest, name }) => {
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+
+  useEffect(() => {
+    const map = (window as any).google.maps.map;
+    if (map) {
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+      }
+      markerRef.current = createMarker(
+        map,
+        position,
+        isNearest ? '#FF0000' : '#3B82F6',
+        () => {
+          console.log(`Clicked marker: ${name}`);
+        }
+      );
+
+      return () => {
+        if (markerRef.current) {
+          markerRef.current.setMap(null);
+        }
+      };
+    }
+  }, [position, isNearest, name]);
+
+  return null;
 };
