@@ -24,26 +24,27 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify(data)
     });
 
+    const responseText = await response.text();
+    console.log('Raw webhook response:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
       console.error('Webhook error:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorText
+        response: responseText
       });
+      
       return res.status(response.status).json({
         success: false,
-        error: `HTTP error! status: ${response.status}`,
-        details: errorText
+        error: `Webhook error: ${response.status} ${response.statusText}`,
+        details: responseText
       });
     }
 
-    const responseText = await response.text();
-    console.log('Webhook response:', responseText);
-
     return res.status(200).json({ 
       success: true,
-      message: 'Webhook sent successfully'
+      message: 'Webhook sent successfully',
+      response: responseText
     });
 
   } catch (error) {

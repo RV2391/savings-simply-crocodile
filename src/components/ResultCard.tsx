@@ -51,13 +51,11 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const result = await response.json();
+      console.log('Webhook response:', result);
 
       if (!result.success) {
+        console.error('Webhook error:', result.error);
         throw new Error(result.error || 'Unknown error occurred');
       }
 
