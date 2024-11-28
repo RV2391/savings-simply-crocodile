@@ -35,79 +35,87 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
   };
 
   useEffect(() => {
-    if (!inputRef.current || !window.google) return;
-
-    const options = {
-      componentRestrictions: { country: "de" },
-      fields: ["address_components", "geometry", "formatted_address"],
-      types: ["address"],
-    };
-
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(
-      inputRef.current,
-      options
-    );
-
-    const listener = autocompleteRef.current.addListener("place_changed", () => {
-      const place = autocompleteRef.current?.getPlace();
-      if (!place?.geometry?.location) {
-        toast({
-          title: "Fehler",
-          description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
-          variant: "destructive",
-        });
+    const initializeAutocomplete = () => {
+      if (!inputRef.current || !window.google || !window.google.maps || !window.google.maps.places) {
+        // If the API isn't loaded yet, try again in 100ms
+        setTimeout(initializeAutocomplete, 100);
         return;
       }
 
-      const addressComponents = place.address_components || [];
-      let streetNumber = "";
-      let route = "";
-      let newCity = "";
-      let newPostalCode = "";
+      const options = {
+        componentRestrictions: { country: "de" },
+        fields: ["address_components", "geometry", "formatted_address"],
+        types: ["address"],
+      };
 
-      for (const component of addressComponents) {
-        const type = component.types[0];
-        switch (type) {
-          case "street_number":
-            streetNumber = component.long_name;
-            break;
-          case "route":
-            route = component.long_name;
-            break;
-          case "locality":
-            newCity = component.long_name;
-            break;
-          case "postal_code":
-            newPostalCode = component.long_name;
-            break;
+      autocompleteRef.current = new window.google.maps.places.Autocomplete(
+        inputRef.current,
+        options
+      );
+
+      const listener = autocompleteRef.current.addListener("place_changed", () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (!place?.geometry?.location) {
+          toast({
+            title: "Fehler",
+            description: "Bitte wählen Sie eine gültige Adresse aus den Vorschlägen.",
+            variant: "destructive",
+          });
+          return;
         }
-      }
 
-      const newStreet = `${route} ${streetNumber}`.trim();
-      
-      setStreet(newStreet);
-      setCity(newCity);
-      setPostalCode(newPostalCode);
+        const addressComponents = place.address_components || [];
+        let streetNumber = "";
+        let route = "";
+        let newCity = "";
+        let newPostalCode = "";
 
-      // Store address components in sessionStorage
-      sessionStorage.setItem('addressComponents', JSON.stringify({
-        street: newStreet,
-        city: newCity,
-        postalCode: newPostalCode
-      }));
+        for (const component of addressComponents) {
+          const type = component.types[0];
+          switch (type) {
+            case "street_number":
+              streetNumber = component.long_name;
+              break;
+            case "route":
+              route = component.long_name;
+              break;
+            case "locality":
+              newCity = component.long_name;
+              break;
+            case "postal_code":
+              newPostalCode = component.long_name;
+              break;
+          }
+        }
 
-      const lat = place.geometry.location.lat();
-      const lng = place.geometry.location.lng();
-      
-      handleLocationUpdate(lat, lng);
-    });
+        const newStreet = `${route} ${streetNumber}`.trim();
+        
+        setStreet(newStreet);
+        setCity(newCity);
+        setPostalCode(newPostalCode);
 
-    return () => {
-      if (window.google?.maps?.event && listener) {
-        window.google.maps.event.removeListener(listener);
-      }
+        // Store address components in sessionStorage
+        sessionStorage.setItem('addressComponents', JSON.stringify({
+          street: newStreet,
+          city: newCity,
+          postalCode: newPostalCode
+        }));
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        
+        handleLocationUpdate(lat, lng);
+      });
+
+      return () => {
+        if (window.google?.maps?.event && listener) {
+          window.google.maps.event.removeListener(listener);
+        }
+      };
     };
-  }, [onLocationChange, onNearestInstituteFound]);
+
+    initializeAutocomplete();
+  }, []);
 
   return (
     <div className="space-y-4">
