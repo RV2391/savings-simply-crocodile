@@ -59,7 +59,7 @@ export const ResultCard = ({ results }: ResultCardProps) => {
           value: results.savings
         }]);
         
-        // Set UTM parameters in HubSpot
+        // Set UTM parameters and identify contact in HubSpot
         window._hsq.push(['setPath', '/blackdeal']);
         window._hsq.push(['identify', {
           email: email,
@@ -71,11 +71,6 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         title: "Erfolg!",
         description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
       });
-      
-      // Redirect to the Black Deal page after a short delay
-      setTimeout(() => {
-        window.location.href = 'https://www.crocodile-health.com/blackdeal?utm_medium=kalkulator&utm_campaign=cyberdeal&utm_term=november24';
-      }, 1500);
       
       setShowForm(false);
     } catch (error) {
