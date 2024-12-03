@@ -46,18 +46,18 @@ export const ResultCard = ({ results }: ResultCardProps) => {
         body: JSON.stringify(webhookData)
       });
 
-      const result = await response.json().catch(() => ({ success: false, error: 'Invalid JSON response' }));
+      const result = await response.json();
       
-      if (!result.success) {
-        throw new Error(result.error || 'Fehler beim Senden der Daten');
+      if (response.ok && result.status === 'success') {
+        toast({
+          title: "Erfolg!",
+          description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
+        });
+        
+        setShowForm(false);
+      } else {
+        throw new Error(result.message || 'Fehler beim Senden der Daten');
       }
-
-      toast({
-        title: "Erfolg!",
-        description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
-      });
-      
-      setShowForm(false);
     } catch (error) {
       console.error('Form submission error:', error);
       
