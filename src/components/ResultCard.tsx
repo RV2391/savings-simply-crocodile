@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 
 interface ResultCardProps {
@@ -10,12 +9,8 @@ interface ResultCardProps {
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({
-  calculatorData,
-  results,
-  addressComponents,
+  results
 }) => {
-  const { toast } = useToast();
-
   return (
     <Card className="w-full">
       <div className="p-6">
