@@ -62,12 +62,12 @@ const toRad = (value: number): number => {
   return value * Math.PI / 180;
 };
 
-export const findNearestInstitute = (lat: number, lng: number): DentalInstitute => {
+export const calculateNearestInstitute = async (lat: number, lng: number): Promise<DentalInstitute> => {
   let nearestInstitute = dentalInstitutes[0];
   let shortestDistance = Number.MAX_VALUE;
 
-  dentalInstitutes.forEach(institute => {
-    const distance = calculateDistance(
+  for (const institute of dentalInstitutes) {
+    const distance = await calculateDistance(
       lat,
       lng,
       institute.coordinates.lat,
@@ -78,7 +78,7 @@ export const findNearestInstitute = (lat: number, lng: number): DentalInstitute 
       shortestDistance = distance;
       nearestInstitute = institute;
     }
-  });
+  }
 
   return nearestInstitute;
 };
