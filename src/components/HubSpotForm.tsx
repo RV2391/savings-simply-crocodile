@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
+import { FormLoadingState } from "./form/FormLoadingState";
+import { sendWebhookData } from "@/utils/webhookService";
 
 interface HubSpotFormProps {
   calculatorData: CalculatorData;
@@ -8,7 +10,11 @@ interface HubSpotFormProps {
   addressComponents: AddressComponents;
 }
 
-export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubSpotFormProps) => {
+export const HubSpotForm = ({ 
+  calculatorData, 
+  results, 
+  addressComponents 
+}: HubSpotFormProps) => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
   const { toast } = useToast();
 
@@ -25,7 +31,6 @@ export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubS
       return false;
     }
 
-    // Clear existing content
     formContainer.innerHTML = '';
 
     try {
@@ -48,7 +53,13 @@ export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubS
           const email = formData.get('email');
           const companyName = formData.get('company');
 
-          sendWebhookData(email, companyName);
+          sendWebhookData({
+            email,
+            companyName,
+            calculatorData,
+            results,
+            addressComponents
+          });
         }
       });
       return true;
@@ -56,57 +67,12 @@ export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubS
       console.error("Error creating HubSpot form:", error);
       return false;
     }
-  }, [toast]);
-
-  const sendWebhookData = async (email: string | null, companyName: string | null) => {
-    console.log("Sending data to webhook...");
-    try {
-      const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email || '',
-          company_name: companyName || '',
-          team_size: Number(calculatorData.teamSize) || 0,
-          dentists: Number(calculatorData.dentists) || 0,
-          assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
-          traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
-          crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
-          savings: Math.round(Number(results.savings)) || 0,
-          street_address: addressComponents.street || '',
-          city: addressComponents.city || '',
-          postal_code: addressComponents.postalCode || '',
-          timestamp: new Date().toISOString(),
-          utm_medium: 'kalkulator',
-          utm_campaign: 'cyberdeal',
-          utm_term: 'november24'
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Webhook request failed');
-      }
-
-      toast({
-        title: "Erfolgreich gesendet",
-        description: "Ihre Daten wurden erfolgreich übermittelt.",
-      });
-    } catch (error) {
-      console.error('Webhook error:', error);
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: "Beim Senden der Daten ist ein Fehler aufgetreten.",
-      });
-    }
-  };
+  }, [toast, calculatorData, results, addressComponents]);
 
   useEffect(() => {
     let attempts = 0;
     const maxAttempts = 3;
-    const attemptInterval = 2000; // 2 seconds
+    const attemptInterval = 2000;
 
     const attemptFormCreation = () => {
       console.log(`Attempt ${attempts + 1} to create HubSpot form...`);
@@ -130,11 +96,9 @@ export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubS
       }
     };
 
-    // Initial delay before first attempt
     setTimeout(attemptFormCreation, 1500);
 
     return () => {
-      // Cleanup if component unmounts
       const formContainer = document.getElementById('hubspotForm');
       if (formContainer) {
         formContainer.innerHTML = '';
@@ -151,11 +115,7 @@ export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubS
         Wir senden Ihnen die detaillierte Auswertung kostenlos zu.
       </p>
       <div id="hubspotForm" className="min-h-[400px]" />
-      {!isFormLoaded && (
-        <div className="text-center text-muted-foreground mt-4">
-          Formular wird geladen...
-        </div>
-      )}
+      {!isFormLoaded && <FormLoadingState />}
     </div>
   );
 };
