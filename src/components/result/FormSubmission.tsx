@@ -47,6 +47,8 @@ export const FormSubmission = ({
             portalId: "139717164",
             formId: "13JR5IlFKTj-xcqP784kgoAeush9",
             target: "#hubspotForm",
+            css: "",
+            cssRequired: "",
             onFormReady: (form: any) => {
               console.log("HubSpot Form is ready", form);
               setIsFormLoaded(true);
@@ -110,14 +112,15 @@ export const FormSubmission = ({
 
   return (
     <div className="space-y-6">
-      <div className="hubspot-form-wrapper relative bg-card">
+      <div className="hubspot-form-wrapper">
         <div 
           id="hubspotForm" 
           className="hubspot-form-custom"
           style={{ 
-            minHeight: '400px',
+            minHeight: '500px',
             position: 'relative',
-            zIndex: 10
+            zIndex: 10,
+            overflow: 'visible'
           }}
         ></div>
       </div>
