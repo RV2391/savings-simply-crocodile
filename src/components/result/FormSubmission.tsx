@@ -22,10 +22,15 @@ export const FormSubmission = ({
   const [isFormLoaded, setIsFormLoaded] = useState(false);
 
   useEffect(() => {
-    // Warte bis das HubSpot Script geladen ist
+    console.log("FormSubmission mounted");
+    
     const loadForm = () => {
+      console.log("Attempting to load HubSpot form...");
+      console.log("window.hbspt available:", !!window.hbspt);
+      
       if (window.hbspt) {
         try {
+          console.log("Creating HubSpot form...");
           window.hbspt.forms.create({
             region: "eu1",
             portalId: "139717164",
@@ -75,18 +80,20 @@ export const FormSubmission = ({
       }
     };
 
-    // Versuche das Formular zu laden
+    // Initial load attempt
     loadForm();
 
-    // Überprüfe alle 500ms, ob das HubSpot Script geladen wurde
+    // Check every 500ms if HubSpot is loaded
     const checkInterval = setInterval(() => {
       if (!isFormLoaded && window.hbspt) {
+        console.log("Retrying form load...");
         loadForm();
       }
     }, 500);
 
     // Cleanup
     return () => {
+      console.log("Cleaning up FormSubmission");
       clearInterval(checkInterval);
     };
   }, [calculatorData, results, addressComponents, toast, isFormLoaded]);
@@ -94,8 +101,17 @@ export const FormSubmission = ({
   return (
     <div className="space-y-6">
       <div className="hubspot-form-wrapper">
-        <div id="hubspotForm" className="hubspot-form-custom"></div>
+        <div 
+          id="hubspotForm" 
+          className="hubspot-form-custom"
+          style={{ minHeight: '200px' }}
+        ></div>
       </div>
+      {!isFormLoaded && (
+        <div className="text-center text-muted-foreground">
+          Formular wird geladen...
+        </div>
+      )}
     </div>
   );
 };
