@@ -31,17 +31,27 @@ export const FormSubmission = ({
       if (window.hbspt) {
         try {
           console.log("Creating HubSpot form...");
+          const formContainer = document.getElementById('hubspotForm');
+          if (!formContainer) {
+            console.error('Form container not found');
+            return;
+          }
+
+          // Entferne alle vorherigen Formularinstanzen
+          while (formContainer.firstChild) {
+            formContainer.removeChild(formContainer.firstChild);
+          }
+
           window.hbspt.forms.create({
             region: "eu1",
             portalId: "139717164",
             formId: "13JR5IlFKTj-xcqP784kgoAeush9",
             target: "#hubspotForm",
-            onFormReady: () => {
-              console.log("HubSpot Form is ready");
+            onFormReady: (form: any) => {
+              console.log("HubSpot Form is ready", form);
               setIsFormLoaded(true);
             },
             onFormSubmitted: () => {
-              // Sende zusätzliche Daten an den Webhook
               fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
                 method: 'POST',
                 headers: {
@@ -100,11 +110,15 @@ export const FormSubmission = ({
 
   return (
     <div className="space-y-6">
-      <div className="hubspot-form-wrapper">
+      <div className="hubspot-form-wrapper relative bg-card">
         <div 
           id="hubspotForm" 
           className="hubspot-form-custom"
-          style={{ minHeight: '200px' }}
+          style={{ 
+            minHeight: '400px',
+            position: 'relative',
+            zIndex: 10
+          }}
         ></div>
       </div>
       {!isFormLoaded && (
