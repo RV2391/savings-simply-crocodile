@@ -10,7 +10,7 @@ import { AddressInput } from "./AddressInput";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
 import { AddressComponents } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
-import { HubSpotForm } from "./HubSpotForm";
+import { CustomForm } from "./CustomForm";
 
 const defaultInputs: CalculationInputs = {
   teamSize: 10,
@@ -169,7 +169,7 @@ export const CostCalculator = () => {
             addressComponents={addressComponents}
           />
           
-          <HubSpotForm 
+          <CustomForm 
             calculatorData={calculatorData}
             results={results}
             addressComponents={addressComponents}

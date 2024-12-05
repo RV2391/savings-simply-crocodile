@@ -18,6 +18,7 @@ export const sendWebhookData = async ({
 }: WebhookData) => {
   console.log("Sending data to webhook...");
   try {
+    // Hier können wir den HubSpot Workflow Webhook Endpoint einfügen
     const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
       method: 'POST',
       headers: {
@@ -57,5 +58,6 @@ export const sendWebhookData = async ({
       title: "Fehler",
       description: "Beim Senden der Daten ist ein Fehler aufgetreten.",
     });
+    throw error;
   }
 };
