@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AddressComponents, CalculatorData, Results } from "@/types";
+import { useToast } from "@/components/ui/use-toast";
 
 interface HubSpotFormProps {
   calculatorData: CalculatorData;
@@ -9,79 +10,137 @@ interface HubSpotFormProps {
 
 export const HubSpotForm = ({ calculatorData, results, addressComponents }: HubSpotFormProps) => {
   const [isFormLoaded, setIsFormLoaded] = useState(false);
-  const [loadAttempts, setLoadAttempts] = useState(0);
+  const { toast } = useToast();
+
+  const createForm = useCallback(() => {
+    console.log("Creating HubSpot form...");
+    if (!window.hbspt) {
+      console.log("HubSpot script not found, will retry...");
+      return false;
+    }
+
+    const formContainer = document.getElementById('hubspotForm');
+    if (!formContainer) {
+      console.log("Form container not found");
+      return false;
+    }
+
+    // Clear existing content
+    formContainer.innerHTML = '';
+
+    try {
+      window.hbspt.forms.create({
+        region: "eu1",
+        portalId: "139717164",
+        formId: "13JR5IlFKTj-xcqP784kgoAeush9",
+        target: "#hubspotForm",
+        onFormReady: () => {
+          console.log("HubSpot Form ready");
+          setIsFormLoaded(true);
+          toast({
+            title: "Formular geladen",
+            description: "Das Kontaktformular wurde erfolgreich geladen.",
+          });
+        },
+        onFormSubmitted: (form: any) => {
+          console.log("Form submitted, getting form data...");
+          const formData = form.getFormData();
+          const email = formData.get('email');
+          const companyName = formData.get('company');
+
+          sendWebhookData(email, companyName);
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error("Error creating HubSpot form:", error);
+      return false;
+    }
+  }, [toast]);
+
+  const sendWebhookData = async (email: string | null, companyName: string | null) => {
+    console.log("Sending data to webhook...");
+    try {
+      const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email || '',
+          company_name: companyName || '',
+          team_size: Number(calculatorData.teamSize) || 0,
+          dentists: Number(calculatorData.dentists) || 0,
+          assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
+          traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
+          crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
+          savings: Math.round(Number(results.savings)) || 0,
+          street_address: addressComponents.street || '',
+          city: addressComponents.city || '',
+          postal_code: addressComponents.postalCode || '',
+          timestamp: new Date().toISOString(),
+          utm_medium: 'kalkulator',
+          utm_campaign: 'cyberdeal',
+          utm_term: 'november24'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Webhook request failed');
+      }
+
+      toast({
+        title: "Erfolgreich gesendet",
+        description: "Ihre Daten wurden erfolgreich übermittelt.",
+      });
+    } catch (error) {
+      console.error('Webhook error:', error);
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Beim Senden der Daten ist ein Fehler aufgetreten.",
+      });
+    }
+  };
 
   useEffect(() => {
-    const loadForm = () => {
-      console.log("Starting HubSpot form load attempt...");
+    let attempts = 0;
+    const maxAttempts = 3;
+    const attemptInterval = 2000; // 2 seconds
+
+    const attemptFormCreation = () => {
+      console.log(`Attempt ${attempts + 1} to create HubSpot form...`);
       
-      if (window.hbspt && loadAttempts < 3) {
-        console.log("HubSpot script found, creating form...");
-        const formContainer = document.getElementById('hubspotForm');
-        
-        if (!formContainer) {
-          console.log("Form container not found");
-          return;
-        }
+      if (createForm()) {
+        console.log("Form created successfully");
+        return;
+      }
 
-        // Clear any existing content
-        formContainer.innerHTML = '';
-
-        window.hbspt.forms.create({
-          region: "eu1",
-          portalId: "139717164",
-          formId: "13JR5IlFKTj-xcqP784kgoAeush9",
-          target: "#hubspotForm",
-          onFormReady: () => {
-            console.log("HubSpot Form ready");
-            setIsFormLoaded(true);
-          },
-          onFormSubmitted: (form: any) => {
-            console.log("Form submitted, getting form data...");
-            const formData = form.getFormData();
-            const email = formData.get('email');
-            const companyName = formData.get('company');
-
-            console.log("Sending data to webhook...");
-            fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                email: email || '',
-                company_name: companyName || '',
-                team_size: Number(calculatorData.teamSize) || 0,
-                dentists: Number(calculatorData.dentists) || 0,
-                assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
-                traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
-                crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
-                savings: Math.round(Number(results.savings)) || 0,
-                street_address: addressComponents.street || '',
-                city: addressComponents.city || '',
-                postal_code: addressComponents.postalCode || '',
-                timestamp: new Date().toISOString(),
-                utm_medium: 'kalkulator',
-                utm_campaign: 'cyberdeal',
-                utm_term: 'november24'
-              })
-            }).catch(error => {
-              console.error('Webhook error:', error);
-            });
-          }
+      attempts++;
+      if (attempts < maxAttempts) {
+        console.log(`Form creation failed, will retry in ${attemptInterval}ms...`);
+        setTimeout(attemptFormCreation, attemptInterval);
+      } else {
+        console.log("Max attempts reached, form creation failed");
+        toast({
+          variant: "destructive",
+          title: "Fehler beim Laden",
+          description: "Das Formular konnte nicht geladen werden. Bitte laden Sie die Seite neu.",
         });
-        
-        setLoadAttempts(prev => prev + 1);
-      } else if (!window.hbspt && loadAttempts < 3) {
-        console.log("HubSpot script not found, retrying in 2 seconds...");
-        setTimeout(loadForm, 2000);
-        setLoadAttempts(prev => prev + 1);
       }
     };
 
-    const timer = setTimeout(loadForm, 2000);
-    return () => clearTimeout(timer);
-  }, [calculatorData, results, addressComponents, loadAttempts]);
+    // Initial delay before first attempt
+    setTimeout(attemptFormCreation, 1500);
+
+    return () => {
+      // Cleanup if component unmounts
+      const formContainer = document.getElementById('hubspotForm');
+      if (formContainer) {
+        formContainer.innerHTML = '';
+      }
+    };
+  }, [createForm]);
 
   return (
     <div className="w-full bg-[#2a2a2a] p-6 rounded-2xl shadow-lg mt-8">
