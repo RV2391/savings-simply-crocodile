@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import { RefObject, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { AddressComponents } from "@/types";
@@ -15,7 +15,7 @@ export const useGoogleMapsAutocomplete = ({
   inputRef,
   onPlaceSelect,
 }: AutocompleteHookProps) => {
-  const autocompleteRef = google.maps.places.Autocomplete | null = null;
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
   const initializeAutocomplete = () => {
