@@ -37,7 +37,7 @@ export const CustomForm = ({
     }
 
     setIsSubmitting(true);
-    console.log("Submitting form data...");
+    console.log("Submitting form data to Make.com webhook...");
 
     try {
       await sendWebhookData({
@@ -50,7 +50,7 @@ export const CustomForm = ({
 
       toast({
         title: "Erfolgreich gesendet",
-        description: "Ihre Daten wurden erfolgreich übermittelt. Bitte überprüfen Sie Ihre E-Mails für die Bestätigung.",
+        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in Kürze eine E-Mail von uns.",
       });
 
       // Reset form
