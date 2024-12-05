@@ -65,24 +65,48 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         body: JSON.stringify(webhookData)
       });
 
-      // 2. Submit to HubSpot
+      // 2. Submit to HubSpot Forms API
       const portalId = "139717164";
       const formGuid = "0a89fc12-4f48-4f4c-9c21-d0bbb34f82f4";
       
-      const hubspotData = new FormData();
-      hubspotData.append("email", email);
-      hubspotData.append("company", practiceName);
-      hubspotData.append("hs_context", JSON.stringify({
-        "pageName": "Kostenkalkulator",
-        "pageUri": window.location.href,
-        "ipAddress": ""
-      }));
+      const hubspotFormData = {
+        fields: [
+          {
+            name: "email",
+            value: email
+          },
+          {
+            name: "company",
+            value: practiceName
+          }
+        ],
+        context: {
+          pageUri: window.location.href,
+          pageName: "Kostenkalkulator"
+        },
+        legalConsentOptions: {
+          consent: {
+            consentToProcess: true,
+            text: "Ich stimme der Verarbeitung meiner Daten zu",
+            communications: [
+              {
+                value: true,
+                subscriptionTypeId: 999,
+                text: "Ich stimme dem Erhalt von Marketing E-Mails zu"
+              }
+            ]
+          }
+        }
+      };
 
       const hubspotResponse = await fetch(
-        `https://forms.hubspot.com/uploads/form/v2/${portalId}/${formGuid}`,
+        `https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`,
         {
           method: "POST",
-          body: hubspotData
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(hubspotFormData)
         }
       );
 
