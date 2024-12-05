@@ -70,51 +70,56 @@ export const CustomForm = ({
   };
 
   return (
-    <div className="w-full bg-[#2a2a2a] p-6 rounded-2xl shadow-lg mt-8">
-      <h3 className="text-lg font-semibold text-white mb-2">
-        Erhalten Sie Ihre persönliche Berechnung per E-Mail
-      </h3>
-      <p className="text-muted-foreground mb-6">
-        Wir senden Ihnen die detaillierte Auswertung kostenlos zu.
-      </p>
+    <div className="w-full bg-[#2a2a2a] p-8 rounded-2xl shadow-lg mt-8">
+      <div className="space-y-4 mb-8">
+        <h3 className="text-2xl font-semibold text-white">
+          Erhalten Sie Ihre persönliche Berechnung per E-Mail
+        </h3>
+        <p className="text-lg text-muted-foreground">
+          Wir senden Ihnen die detaillierte Auswertung kostenlos zu.
+        </p>
+      </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">E-Mail-Adresse*</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="ihre@email.de"
-            required
-            className="bg-[#1a1a1a] text-white border-gray-700"
-            disabled={isSubmitting}
-          />
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <div className="space-y-2.5">
+            <Label htmlFor="email" className="text-base text-gray-200">E-Mail-Adresse*</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="ihre@email.de"
+              required
+              className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="space-y-2.5">
+            <Label htmlFor="companyName" className="text-base text-gray-200">Name der Praxis*</Label>
+            <Input
+              id="companyName"
+              type="text"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Ihre Praxis"
+              required
+              className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="companyName">Name der Praxis*</Label>
-          <Input
-            id="companyName"
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Ihre Praxis"
-            required
-            className="bg-[#1a1a1a] text-white border-gray-700"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div className="flex items-start space-x-3 pt-4">
+        <div className="flex items-start space-x-3 pt-2">
           <Checkbox
             id="consent"
             checked={consent}
             onCheckedChange={(checked) => setConsent(checked as boolean)}
             disabled={isSubmitting}
+            className="mt-1.5 border-gray-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
           />
-          <Label htmlFor="consent" className="text-sm leading-relaxed">
+          <Label htmlFor="consent" className="text-base leading-relaxed text-gray-300">
             Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*
             <br /><br />
             Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
@@ -132,7 +137,7 @@ export const CustomForm = ({
 
         <Button 
           type="submit" 
-          className="w-full mt-6" 
+          className="w-full h-12 mt-8 text-lg font-medium bg-primary hover:bg-primary/90" 
           disabled={isSubmitting}
         >
           {isSubmitting ? "Wird gesendet..." : "Kostenlos anfordern"}
