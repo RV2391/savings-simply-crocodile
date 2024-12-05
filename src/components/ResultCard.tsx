@@ -36,13 +36,20 @@ export const ResultCard: React.FC<ResultCardProps> = ({
             console.log("HubSpot Form ready");
             setIsFormLoaded(true);
           },
-          onFormSubmitted: () => {
+          onFormSubmitted: (form) => {
+            // Extract form data
+            const formData = form.getFormData();
+            const email = formData.get('email');
+            const companyName = formData.get('company');
+
             fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
+                email: email || '',
+                company_name: companyName || '',
                 team_size: Number(calculatorData.teamSize) || 0,
                 dentists: Number(calculatorData.dentists) || 0,
                 assistants: (Number(calculatorData.teamSize) || 0) - (Number(calculatorData.dentists) || 0),
@@ -69,6 +76,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         });
         
         setLoadAttempts(prev => prev + 1);
+      } else if (!window.hbspt && loadAttempts < 3) {
+        // Retry after a short delay if hbspt is not yet available
+        setTimeout(loadForm, 1000);
+        setLoadAttempts(prev => prev + 1);
       }
     };
 
@@ -87,26 +98,13 @@ export const ResultCard: React.FC<ResultCardProps> = ({
           </p>
         </div>
         
-        <div 
-          className="mt-6"
-          style={{
-            minHeight: '600px'
-          }}
-        >
-          <div 
-            id="hubspotForm"
-            style={{ 
-              position: 'relative',
-              zIndex: 50
-            }}
-          />
-          
-          {!isFormLoaded && (
-            <div className="text-center text-muted-foreground">
-              Formular wird geladen...
-            </div>
-          )}
-        </div>
+        <div id="hubspotForm" className="mt-6" />
+        
+        {!isFormLoaded && (
+          <div className="text-center text-muted-foreground mt-4">
+            Formular wird geladen...
+          </div>
+        )}
       </div>
     </Card>
   );
