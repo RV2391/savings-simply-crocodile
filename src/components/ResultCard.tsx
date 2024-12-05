@@ -21,8 +21,12 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   useEffect(() => {
     const loadForm = () => {
       if (window.hbspt && loadAttempts < 3) {
+        console.log("Attempting to load HubSpot form...");
         const formContainer = document.getElementById('hubspotForm');
-        if (!formContainer) return;
+        if (!formContainer) {
+          console.log("Form container not found");
+          return;
+        }
 
         // Clear previous form instances
         formContainer.innerHTML = '';
@@ -77,17 +81,18 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         
         setLoadAttempts(prev => prev + 1);
       } else if (!window.hbspt && loadAttempts < 3) {
-        // Retry after a short delay if hbspt is not yet available
+        console.log("HubSpot script not loaded yet, retrying...");
         setTimeout(loadForm, 1000);
         setLoadAttempts(prev => prev + 1);
       }
     };
 
-    loadForm();
+    // Delay the initial form load
+    setTimeout(loadForm, 1500);
   }, [calculatorData, results, addressComponents, toast, loadAttempts]);
 
   return (
-    <Card className="w-full">
+    <Card className="w-full mt-8">
       <div className="p-6">
         <div>
           <h3 className="text-lg font-semibold mb-2">
@@ -98,7 +103,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
           </p>
         </div>
         
-        <div id="hubspotForm" className="mt-6" />
+        <div id="hubspotForm" className="mt-6 min-h-[400px]" />
         
         {!isFormLoaded && (
           <div className="text-center text-muted-foreground mt-4">
