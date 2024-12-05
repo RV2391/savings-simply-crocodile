@@ -8,6 +8,7 @@ import { calculateResults, type CalculationInputs, type CalculationResults } fro
 import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
+import { AddressComponents } from "@/types";
 
 const defaultInputs: CalculationInputs = {
   teamSize: 10,
@@ -33,6 +34,7 @@ export const CostCalculator = () => {
     return savedInputs ? JSON.parse(savedInputs) : defaultInputs;
   });
   const [results, setResults] = useState<CalculationResults>(defaultResults);
+  const [addressComponents, setAddressComponents] = useState<AddressComponents>({});
 
   useEffect(() => {
     const updateResults = async () => {
@@ -69,6 +71,17 @@ export const CostCalculator = () => {
       nearestInstituteLat: lat,
       nearestInstituteLng: lng,
     }));
+  };
+
+  const handleAddressComponentsChange = (components: AddressComponents) => {
+    setAddressComponents(components);
+  };
+
+  const calculatorData = {
+    teamSize: inputs.teamSize,
+    dentists: inputs.dentists,
+    location: inputs.practiceLat && inputs.practiceLng ? 
+      `${inputs.practiceLat},${inputs.practiceLng}` : undefined
   };
 
   const nearestInstitute = results.nearestInstitute ? 
@@ -125,6 +138,7 @@ export const CostCalculator = () => {
               <AddressInput 
                 onLocationChange={handleLocationChange}
                 onNearestInstituteFound={handleNearestInstituteFound}
+                onAddressComponentsChange={handleAddressComponentsChange}
               />
               
               {inputs.practiceLat && inputs.practiceLng && (
@@ -147,7 +161,11 @@ export const CostCalculator = () => {
         </motion.div>
 
         <div className="flex items-start justify-center">
-          <ResultCard results={results} />
+          <ResultCard 
+            results={results}
+            calculatorData={calculatorData}
+            addressComponents={addressComponents}
+          />
         </div>
       </div>
     </div>

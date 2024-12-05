@@ -4,8 +4,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 
 interface ResultCardProps {
-  calculatorData: CalculatorData;
   results: Results;
+  calculatorData: CalculatorData;
   addressComponents: AddressComponents;
 }
 
@@ -16,8 +16,6 @@ export const ResultCard: React.FC<ResultCardProps> = ({
 }) => {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(true);
-  const [email, setEmail] = useState("");
-  const [practiceName, setPracticeName] = useState("");
   const [hubSpotLoaded, setHubSpotLoaded] = useState(false);
 
   useEffect(() => {
