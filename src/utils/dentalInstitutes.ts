@@ -62,24 +62,12 @@ const toRad = (value: number): number => {
   return value * Math.PI / 180;
 };
 
-export const calculateNearestInstitute = async (lat: number, lng: number, plz?: string): Promise<DentalInstitute> => {
-  let relevantInstitutes = dentalInstitutes;
-
-  // Filter by PLZ range if provided
-  if (plz && /^\d{5}$/.test(plz)) {
-    const plzNum = parseInt(plz);
-    relevantInstitutes = dentalInstitutes.filter(institute => 
-      !institute.plzRange || 
-      (institute.plzRange.start <= plzNum && institute.plzRange.end >= plzNum)
-    );
-  }
-
-  let nearestInstitute = relevantInstitutes[0];
+export const findNearestInstitute = (lat: number, lng: number): DentalInstitute => {
+  let nearestInstitute = dentalInstitutes[0];
   let shortestDistance = Number.MAX_VALUE;
 
-  // Calculate actual driving distances using Google Maps Distance Matrix API
-  for (const institute of relevantInstitutes) {
-    const distance = await calculateDistance(
+  dentalInstitutes.forEach(institute => {
+    const distance = calculateDistance(
       lat,
       lng,
       institute.coordinates.lat,
@@ -90,7 +78,7 @@ export const calculateNearestInstitute = async (lat: number, lng: number, plz?: 
       shortestDistance = distance;
       nearestInstitute = institute;
     }
-  }
+  });
 
   return nearestInstitute;
 };
