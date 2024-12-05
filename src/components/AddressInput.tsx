@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { AddressComponents } from "@/types";
