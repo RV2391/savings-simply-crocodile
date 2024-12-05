@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 
 interface ResultCardProps {
@@ -15,30 +19,26 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   addressComponents,
 }) => {
   const { toast } = useToast();
-  const [showForm, setShowForm] = useState(true);
-  const [hubSpotLoaded, setHubSpotLoaded] = useState(false);
+  const [email, setEmail] = useState("");
+  const [practiceName, setPracticeName] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Initialize HubSpot form when the component mounts
-    if (window.hbspt && !hubSpotLoaded) {
-      window.hbspt.forms.create({
-        region: "eu1",
-        portalId: "139717164",
-        formId: "0a89fc12-4f48-4f4c-9c21-d0bbb34f82f4",
-        target: "#hubspotForm",
-        onFormSubmit: (form: any) => {
-          const formData = form.getFormData();
-          const email = formData.get('email');
-          const practiceName = formData.get('practice_name');
-          handleFormSubmit(email, practiceName);
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !practiceName || !consent) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Bitte füllen Sie alle Pflichtfelder aus und stimmen Sie den Bedingungen zu.",
       });
-      setHubSpotLoaded(true);
+      return;
     }
-  }, [hubSpotLoaded]);
 
-  const handleFormSubmit = async (email: string, practiceName: string) => {
+    setIsSubmitting(true);
+
     try {
+      // 1. Send data to webhook
       const webhookData = {
         email,
         practice_name: practiceName,
@@ -57,7 +57,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         utm_term: 'november24'
       };
 
-      const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
+      const webhookResponse = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,17 +65,37 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         body: JSON.stringify(webhookData)
       });
 
-      const result = await response.json();
+      // 2. Submit to HubSpot
+      const portalId = "139717164";
+      const formGuid = "0a89fc12-4f48-4f4c-9c21-d0bbb34f82f4";
       
-      if (response.ok && result.status === 'success') {
+      const hubspotData = new FormData();
+      hubspotData.append("email", email);
+      hubspotData.append("company", practiceName);
+      hubspotData.append("hs_context", JSON.stringify({
+        "pageName": "Kostenkalkulator",
+        "pageUri": window.location.href,
+        "ipAddress": ""
+      }));
+
+      const hubspotResponse = await fetch(
+        `https://forms.hubspot.com/uploads/form/v2/${portalId}/${formGuid}`,
+        {
+          method: "POST",
+          body: hubspotData
+        }
+      );
+
+      if (webhookResponse.ok && hubspotResponse.ok) {
         toast({
           title: "Erfolg!",
           description: "Ihre Berechnung wurde gespeichert und wird an Ihre E-Mail-Adresse gesendet.",
         });
-        
-        setShowForm(false);
+        setEmail("");
+        setPracticeName("");
+        setConsent(false);
       } else {
-        throw new Error(result.message || 'Fehler beim Senden der Daten');
+        throw new Error('Fehler beim Senden der Daten');
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -84,12 +104,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         title: "Fehler",
         description: error instanceof Error ? error.message : "Ein unerwarteter Fehler ist aufgetreten",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  if (!showForm) {
-    return null;
-  }
 
   return (
     <Card className="p-6 bg-card">
@@ -103,9 +121,64 @@ export const ResultCard: React.FC<ResultCardProps> = ({
           </p>
         </div>
         
-        <div id="hubspotForm" className="hubspot-form-wrapper">
-          {/* HubSpot Form will be rendered here */}
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">E-Mail-Adresse*</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isSubmitting}
+              placeholder="ihre@email.de"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="practiceName">Name der Praxis*</Label>
+            <Input
+              id="practiceName"
+              type="text"
+              value={practiceName}
+              onChange={(e) => setPracticeName(e.target.value)}
+              required
+              disabled={isSubmitting}
+              placeholder="Ihre Praxis GmbH"
+            />
+          </div>
+
+          <div className="flex items-start space-x-3 pt-4">
+            <Checkbox
+              id="consent"
+              checked={consent}
+              onCheckedChange={(checked) => setConsent(checked as boolean)}
+              disabled={isSubmitting}
+            />
+            <Label htmlFor="consent" className="text-sm leading-relaxed">
+              Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*
+              <br /><br />
+              Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
+              <a 
+                href="https://www.crocodile-health.com/datenschutz" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                Datenschutzvereinbarung
+              </a>
+              .
+            </Label>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Wird gesendet..." : "Anmelden"}
+          </Button>
+        </form>
       </div>
     </Card>
   );
