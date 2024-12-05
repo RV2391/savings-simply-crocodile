@@ -3,13 +3,19 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { useToast } from "./ui/use-toast";
+import { AddressComponents } from "@/types";
 
 interface AddressInputProps {
   onLocationChange: (location: { lat: number; lng: number }) => void;
   onNearestInstituteFound?: (lat: number, lng: number) => void;
+  onAddressComponentsChange?: (components: AddressComponents) => void;
 }
 
-export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: AddressInputProps) => {
+export const AddressInput = ({ 
+  onLocationChange, 
+  onNearestInstituteFound,
+  onAddressComponentsChange 
+}: AddressInputProps) => {
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -95,11 +101,18 @@ export const AddressInput = ({ onLocationChange, onNearestInstituteFound }: Addr
         setPostalCode(newPostalCode);
 
         // Store address components in sessionStorage
-        sessionStorage.setItem('addressComponents', JSON.stringify({
+        const components = {
           street: newStreet,
           city: newCity,
           postalCode: newPostalCode
-        }));
+        };
+        
+        sessionStorage.setItem('addressComponents', JSON.stringify(components));
+        
+        // Call the onAddressComponentsChange callback if provided
+        if (onAddressComponentsChange) {
+          onAddressComponentsChange(components);
+        }
 
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
