@@ -77,7 +77,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
 
   return (
     <Card className="w-full">
-      <div className="space-y-6 p-6">
+      <div className="p-6">
         <div>
           <h3 className="text-lg font-semibold mb-2">
             Erhalten Sie Ihre persönliche Berechnung per E-Mail
@@ -88,28 +88,25 @@ export const ResultCard: React.FC<ResultCardProps> = ({
         </div>
         
         <div 
-          className="relative"
+          className="mt-6"
           style={{
-            minHeight: '600px',
-            zIndex: 50
+            minHeight: '600px'
           }}
         >
           <div 
-            id="hubspotForm" 
-            className="hubspot-form-custom absolute inset-0"
+            id="hubspotForm"
             style={{ 
               position: 'relative',
-              zIndex: 50,
-              overflow: 'visible'
+              zIndex: 50
             }}
           />
+          
+          {!isFormLoaded && (
+            <div className="text-center text-muted-foreground">
+              Formular wird geladen...
+            </div>
+          )}
         </div>
-        
-        {!isFormLoaded && (
-          <div className="text-center text-muted-foreground">
-            Formular wird geladen...
-          </div>
-        )}
       </div>
     </Card>
   );
