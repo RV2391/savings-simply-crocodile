@@ -34,7 +34,6 @@ export const FormSubmission = ({
     setIsSubmitting(true);
 
     try {
-      // Webhook submission remains unchanged
       const webhookData = {
         email,
         practice_name: practiceName,
@@ -61,9 +60,8 @@ export const FormSubmission = ({
         body: JSON.stringify(webhookData)
       });
 
-      // Here you should replace the formGuid with your newly created form's GUID
       const portalId = "139717164";
-      const formGuid = "YOUR_NEW_FORM_GUID"; // Replace this with your new form GUID
+      const formGuid = "13JR5IlFKTj-xcqP784kgoAeush9";
       
       const hubspotFormData = {
         fields: [
