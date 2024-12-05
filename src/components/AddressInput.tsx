@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { findNearestInstitute } from "@/utils/dentalInstitutes";
+import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { useGoogleMapsAutocomplete } from "@/hooks/useGoogleMapsAutocomplete";
 import type { AddressComponents } from "@/types";
 
@@ -21,7 +21,7 @@ export const AddressInput = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handlePlaceSelect = (
+  const handlePlaceSelect = async (
     place: google.maps.places.PlaceResult | null,
     status: google.maps.places.PlacesServiceStatus
   ) => {
@@ -40,7 +40,7 @@ export const AddressInput = ({
 
     onLocationChange({ lat, lng });
 
-    const nearestInstitute = findNearestInstitute(lat, lng);
+    const nearestInstitute = await calculateNearestInstitute(lat, lng);
     if (nearestInstitute) {
       onNearestInstituteFound(
         nearestInstitute.coordinates.lat,
