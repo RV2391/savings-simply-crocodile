@@ -40,7 +40,7 @@ export const HubSpotFormContainer = ({
       window.hbspt.forms.create({
         region: "eu1",
         portalId: "139717164",
-        formId: "13JR5IlFKTj-xcqP784kgoAeush9",
+        formId: "c4f8a3d4-8c41-4b0c-9cf5-95dd0b04d91c", // Neue Formular-ID
         target: "#hubspotForm",
         onFormReady: () => {
           console.log("HubSpot Form ready");
@@ -79,8 +79,8 @@ export const HubSpotFormContainer = ({
 
   useEffect(() => {
     let attempts = 0;
-    const maxAttempts = 10; // Increased from 5 to 10
-    const attemptInterval = 3000; // Increased from 2000 to 3000
+    const maxAttempts = 10;
+    const attemptInterval = 3000;
 
     const attemptFormCreation = () => {
       console.log(`Attempt ${attempts + 1} to create HubSpot form...`);
@@ -104,7 +104,6 @@ export const HubSpotFormContainer = ({
       }
     };
 
-    // Initial delay before first attempt
     setTimeout(attemptFormCreation, 3000);
 
     return () => {
