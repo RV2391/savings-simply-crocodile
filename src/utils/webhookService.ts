@@ -22,6 +22,8 @@ export const sendWebhookData = async ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Origin': window.location.origin
       },
       body: JSON.stringify({
         email: email || '',
