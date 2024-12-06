@@ -39,8 +39,8 @@ export const HubSpotFormContainer = ({
     try {
       window.hbspt.forms.create({
         region: "eu1",
-        portalId: "139717164",
-        formId: "c4f8a3d4-8c41-4b0c-9cf5-95dd0b04d91c", // Neue Formular-ID
+        portalId: "24951213",
+        formId: "dc947922-514a-4e3f-b172-a3fbf38920a0",
         target: "#hubspotForm",
         onFormReady: () => {
           console.log("HubSpot Form ready");
