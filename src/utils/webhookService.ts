@@ -18,7 +18,7 @@ export const sendWebhookData = async ({
 }: WebhookData) => {
   console.log("Sending data to webhook...");
   try {
-    const response = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
+    const response = await fetch('https://api-eu1.hubapi.com/automation/v4/webhook-triggers/24951213/VnT7Sy8', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
