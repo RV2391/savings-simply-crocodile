@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { FormLoadingState } from "./form/FormLoadingState";
-import { sendWebhookData } from "@/utils/webhookService";
 
 interface HubSpotFormProps {
   calculatorData: CalculatorData;
@@ -53,7 +52,8 @@ export const HubSpotForm = ({
           const email = formData.get('email');
           const companyName = formData.get('company');
 
-          sendWebhookData({
+          // Send the form data directly to HubSpot through their forms API
+          console.log("Form submitted with data:", {
             email,
             companyName,
             calculatorData,
