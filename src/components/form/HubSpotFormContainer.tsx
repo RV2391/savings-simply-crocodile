@@ -22,8 +22,8 @@ export const HubSpotFormContainer = ({
 
   const createForm = useCallback(() => {
     console.log("Creating HubSpot form...");
-    if (!window.hbspt) {
-      console.log("HubSpot script not found, will retry...");
+    if (typeof window === 'undefined' || !window.hbspt) {
+      console.log("HubSpot script not loaded yet");
       return false;
     }
 
@@ -33,6 +33,7 @@ export const HubSpotFormContainer = ({
       return false;
     }
 
+    // Clear any existing form
     formContainer.innerHTML = '';
 
     try {
@@ -44,30 +45,28 @@ export const HubSpotFormContainer = ({
         onFormReady: () => {
           console.log("HubSpot Form ready");
           onFormLoaded();
-          toast({
-            title: "Formular geladen",
-            description: "Das Kontaktformular wurde erfolgreich geladen.",
-          });
         },
         onFormSubmit: (form: any) => {
-          console.log("Form being submitted...");
-          const formData = form.getFormData();
-          
-          formData.append('team_size', String(calculatorData.teamSize || 0));
-          formData.append('dentists', String(calculatorData.dentists || 0));
-          formData.append('assistants', String((calculatorData.teamSize || 0) - (calculatorData.dentists || 0)));
-          formData.append('traditional_costs', String(Math.round(Number(results.totalTraditionalCosts)) || 0));
-          formData.append('crocodile_costs', String(Math.round(Number(results.crocodileCosts)) || 0));
-          formData.append('savings', String(Math.round(Number(results.savings)) || 0));
-          formData.append('street_address', addressComponents.street || '');
-          formData.append('city', addressComponents.city || '');
-          formData.append('postal_code', addressComponents.postalCode || '');
+          console.log("Form being submitted with data:", {
+            teamSize: calculatorData.teamSize,
+            dentists: calculatorData.dentists,
+            results: results,
+            address: addressComponents
+          });
         },
         onFormSubmitted: () => {
           console.log("Form submitted successfully");
           toast({
             title: "Erfolgreich gesendet",
             description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in Kürze eine E-Mail von uns.",
+          });
+        },
+        onFormError: (error: any) => {
+          console.error("Form submission error:", error);
+          toast({
+            variant: "destructive",
+            title: "Fehler beim Senden",
+            description: "Es gab einen Fehler beim Senden des Formulars. Bitte versuchen Sie es später erneut.",
           });
         }
       });
@@ -80,8 +79,8 @@ export const HubSpotFormContainer = ({
 
   useEffect(() => {
     let attempts = 0;
-    const maxAttempts = 5;
-    const attemptInterval = 2000;
+    const maxAttempts = 10; // Increased from 5 to 10
+    const attemptInterval = 3000; // Increased from 2000 to 3000
 
     const attemptFormCreation = () => {
       console.log(`Attempt ${attempts + 1} to create HubSpot form...`);
@@ -105,7 +104,8 @@ export const HubSpotFormContainer = ({
       }
     };
 
-    setTimeout(attemptFormCreation, 2000);
+    // Initial delay before first attempt
+    setTimeout(attemptFormCreation, 3000);
 
     return () => {
       const formContainer = document.getElementById('hubspotForm');
