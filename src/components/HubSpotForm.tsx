@@ -46,19 +46,26 @@ export const HubSpotForm = ({
             description: "Das Kontaktformular wurde erfolgreich geladen.",
           });
         },
-        onFormSubmitted: (form: any) => {
-          console.log("Form submitted, getting form data...");
+        onFormSubmit: (form: any) => {
+          console.log("Form being submitted...");
           const formData = form.getFormData();
-          const email = formData.get('email');
-          const companyName = formData.get('company');
-
-          // Send the form data directly to HubSpot through their forms API
-          console.log("Form submitted with data:", {
-            email,
-            companyName,
-            calculatorData,
-            results,
-            addressComponents
+          
+          // Add hidden fields with calculator data
+          formData.append('team_size', String(calculatorData.teamSize || 0));
+          formData.append('dentists', String(calculatorData.dentists || 0));
+          formData.append('assistants', String((calculatorData.teamSize || 0) - (calculatorData.dentists || 0)));
+          formData.append('traditional_costs', String(Math.round(Number(results.totalTraditionalCosts)) || 0));
+          formData.append('crocodile_costs', String(Math.round(Number(results.crocodileCosts)) || 0));
+          formData.append('savings', String(Math.round(Number(results.savings)) || 0));
+          formData.append('street_address', addressComponents.street || '');
+          formData.append('city', addressComponents.city || '');
+          formData.append('postal_code', addressComponents.postalCode || '');
+        },
+        onFormSubmitted: () => {
+          console.log("Form submitted successfully");
+          toast({
+            title: "Erfolgreich gesendet",
+            description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in Kürze eine E-Mail von uns.",
           });
         }
       });
@@ -71,7 +78,7 @@ export const HubSpotForm = ({
 
   useEffect(() => {
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 5;
     const attemptInterval = 2000;
 
     const attemptFormCreation = () => {
@@ -96,7 +103,8 @@ export const HubSpotForm = ({
       }
     };
 
-    setTimeout(attemptFormCreation, 1500);
+    // Give more time for the HubSpot script to load
+    setTimeout(attemptFormCreation, 2000);
 
     return () => {
       const formContainer = document.getElementById('hubspotForm');
