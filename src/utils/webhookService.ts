@@ -23,7 +23,8 @@ export const sendWebhookData = async ({
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Origin': window.location.origin
+        'Origin': window.location.origin,
+        'Authorization': 'Bearer pat-eu1-0c6c3c6c-9c9e-4b0e-9b9e-9c9e4b0e9b9e'
       },
       body: JSON.stringify({
         email: email || '',
