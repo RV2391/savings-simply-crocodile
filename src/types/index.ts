@@ -20,6 +20,9 @@ export interface Results {
   nearestInstitute?: {
     name: string;
     distance: number;
+    oneWayDistance: number;
+    travelTime: number;
+    oneWayTravelTime: number;
     travelCosts: number;
   };
 }
