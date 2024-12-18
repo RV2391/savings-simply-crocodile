@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ResultCard } from "./ResultCard";
 import { CostLegend } from "./CostLegend";
 import { calculateResults, type CalculationInputs, type CalculationResults } from "@/utils/calculations";
@@ -29,6 +35,10 @@ const defaultResults: CalculationResults = {
   savingsPercentage: 0,
 };
 
+// Generate arrays for the dropdown options
+const teamSizeOptions = Array.from({ length: 100 }, (_, i) => i + 1);
+const dentistsOptions = Array.from({ length: 50 }, (_, i) => i + 1);
+
 export const CostCalculator = () => {
   const [inputs, setInputs] = useState<CalculationInputs>(() => {
     const savedInputs = sessionStorage.getItem('calculatorData');
@@ -51,11 +61,8 @@ export const CostCalculator = () => {
     updateResults();
   }, [inputs]);
 
-  const handleInputChange = (field: keyof CalculationInputs) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = parseFloat(e.target.value) || 0;
-    setInputs((prev) => ({ ...prev, [field]: value }));
+  const handleSelectChange = (field: keyof CalculationInputs) => (value: string) => {
+    setInputs((prev) => ({ ...prev, [field]: parseInt(value, 10) }));
   };
 
   const handleLocationChange = (location: { lat: number; lng: number }) => {
@@ -108,27 +115,41 @@ export const CostCalculator = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="teamSize" className="text-gray-300">Teamgröße (inkl. Zahnärzte)</Label>
-              <Input
-                id="teamSize"
-                type="number"
-                value={inputs.teamSize}
-                onChange={handleInputChange("teamSize")}
-                min="1"
-                className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-              />
-              <p className="text-xs text-gray-400">Bitte gib hier die Gesamtanzahl deiner Mitarbeiter ein, inklusive aller Zahnärzte.</p>
+              <Select
+                value={inputs.teamSize.toString()}
+                onValueChange={handleSelectChange("teamSize")}
+              >
+                <SelectTrigger className="w-full bg-[#1a1a1a] text-white border-gray-700">
+                  <SelectValue placeholder="Wähle die Teamgröße" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {teamSizeOptions.map((size) => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400">Bitte wähle hier die Gesamtanzahl deiner Mitarbeiter, inklusive aller Zahnärzte.</p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="dentists" className="text-gray-300">Anzahl Zahnärzte</Label>
-              <Input
-                id="dentists"
-                type="number"
-                value={inputs.dentists}
-                onChange={handleInputChange("dentists")}
-                min="0"
-                className="input-transition bg-[#1a1a1a] text-white border-gray-700"
-              />
+              <Select
+                value={inputs.dentists.toString()}
+                onValueChange={handleSelectChange("dentists")}
+              >
+                <SelectTrigger className="w-full bg-[#1a1a1a] text-white border-gray-700">
+                  <SelectValue placeholder="Wähle die Anzahl der Zahnärzte" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {dentistsOptions.map((count) => (
+                    <SelectItem key={count} value={count.toString()}>
+                      {count}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2 border-t border-gray-700 pt-4">
