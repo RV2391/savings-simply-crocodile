@@ -58,6 +58,8 @@ export const CustomForm = ({
             { name: "traditional_costs", value: String(Math.round(Number(results.totalTraditionalCosts)) || 0) },
             { name: "crocodile_costs", value: String(Math.round(Number(results.crocodileCosts)) || 0) },
             { name: "savings", value: String(Math.round(Number(results.savings)) || 0) },
+            { name: "time_savings_hours", value: String(Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0) },
+            { name: "time_savings_value", value: String(Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0) },
             { name: "street_address", value: addressComponents.street || '' },
             { name: "city", value: addressComponents.city || '' },
             { name: "postal_code", value: addressComponents.postalCode || '' }
@@ -84,7 +86,7 @@ export const CustomForm = ({
 
       toast({
         title: "Erfolgreich gesendet",
-        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in Kürze eine E-Mail von uns.",
+        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in Kürze eine E-Mail mit Ihrer persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
       });
 
       // Reset form
@@ -112,6 +114,12 @@ export const CustomForm = ({
         <p className="text-lg text-muted-foreground">
           Wir senden Ihnen die detaillierte Auswertung kostenlos zu.
         </p>
+        <ul className="list-disc pl-6 space-y-2 text-sm text-gray-400">
+          <li>Detaillierte Zeitersparnis-Analyse für Ihre Praxis</li>
+          <li>Personalisierte 5-Jahres-CME-Strategie</li>
+          <li>Konkrete Optimierungsvorschläge für Ihr Team</li>
+          <li>Individuelle Handlungsempfehlungen</li>
+        </ul>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">

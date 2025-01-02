@@ -23,6 +23,14 @@ export interface CalculationInputs {
   nearestInstituteLng?: number;
 }
 
+export interface TimeSavings {
+  totalHoursPerYear: number;
+  totalMonetaryValue: number;
+  dentistHours: number;
+  assistantHours: number;
+  travelHours: number;
+}
+
 export interface CalculationResults {
   traditionalCostsDentists: number;
   traditionalCostsAssistants: number;
@@ -30,6 +38,7 @@ export interface CalculationResults {
   crocodileCosts: number;
   savings: number;
   savingsPercentage: number;
+  timeSavings?: TimeSavings;
   nearestInstitute?: NearestInstitute;
   cmeRequirements?: {
     traditional: {
@@ -56,6 +65,9 @@ const BASE_PRICE = 1699;
 const COST_PER_KM = 0.30;
 const ASSISTANTS_PER_CAR = 5;
 const MONTHS_PER_YEAR = 12;
+const DENTIST_HOURLY_RATE = 150;
+const ASSISTANT_HOURLY_RATE = 35;
+const PREPARATION_TIME = 1; // 1 hour for preparation per training session
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -74,6 +86,39 @@ const calculateTravelCosts = (distance: number, dentists: number, assistants: nu
   const assistantsCosts = distance * COST_PER_KM * assistantGroups;
   
   return Math.round(dentistsCosts + assistantsCosts);
+};
+
+const calculateTimeSavings = (
+  dentists: number,
+  assistants: number,
+  travelTimeMinutes: number,
+  traditionalDentistCME: any,
+  traditionalAssistantCME: any
+): TimeSavings => {
+  const travelTimeHours = travelTimeMinutes / 60;
+  
+  // Berechnung für Zahnärzte
+  const dentistTimePerSession = 8 + travelTimeHours + PREPARATION_TIME; // Training + Reise + Vor/Nach
+  const totalDentistHours = dentistTimePerSession * traditionalDentistCME.requiredSessions * dentists;
+  const dentistMonetaryValue = totalDentistHours * DENTIST_HOURLY_RATE;
+
+  // Berechnung für Assistenzkräfte
+  const assistantTimePerSession = 8 + travelTimeHours + PREPARATION_TIME;
+  const totalAssistantHours = assistantTimePerSession * traditionalAssistantCME.requiredSessions * assistants;
+  const assistantMonetaryValue = totalAssistantHours * ASSISTANT_HOURLY_RATE;
+
+  // Gesamte Reisezeit
+  const totalTravelHours = travelTimeHours * 
+    (traditionalDentistCME.requiredSessions * dentists + 
+     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR));
+
+  return {
+    totalHoursPerYear: totalDentistHours + totalAssistantHours,
+    totalMonetaryValue: dentistMonetaryValue + assistantMonetaryValue,
+    dentistHours: totalDentistHours,
+    assistantHours: totalAssistantHours,
+    travelHours: totalTravelHours
+  };
 };
 
 export const calculateResults = async (inputs: CalculationInputs): Promise<CalculationResults> => {
@@ -97,6 +142,8 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
   const traditionalCostsAssistants = assistants * ASSISTANT_ANNUAL_COST;
 
   let nearestInstitute;
+  let timeSavings;
+
   if (inputs.practiceLat && inputs.practiceLng) {
     const nearest = await calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
     
@@ -160,6 +207,14 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
           travelTime: roundTripTime,
           travelCosts: Math.round(travelCosts)
         };
+
+        timeSavings = calculateTimeSavings(
+          inputs.dentists,
+          assistants,
+          roundTripTime,
+          traditionalDentistCME,
+          traditionalAssistantCME
+        );
       }
     } catch (error) {
       console.error('Error calculating distance:', error);
@@ -182,6 +237,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
     savings,
     savingsPercentage,
     nearestInstitute,
+    timeSavings,
     cmeRequirements: {
       traditional: {
         dentist: traditionalDentistCME,

@@ -10,6 +10,14 @@ export interface CalculatorData {
   location?: string;
 }
 
+export interface TimeSavings {
+  totalHoursPerYear: number;
+  totalMonetaryValue: number;
+  dentistHours: number;
+  assistantHours: number;
+  travelHours: number;
+}
+
 export interface Results {
   traditionalCostsDentists: number;
   traditionalCostsAssistants: number;
@@ -17,6 +25,7 @@ export interface Results {
   crocodileCosts: number;
   savings: number;
   savingsPercentage: number;
+  timeSavings?: TimeSavings;
   nearestInstitute?: {
     name: string;
     distance: number;
