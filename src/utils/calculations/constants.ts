@@ -1,0 +1,12 @@
+export const DENTIST_ANNUAL_COST = 1200;
+export const ASSISTANT_ANNUAL_COST = 280;
+export const BASE_USERS_INCLUDED = 20;
+export const ADDITIONAL_USER_BLOCK_SIZE = 10;
+export const COST_PER_ADDITIONAL_BLOCK_MONTHLY = 50;
+export const BASE_PRICE = 1699;
+export const COST_PER_KM = 0.30;
+export const ASSISTANTS_PER_CAR = 5;
+export const MONTHS_PER_YEAR = 12;
+export const DENTIST_HOURLY_RATE = 150;
+export const ASSISTANT_HOURLY_RATE = 35;
+export const PREPARATION_TIME = 1; // 1 hour for preparation per training session
