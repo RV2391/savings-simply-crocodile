@@ -1,16 +1,102 @@
 import { calculateNearestInstitute } from '../dentalInstitutes';
-import { calculateAnnualCMERequirements, TYPICAL_TRADITIONAL_UNIT } from '../cmeCalculations';
-import { calculateCrocodileCosts, calculateTravelCosts, formatCurrency } from './costCalculations';
-import { calculateTimeSavings } from './timeSavingsCalculations';
 import { 
-  ASSISTANTS_PER_CAR,
+  calculateAnnualCMERequirements, 
+  TYPICAL_TRADITIONAL_UNIT, 
+  TYPICAL_CROCODILE_UNIT 
+} from '../cmeCalculations';
+import { 
+  CalculationInputs, 
+  CalculationResults, 
+  TimeSavings,
+  TimeSavingsDetails
+} from './types';
+import { 
   DENTIST_ANNUAL_COST,
-  ASSISTANT_ANNUAL_COST 
+  ASSISTANT_ANNUAL_COST,
+  ASSISTANTS_PER_CAR,
+  BASE_USERS_INCLUDED,
+  ADDITIONAL_USER_BLOCK_SIZE,
+  COST_PER_ADDITIONAL_BLOCK_MONTHLY,
+  BASE_PRICE,
+  COST_PER_KM,
+  MONTHS_PER_YEAR,
+  DENTIST_HOURLY_RATE,
+  ASSISTANT_HOURLY_RATE,
+  PREPARATION_TIME
 } from './constants';
-import type { CalculationInputs, CalculationResults, NearestInstitute } from './types';
 
-export type { CalculationInputs, CalculationResults, NearestInstitute };
-export { formatCurrency };
+const calculateCrocodileCosts = (teamSize: number): number => {
+  if (teamSize <= BASE_USERS_INCLUDED) {
+    return BASE_PRICE;
+  }
+  
+  const additionalUsers = teamSize - BASE_USERS_INCLUDED;
+  const additionalBlocks = Math.ceil(additionalUsers / ADDITIONAL_USER_BLOCK_SIZE);
+  const annualAdditionalCosts = additionalBlocks * COST_PER_ADDITIONAL_BLOCK_MONTHLY * MONTHS_PER_YEAR;
+  return BASE_PRICE + annualAdditionalCosts;
+};
+
+const calculateTravelCosts = (distance: number, dentists: number, assistants: number): number => {
+  const dentistsCosts = distance * COST_PER_KM * dentists;
+  const assistantGroups = Math.ceil(assistants / ASSISTANTS_PER_CAR);
+  const assistantsCosts = distance * COST_PER_KM * assistantGroups;
+  
+  return Math.round(dentistsCosts + assistantsCosts);
+};
+
+const calculateTimeSavings = (
+  dentists: number,
+  assistants: number,
+  travelTimeMinutes: number,
+  traditionalDentistCME: any,
+  traditionalAssistantCME: any
+): TimeSavings => {
+  const travelTimeHours = travelTimeMinutes / 60;
+  
+  const dentistTimePerSession = {
+    trainingHours: 3,
+    travelHours: travelTimeHours,
+    prepHours: PREPARATION_TIME,
+    totalHours: 3 + travelTimeHours + PREPARATION_TIME
+  };
+
+  const assistantTimePerSession = {
+    trainingHours: 3,
+    travelHours: travelTimeHours,
+    prepHours: PREPARATION_TIME,
+    totalHours: 3 + travelTimeHours + PREPARATION_TIME
+  };
+
+  const totalDentistHours = dentistTimePerSession.totalHours * traditionalDentistCME.requiredSessions * dentists;
+  const totalAssistantHours = assistantTimePerSession.totalHours * traditionalAssistantCME.requiredSessions * assistants;
+  
+  const dentistMonetaryValue = totalDentistHours * DENTIST_HOURLY_RATE;
+  const assistantMonetaryValue = totalAssistantHours * ASSISTANT_HOURLY_RATE;
+
+  const totalTravelHours = travelTimeHours * 
+    (traditionalDentistCME.requiredSessions * dentists + 
+     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR));
+
+  const details: TimeSavingsDetails = {
+    perSession: {
+      dentist: dentistTimePerSession,
+      assistant: assistantTimePerSession
+    },
+    monetaryValues: {
+      dentist: dentistMonetaryValue,
+      assistant: assistantMonetaryValue
+    }
+  };
+
+  return {
+    totalHoursPerYear: totalDentistHours + totalAssistantHours,
+    totalMonetaryValue: dentistMonetaryValue + assistantMonetaryValue,
+    dentistHours: totalDentistHours,
+    assistantHours: totalAssistantHours,
+    travelHours: totalTravelHours,
+    details
+  };
+};
 
 export const calculateResults = async (inputs: CalculationInputs): Promise<CalculationResults> => {
   const assistants = inputs.teamSize - inputs.dentists;
@@ -136,4 +222,11 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
       }
     }
   };
+};
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(amount);
 };

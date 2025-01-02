@@ -9,4 +9,4 @@ export const ASSISTANTS_PER_CAR = 5;
 export const MONTHS_PER_YEAR = 12;
 export const DENTIST_HOURLY_RATE = 150;
 export const ASSISTANT_HOURLY_RATE = 35;
-export const PREPARATION_TIME = 1; // 1 hour for preparation per training session
+export const PREPARATION_TIME = 1;

@@ -1,21 +1,3 @@
-export interface NearestInstitute {
-  name: string;
-  distance: number;
-  oneWayDistance: number;
-  travelTime: number;
-  oneWayTravelTime: number;
-  travelCosts: number;
-}
-
-export interface CalculationInputs {
-  teamSize: number;
-  dentists: number;
-  practiceLat?: number;
-  practiceLng?: number;
-  nearestInstituteLat?: number;
-  nearestInstituteLng?: number;
-}
-
 export interface TimeSavingsDetails {
   perSession: {
     dentist: {
@@ -46,6 +28,24 @@ export interface TimeSavings {
   details: TimeSavingsDetails;
 }
 
+export interface NearestInstitute {
+  name: string;
+  distance: number;
+  oneWayDistance: number;
+  travelTime: number;
+  oneWayTravelTime: number;
+  travelCosts: number;
+}
+
+export interface CalculationInputs {
+  teamSize: number;
+  dentists: number;
+  practiceLat?: number;
+  practiceLng?: number;
+  nearestInstituteLat?: number;
+  nearestInstituteLng?: number;
+}
+
 export interface CalculationResults {
   traditionalCostsDentists: number;
   traditionalCostsAssistants: number;
@@ -55,18 +55,4 @@ export interface CalculationResults {
   savingsPercentage: number;
   timeSavings?: TimeSavings;
   nearestInstitute?: NearestInstitute;
-  cmeRequirements?: {
-    traditional: {
-      dentist: {
-        totalPoints: number;
-        totalHours: number;
-        requiredSessions: number;
-      };
-      assistant: {
-        totalPoints: number;
-        totalHours: number;
-        requiredSessions: number;
-      };
-    };
-  };
 }
