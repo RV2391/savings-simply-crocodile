@@ -70,6 +70,32 @@ export const ResultDetails = ({
               </div>
             </div>
           </div>
+          
+          <div className="mt-4 p-4 bg-[#1a1a1a] rounded-lg border border-gray-700">
+            <h4 className="text-sm font-medium text-primary mb-2">CME-Punkte Übersicht</h4>
+            <p className="text-xs text-gray-400 mb-3">
+              Zahnärzte müssen 125 CME-Punkte in 5 Jahren sammeln (∅ 25 Punkte/Jahr)
+            </p>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-400">Traditionelle Fortbildung</span>
+                <span className="text-white">8 Punkte pro Tag</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-400">Mit Crocodile</span>
+                <span className="text-white">1-3 Punkte pro Einheit</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-400 mb-2">
+              Erhalten Sie Ihre persönliche 5-Jahres-CME-Strategie
+            </p>
+            <p className="text-xs text-gray-500">
+              Inkl. Planung, Zeitmanagement und Kostenoptimierung
+            </p>
+          </div>
         </div>
       )}
     </>

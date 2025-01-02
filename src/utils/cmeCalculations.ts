@@ -33,7 +33,7 @@ export const calculateAnnualCMERequirements = (
   includesExercises: boolean = false,
   includesTest: boolean = false
 ): CMECalculationResult => {
-  const requiredPoints = isDentist ? 50 : 24; // Zahnärzte: 50 Punkte, Assistenz: 24 Punkte
+  const requiredPoints = isDentist ? 25 : 24; // Zahnärzte: 25 Punkte (125/5 Jahre), Assistenz: 24 Punkte
   
   const pointsPerSession = calculateCMEPoints({
     duration: averageSessionDuration,
