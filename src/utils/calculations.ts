@@ -1,4 +1,9 @@
 import { calculateNearestInstitute } from './dentalInstitutes';
+import { 
+  calculateAnnualCMERequirements, 
+  TYPICAL_TRADITIONAL_UNIT, 
+  TYPICAL_CROCODILE_UNIT 
+} from './cmeCalculations';
 
 export interface NearestInstitute {
   name: string;
@@ -26,6 +31,20 @@ export interface CalculationResults {
   savings: number;
   savingsPercentage: number;
   nearestInstitute?: NearestInstitute;
+  cmeRequirements?: {
+    traditional: {
+      dentist: {
+        totalPoints: number;
+        totalHours: number;
+        requiredSessions: number;
+      };
+      assistant: {
+        totalPoints: number;
+        totalHours: number;
+        requiredSessions: number;
+      };
+    };
+  };
 }
 
 const DENTIST_ANNUAL_COST = 1200;
@@ -50,10 +69,7 @@ export const calculateCrocodileCosts = (teamSize: number): number => {
 };
 
 const calculateTravelCosts = (distance: number, dentists: number, assistants: number): number => {
-  // Zahnärzte fahren einzeln
   const dentistsCosts = distance * COST_PER_KM * dentists;
-  
-  // Assistenten fahren in Gruppen von bis zu 5 Personen
   const assistantGroups = Math.ceil(assistants / ASSISTANTS_PER_CAR);
   const assistantsCosts = distance * COST_PER_KM * assistantGroups;
   
@@ -63,6 +79,20 @@ const calculateTravelCosts = (distance: number, dentists: number, assistants: nu
 export const calculateResults = async (inputs: CalculationInputs): Promise<CalculationResults> => {
   const assistants = inputs.teamSize - inputs.dentists;
   
+  const traditionalDentistCME = calculateAnnualCMERequirements(
+    true, 
+    TYPICAL_TRADITIONAL_UNIT.duration,
+    TYPICAL_TRADITIONAL_UNIT.hasExercises,
+    TYPICAL_TRADITIONAL_UNIT.hasTest
+  );
+  
+  const traditionalAssistantCME = calculateAnnualCMERequirements(
+    false,
+    TYPICAL_TRADITIONAL_UNIT.duration,
+    TYPICAL_TRADITIONAL_UNIT.hasExercises,
+    TYPICAL_TRADITIONAL_UNIT.hasTest
+  );
+
   const traditionalCostsDentists = inputs.dentists * DENTIST_ANNUAL_COST;
   const traditionalCostsAssistants = assistants * ASSISTANT_ANNUAL_COST;
 
@@ -115,7 +145,12 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
         
         const roundTripDistance = oneWayDistance * 2;
         const roundTripTime = oneWayTime * 2;
-        const travelCosts = calculateTravelCosts(roundTripDistance, inputs.dentists, assistants);
+
+        const dentistTrips = traditionalDentistCME.requiredSessions;
+        const assistantGroups = Math.ceil(assistants / ASSISTANTS_PER_CAR);
+        const assistantTrips = traditionalAssistantCME.requiredSessions * assistantGroups;
+        
+        const travelCosts = (roundTripDistance * COST_PER_KM) * (dentistTrips + assistantTrips);
 
         nearestInstitute = {
           name: nearest.name,
@@ -123,7 +158,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
           distance: roundTripDistance,
           oneWayTravelTime: oneWayTime,
           travelTime: roundTripTime,
-          travelCosts
+          travelCosts: Math.round(travelCosts)
         };
       }
     } catch (error) {
@@ -133,7 +168,9 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
 
   const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants + 
     (nearestInstitute?.travelCosts || 0);
+  
   const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
+  
   const savings = totalTraditionalCosts - crocodileCosts;
   const savingsPercentage = (savings / totalTraditionalCosts) * 100;
 
@@ -144,7 +181,13 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
     crocodileCosts,
     savings,
     savingsPercentage,
-    nearestInstitute
+    nearestInstitute,
+    cmeRequirements: {
+      traditional: {
+        dentist: traditionalDentistCME,
+        assistant: traditionalAssistantCME
+      }
+    }
   };
 };
 
