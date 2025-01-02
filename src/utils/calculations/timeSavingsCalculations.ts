@@ -15,13 +15,13 @@ export const calculateTimeSavings = (
 ): TimeSavings => {
   const travelTimeHours = travelTimeMinutes / 60;
   
-  // Berechnung für Zahnärzte
-  const dentistTimePerSession = 8 + travelTimeHours + PREPARATION_TIME;
+  // Berechnung für Zahnärzte (3 Stunden pro Einheit statt 8)
+  const dentistTimePerSession = 3 + travelTimeHours + PREPARATION_TIME; // Training + Reise + Vor/Nach
   const totalDentistHours = dentistTimePerSession * traditionalDentistCME.requiredSessions * dentists;
   const dentistMonetaryValue = totalDentistHours * DENTIST_HOURLY_RATE;
 
-  // Berechnung für Assistenzkräfte
-  const assistantTimePerSession = 8 + travelTimeHours + PREPARATION_TIME;
+  // Berechnung für Assistenzkräfte (3 Stunden pro Einheit statt 8)
+  const assistantTimePerSession = 3 + travelTimeHours + PREPARATION_TIME;
   const totalAssistantHours = assistantTimePerSession * traditionalAssistantCME.requiredSessions * assistants;
   const assistantMonetaryValue = totalAssistantHours * ASSISTANT_HOURLY_RATE;
 
@@ -35,6 +35,26 @@ export const calculateTimeSavings = (
     totalMonetaryValue: dentistMonetaryValue + assistantMonetaryValue,
     dentistHours: totalDentistHours,
     assistantHours: totalAssistantHours,
-    travelHours: totalTravelHours
+    travelHours: totalTravelHours,
+    details: {
+      perSession: {
+        dentist: {
+          trainingHours: 3,
+          travelHours: travelTimeHours,
+          prepHours: PREPARATION_TIME,
+          totalHours: dentistTimePerSession
+        },
+        assistant: {
+          trainingHours: 3,
+          travelHours: travelTimeHours,
+          prepHours: PREPARATION_TIME,
+          totalHours: assistantTimePerSession
+        }
+      },
+      monetaryValues: {
+        dentist: dentistMonetaryValue,
+        assistant: assistantMonetaryValue
+      }
+    }
   };
 };

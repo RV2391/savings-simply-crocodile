@@ -42,6 +42,29 @@ export const CustomForm = ({
       const portalId = "139717164";
       const formGuid = "13JR5IlFKTj-xcqP784kgoAeush9";
       
+      // Prepare time savings explanation
+      const timeSavingsExplanation = results.timeSavings ? `
+        Zeitersparnis-Analyse für Ihre Praxis:
+
+        Pro Fortbildungseinheit:
+        - Zahnärzte: ${results.timeSavings.details.perSession.dentist.totalHours.toFixed(1)} Stunden 
+          (${results.timeSavings.details.perSession.dentist.trainingHours}h Fortbildung + 
+          ${results.timeSavings.details.perSession.dentist.travelHours.toFixed(1)}h Reisezeit + 
+          ${results.timeSavings.details.perSession.dentist.prepHours}h Vor-/Nachbereitung)
+        
+        - Assistenzkräfte: ${results.timeSavings.details.perSession.assistant.totalHours.toFixed(1)} Stunden
+          (${results.timeSavings.details.perSession.assistant.trainingHours}h Fortbildung + 
+          ${results.timeSavings.details.perSession.assistant.travelHours.toFixed(1)}h Reisezeit + 
+          ${results.timeSavings.details.perSession.assistant.prepHours}h Vor-/Nachbereitung)
+
+        Jährliche Gesamtersparnis:
+        - Zahnärzte: ${Math.round(results.timeSavings.dentistHours)} Stunden (Wert: ${Math.round(results.timeSavings.details.monetaryValues.dentist)}€)
+        - Assistenzkräfte: ${Math.round(results.timeSavings.assistantHours)} Stunden (Wert: ${Math.round(results.timeSavings.details.monetaryValues.assistant)}€)
+        - Gesamte Reisezeit: ${Math.round(results.timeSavings.travelHours)} Stunden
+        
+        Monetärer Gesamtwert der Zeitersparnis: ${Math.round(results.timeSavings.totalMonetaryValue)}€ pro Jahr
+      ` : '';
+      
       const response = await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
         method: 'POST',
         headers: {
@@ -60,6 +83,7 @@ export const CustomForm = ({
             { name: "savings", value: String(Math.round(Number(results.savings)) || 0) },
             { name: "time_savings_hours", value: String(Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0) },
             { name: "time_savings_value", value: String(Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0) },
+            { name: "time_savings_explanation", value: timeSavingsExplanation },
             { name: "street_address", value: addressComponents.street || '' },
             { name: "city", value: addressComponents.city || '' },
             { name: "postal_code", value: addressComponents.postalCode || '' }
