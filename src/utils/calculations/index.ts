@@ -2,7 +2,11 @@ import { calculateNearestInstitute } from '../dentalInstitutes';
 import { calculateAnnualCMERequirements, TYPICAL_TRADITIONAL_UNIT } from '../cmeCalculations';
 import { calculateCrocodileCosts, calculateTravelCosts, formatCurrency } from './costCalculations';
 import { calculateTimeSavings } from './timeSavingsCalculations';
-import { DENTIST_ANNUAL_COST, ASSISTANT_ANNUAL_COST } from './constants';
+import { 
+  ASSISTANTS_PER_CAR,
+  DENTIST_ANNUAL_COST,
+  ASSISTANT_ANNUAL_COST 
+} from './constants';
 import type { CalculationInputs, CalculationResults, NearestInstitute } from './types';
 
 export type { CalculationInputs, CalculationResults, NearestInstitute };
