@@ -214,13 +214,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
     savings,
     savingsPercentage,
     nearestInstitute,
-    timeSavings,
-    cmeRequirements: {
-      traditional: {
-        dentist: traditionalDentistCME,
-        assistant: traditionalAssistantCME
-      }
-    }
+    timeSavings
   };
 };
 

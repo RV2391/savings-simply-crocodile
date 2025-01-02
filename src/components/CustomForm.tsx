@@ -111,7 +111,10 @@ export const CustomForm = ({
 
   return (
     <div className="w-full bg-[#2a2a2a] p-8 rounded-2xl shadow-lg mt-8">
-      <FormHeader />
+      <FormHeader 
+        title="Ihre persönliche Zeitersparnis-Analyse" 
+        description="Erhalten Sie eine detaillierte Analyse Ihrer potentiellen Zeitersparnis durch digitale Fortbildungen."
+      />
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <FormFields
