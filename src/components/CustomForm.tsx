@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { AddressComponents, CalculatorData, Results } from "@/types";
+import { FormHeader } from "./form/FormHeader";
+import { FormFields } from "./form/FormFields";
+import { formatTimeSavingsExplanation } from "./form/TimeSavingsExplanation";
 
 interface CustomFormProps {
   calculatorData: CalculatorData;
@@ -42,28 +42,8 @@ export const CustomForm = ({
       const portalId = "139717164";
       const formGuid = "13JR5IlFKTj-xcqP784kgoAeush9";
       
-      // Prepare time savings explanation
-      const timeSavingsExplanation = results.timeSavings ? `
-        Zeitersparnis-Analyse für Ihre Praxis:
-
-        Pro Fortbildungseinheit:
-        - Zahnärzte: ${results.timeSavings.details.perSession.dentist.totalHours.toFixed(1)} Stunden 
-          (${results.timeSavings.details.perSession.dentist.trainingHours}h Fortbildung + 
-          ${results.timeSavings.details.perSession.dentist.travelHours.toFixed(1)}h Reisezeit + 
-          ${results.timeSavings.details.perSession.dentist.prepHours}h Vor-/Nachbereitung)
-        
-        - Assistenzkräfte: ${results.timeSavings.details.perSession.assistant.totalHours.toFixed(1)} Stunden
-          (${results.timeSavings.details.perSession.assistant.trainingHours}h Fortbildung + 
-          ${results.timeSavings.details.perSession.assistant.travelHours.toFixed(1)}h Reisezeit + 
-          ${results.timeSavings.details.perSession.assistant.prepHours}h Vor-/Nachbereitung)
-
-        Jährliche Gesamtersparnis:
-        - Zahnärzte: ${Math.round(results.timeSavings.dentistHours)} Stunden (Wert: ${Math.round(results.timeSavings.details.monetaryValues.dentist)}€)
-        - Assistenzkräfte: ${Math.round(results.timeSavings.assistantHours)} Stunden (Wert: ${Math.round(results.timeSavings.details.monetaryValues.assistant)}€)
-        - Gesamte Reisezeit: ${Math.round(results.timeSavings.travelHours)} Stunden
-        
-        Monetärer Gesamtwert der Zeitersparnis: ${Math.round(results.timeSavings.totalMonetaryValue)}€ pro Jahr
-      ` : '';
+      const timeSavingsExplanation = results.timeSavings ? 
+        formatTimeSavingsExplanation({ timeSavings: results.timeSavings }) : '';
       
       const response = await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
         method: 'POST',
@@ -131,75 +111,18 @@ export const CustomForm = ({
 
   return (
     <div className="w-full bg-[#2a2a2a] p-8 rounded-2xl shadow-lg mt-8">
-      <div className="space-y-4 mb-8">
-        <h3 className="text-2xl font-semibold text-white">
-          Erhalten Sie Ihre persönliche Berechnung per E-Mail
-        </h3>
-        <p className="text-lg text-muted-foreground">
-          Wir senden Ihnen die detaillierte Auswertung kostenlos zu.
-        </p>
-        <ul className="list-disc pl-6 space-y-2 text-sm text-gray-400">
-          <li>Detaillierte Zeitersparnis-Analyse für Ihre Praxis</li>
-          <li>Personalisierte 5-Jahres-CME-Strategie</li>
-          <li>Konkrete Optimierungsvorschläge für Ihr Team</li>
-          <li>Individuelle Handlungsempfehlungen</li>
-        </ul>
-      </div>
+      <FormHeader />
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2.5">
-            <Label htmlFor="email" className="text-base text-gray-200">E-Mail-Adresse*</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ihre@email.de"
-              required
-              className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="space-y-2.5">
-            <Label htmlFor="companyName" className="text-base text-gray-200">Name der Praxis*</Label>
-            <Input
-              id="companyName"
-              type="text"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Ihre Praxis"
-              required
-              className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-
-        <div className="flex items-start space-x-3 pt-2">
-          <Checkbox
-            id="consent"
-            checked={consent}
-            onCheckedChange={(checked) => setConsent(checked as boolean)}
-            disabled={isSubmitting}
-            className="mt-1.5 border-gray-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-          />
-          <Label htmlFor="consent" className="text-base leading-relaxed text-gray-300">
-            Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*
-            <br /><br />
-            Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
-            <a 
-              href="https://www.crocodile-health.com/datenschutz" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline font-medium"
-            >
-              Datenschutzvereinbarung
-            </a>
-            .
-          </Label>
-        </div>
+        <FormFields
+          email={email}
+          setEmail={setEmail}
+          companyName={companyName}
+          setCompanyName={setCompanyName}
+          consent={consent}
+          setConsent={setConsent}
+          isSubmitting={isSubmitting}
+        />
 
         <Button 
           type="submit" 

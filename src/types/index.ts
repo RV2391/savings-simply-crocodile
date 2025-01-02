@@ -10,12 +10,34 @@ export interface CalculatorData {
   location?: string;
 }
 
+export interface TimeSavingsDetails {
+  perSession: {
+    dentist: {
+      trainingHours: number;
+      travelHours: number;
+      prepHours: number;
+      totalHours: number;
+    };
+    assistant: {
+      trainingHours: number;
+      travelHours: number;
+      prepHours: number;
+      totalHours: number;
+    };
+  };
+  monetaryValues: {
+    dentist: number;
+    assistant: number;
+  };
+}
+
 export interface TimeSavings {
   totalHoursPerYear: number;
   totalMonetaryValue: number;
   dentistHours: number;
   assistantHours: number;
   travelHours: number;
+  details: TimeSavingsDetails;
 }
 
 export interface Results {
