@@ -19,9 +19,17 @@ export const useGoogleMapsAutocomplete = ({
   const { toast } = useToast();
 
   const initializeAutocomplete = () => {
-    if (!inputRef.current) return;
+    console.log('Attempting to initialize Google Maps autocomplete...');
+    console.log('inputRef.current:', inputRef.current);
+    console.log('window.google:', window.google);
+    
+    if (!inputRef.current) {
+      console.log('No input reference found');
+      return;
+    }
 
     if (!window.google || !window.google.maps || !window.google.maps.places) {
+      console.log('Google Maps API not loaded yet, retrying...');
       setTimeout(() => initializeAutocomplete(), 100);
       return;
     }
@@ -32,13 +40,19 @@ export const useGoogleMapsAutocomplete = ({
       types: ["address"],
     };
 
+    console.log('Creating autocomplete with options:', options);
+
     autocompleteRef.current = new window.google.maps.places.Autocomplete(
       inputRef.current,
       options
     );
+    
+    console.log('Autocomplete created successfully:', autocompleteRef.current);
 
     const listener = autocompleteRef.current.addListener("place_changed", () => {
+      console.log('Place changed event triggered');
       const place = autocompleteRef.current?.getPlace();
+      console.log('Selected place:', place);
       const status = google.maps.places.PlacesServiceStatus.OK;
       onPlaceSelect(place, status);
     });
