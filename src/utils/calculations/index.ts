@@ -4,12 +4,8 @@ import {
   TYPICAL_TRADITIONAL_UNIT, 
   TYPICAL_CROCODILE_UNIT 
 } from '../cmeCalculations';
-import { 
-  CalculationInputs, 
-  CalculationResults, 
-  TimeSavings,
-  TimeSavingsDetails
-} from './types';
+import { CalculationInputs } from './types';
+import type { Results, TimeSavings, TimeSavingsDetails } from '../../types';
 import { 
   DENTIST_ANNUAL_COST,
   ASSISTANT_ANNUAL_COST,
@@ -98,7 +94,7 @@ const calculateTimeSavings = (
   };
 };
 
-export const calculateResults = async (inputs: CalculationInputs): Promise<CalculationResults> => {
+export const calculateResults = async (inputs: CalculationInputs): Promise<Results> => {
   const assistants = inputs.teamSize - inputs.dentists;
   
   const traditionalDentistCME = calculateAnnualCMERequirements(
@@ -215,7 +211,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
     savingsPercentage,
     nearestInstitute,
     timeSavings
-  };
+  } as Results;
 };
 
 export const formatCurrency = (amount: number): string => {
@@ -224,3 +220,7 @@ export const formatCurrency = (amount: number): string => {
     currency: 'EUR',
   }).format(amount);
 };
+
+// Export types for use in components
+export type { CalculationInputs } from './types';
+export type { Results } from '../../types';

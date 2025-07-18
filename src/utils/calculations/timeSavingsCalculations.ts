@@ -1,4 +1,4 @@
-import { TimeSavings } from './types';
+import type { TimeSavings } from '../../types';
 import {
   DENTIST_HOURLY_RATE,
   ASSISTANT_HOURLY_RATE,
