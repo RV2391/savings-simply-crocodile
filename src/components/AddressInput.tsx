@@ -65,7 +65,21 @@ export const AddressInput = ({
   });
 
   useEffect(() => {
-    initializeAutocomplete();
+    console.log('AddressInput useEffect triggered');
+    console.log('window.google available:', !!window.google);
+    
+    // Test if Google Maps API is loaded
+    const checkGoogleMaps = () => {
+      if (window.google && window.google.maps && window.google.maps.places) {
+        console.log('Google Maps API is fully loaded');
+        initializeAutocomplete();
+      } else {
+        console.log('Google Maps API not ready, retrying in 500ms');
+        setTimeout(checkGoogleMaps, 500);
+      }
+    };
+    
+    checkGoogleMaps();
   }, [initializeAutocomplete]);
 
   return (
