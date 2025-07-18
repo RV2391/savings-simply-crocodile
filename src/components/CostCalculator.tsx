@@ -18,6 +18,7 @@ import { dentalInstitutes } from "@/utils/dentalInstitutes";
 import { AddressComponents } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { ExtendedTimeSavings } from "@/utils/calculations/extendedTimeSavingsCalculations";
+import { useGTMTracking } from "@/hooks/useGTMTracking";
 
 // Extended results interface
 interface ExtendedResults extends Results {
@@ -55,6 +56,14 @@ export const CostCalculator = () => {
   const [addressComponents, setAddressComponents] = useState<AddressComponents>({});
   const { toast } = useToast();
 
+  // GTM Tracking
+  const {
+    trackTeamSizeChange,
+    trackDentistsCountChange,
+    trackLocationProvided,
+    trackCalculationCompleted
+  } = useGTMTracking();
+
   useEffect(() => {
     const updateResults = async () => {
       const newResults = await calculateResults(inputs) as ExtendedResults;
@@ -64,12 +73,30 @@ export const CostCalculator = () => {
         location: inputs.practiceLat && inputs.practiceLng ? 
           `${inputs.practiceLat},${inputs.practiceLng}` : ''
       }));
+
+      // Track calculation completed when results are available
+      if (newResults.savings > 0) {
+        trackCalculationCompleted(
+          newResults.savings,
+          inputs.teamSize,
+          inputs.dentists,
+          !!(inputs.practiceLat && inputs.practiceLng)
+        );
+      }
     };
     updateResults();
-  }, [inputs]);
+  }, [inputs, trackCalculationCompleted]);
 
   const handleSelectChange = (field: keyof CalculationInputs) => (value: string) => {
-    setInputs((prev) => ({ ...prev, [field]: parseInt(value, 10) }));
+    const numericValue = parseInt(value, 10);
+    setInputs((prev) => ({ ...prev, [field]: numericValue }));
+    
+    // Track changes
+    if (field === 'teamSize') {
+      trackTeamSizeChange(numericValue);
+    } else if (field === 'dentists') {
+      trackDentistsCountChange(numericValue);
+    }
   };
 
   const handleLocationChange = (location: { lat: number; lng: number }) => {
@@ -78,6 +105,9 @@ export const CostCalculator = () => {
       practiceLat: location.lat,
       practiceLng: location.lng,
     }));
+    
+    // Track location provided
+    trackLocationProvided();
   };
 
   const handleNearestInstituteFound = (lat: number, lng: number) => {
