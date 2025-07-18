@@ -10,12 +10,19 @@ import {
 } from "@/components/ui/select";
 import { ResultCard } from "./ResultCard";
 import { CostLegend } from "./CostLegend";
-import { calculateResults, type CalculationInputs, type ExtendedResults } from "@/utils/calculations";
+import { calculateResults, type CalculationInputs } from "@/utils/calculations";
+import { Results } from "@/types";
 import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
 import { AddressComponents } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
+import { ExtendedTimeSavings } from "@/utils/calculations/extendedTimeSavingsCalculations";
+
+// Extended results interface
+interface ExtendedResults extends Results {
+  extendedTimeSavings?: ExtendedTimeSavings;
+}
 
 const defaultInputs: CalculationInputs = {
   teamSize: 10,

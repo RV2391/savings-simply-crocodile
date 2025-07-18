@@ -1,8 +1,13 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { AddressComponents, CalculatorData } from "@/types";
-import { type ExtendedResults } from "@/utils/calculations";
+import { AddressComponents, CalculatorData, Results } from "@/types";
+import { ExtendedTimeSavings } from "@/utils/calculations/extendedTimeSavingsCalculations";
+
+// Extended results interface
+interface ExtendedResults extends Results {
+  extendedTimeSavings?: ExtendedTimeSavings;
+}
 import { ResultSummary } from "./result/ResultSummary";
 import { ResultDetails } from "./result/ResultDetails";
 import { TimeSavingsBreakdown } from "./result/TimeSavingsBreakdown";

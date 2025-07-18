@@ -114,7 +114,7 @@ export const useGoogleMapsAutocomplete = ({
           onPlaceSelect(place, status);
         } catch (error) {
           console.error('Error in place_changed handler:', error);
-          onPlaceSelect(null, google.maps.places.PlacesServiceStatus.ERROR);
+          onPlaceSelect(null, google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR);
         }
       });
 
