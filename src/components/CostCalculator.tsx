@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/select";
 import { ResultCard } from "./ResultCard";
 import { CostLegend } from "./CostLegend";
-import { calculateResults, type CalculationInputs } from "@/utils/calculations";
+import { calculateResults, type CalculationInputs, type ExtendedResults } from "@/utils/calculations";
 import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
-import { AddressComponents, Results } from "@/types";
+import { AddressComponents } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 
 const defaultInputs: CalculationInputs = {
@@ -26,7 +26,7 @@ const defaultInputs: CalculationInputs = {
   nearestInstituteLng: undefined,
 };
 
-const defaultResults: Results = {
+const defaultResults: ExtendedResults = {
   traditionalCostsDentists: 0,
   traditionalCostsAssistants: 0,
   totalTraditionalCosts: 0,
@@ -44,13 +44,13 @@ export const CostCalculator = () => {
     const savedInputs = sessionStorage.getItem('calculatorData');
     return savedInputs ? JSON.parse(savedInputs) : defaultInputs;
   });
-  const [results, setResults] = useState<Results>(defaultResults);
+  const [results, setResults] = useState<ExtendedResults>(defaultResults);
   const [addressComponents, setAddressComponents] = useState<AddressComponents>({});
   const { toast } = useToast();
 
   useEffect(() => {
     const updateResults = async () => {
-      const newResults = await calculateResults(inputs) as Results;
+      const newResults = await calculateResults(inputs) as ExtendedResults;
       setResults(newResults);
       sessionStorage.setItem('calculatorData', JSON.stringify({
         ...inputs,

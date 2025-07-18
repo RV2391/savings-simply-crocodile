@@ -1,4 +1,6 @@
+
 import type { TimeSavings } from '../../types';
+import { calculateExtendedTimeSavings, type ExtendedTimeSavings } from './extendedTimeSavingsCalculations';
 import {
   DENTIST_HOURLY_RATE,
   ASSISTANT_HOURLY_RATE,
@@ -58,3 +60,6 @@ export const calculateTimeSavings = (
     }
   };
 };
+
+// Export the extended calculation function
+export { calculateExtendedTimeSavings, type ExtendedTimeSavings };

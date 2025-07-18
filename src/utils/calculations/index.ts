@@ -6,6 +6,7 @@ import {
 } from '../cmeCalculations';
 import { CalculationInputs } from './types';
 import type { Results, TimeSavings, TimeSavingsDetails } from '../../types';
+import { calculateExtendedTimeSavings, type ExtendedTimeSavings } from './extendedTimeSavingsCalculations';
 import { 
   DENTIST_ANNUAL_COST,
   ASSISTANT_ANNUAL_COST,
@@ -20,6 +21,11 @@ import {
   ASSISTANT_HOURLY_RATE,
   PREPARATION_TIME
 } from './constants';
+
+// Add extended time savings to Results interface
+export interface ExtendedResults extends Results {
+  extendedTimeSavings?: ExtendedTimeSavings;
+}
 
 const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -94,7 +100,7 @@ const calculateTimeSavings = (
   };
 };
 
-export const calculateResults = async (inputs: CalculationInputs): Promise<Results> => {
+export const calculateResults = async (inputs: CalculationInputs): Promise<ExtendedResults> => {
   const assistants = inputs.teamSize - inputs.dentists;
   
   const traditionalDentistCME = calculateAnnualCMERequirements(
@@ -116,6 +122,7 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Resul
 
   let nearestInstitute;
   let timeSavings;
+  let extendedTimeSavings;
 
   if (inputs.practiceLat && inputs.practiceLng) {
     const nearest = await calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
@@ -188,6 +195,15 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Resul
           traditionalDentistCME,
           traditionalAssistantCME
         );
+
+        // Calculate extended time savings
+        extendedTimeSavings = calculateExtendedTimeSavings(
+          inputs.dentists,
+          assistants,
+          roundTripTime,
+          traditionalDentistCME,
+          traditionalAssistantCME
+        );
       }
     } catch (error) {
       console.error('Error calculating distance:', error);
@@ -210,8 +226,9 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Resul
     savings,
     savingsPercentage,
     nearestInstitute,
-    timeSavings
-  } as Results;
+    timeSavings,
+    extendedTimeSavings
+  } as ExtendedResults;
 };
 
 export const formatCurrency = (amount: number): string => {
@@ -224,3 +241,4 @@ export const formatCurrency = (amount: number): string => {
 // Export types for use in components
 export type { CalculationInputs } from './types';
 export type { Results } from '../../types';
+export type { ExtendedResults, ExtendedTimeSavings };
