@@ -242,6 +242,7 @@ export const formatCurrency = (amount: number): string => {
 export type { CalculationInputs } from './types';
 export type { Results } from '../../types';
 export type { ExtendedTimeSavings } from './extendedTimeSavingsCalculations';
+export type { ExtendedResults };
 
 
 
