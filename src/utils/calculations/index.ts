@@ -22,7 +22,7 @@ import {
   PREPARATION_TIME
 } from './constants';
 
-// Add extended time savings to Results interface
+// Extended results interface with time savings
 export interface ExtendedResults extends Results {
   extendedTimeSavings?: ExtendedTimeSavings;
 }
@@ -241,4 +241,7 @@ export const formatCurrency = (amount: number): string => {
 // Export types for use in components
 export type { CalculationInputs } from './types';
 export type { Results } from '../../types';
-export type { ExtendedResults, ExtendedTimeSavings };
+export type { ExtendedTimeSavings } from './extendedTimeSavingsCalculations';
+
+
+
