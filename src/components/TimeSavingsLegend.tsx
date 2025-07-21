@@ -22,12 +22,12 @@ export const TimeSavingsLegend = () => {
               <AlertDescription className="text-left text-sm">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium text-emerald-400">Traditionelle Fortbildung: 8 Stunden pro Präsenzveranstaltung</h4>
+                    <h4 className="font-medium text-emerald-400">Traditionelle Fortbildung: 5 Stunden pro Präsenzveranstaltung</h4>
                     <p className="mt-1 text-gray-400">
-                      Jede traditionelle Fortbildungsveranstaltung erfordert:
+                      Jede traditionelle Fortbildungsveranstaltung erfordert (konservative Berechnung):
                     </p>
                     <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-1">
-                      <li>8 Stunden aktive Fortbildungszeit</li>
+                      <li>5 Stunden aktive Fortbildungszeit</li>
                       <li>Anreise- und Abreisezeit (variiert je nach Standort)</li>
                       <li>0,5 Stunden Vor- und Nachbereitung</li>
                       <li>Praxisschließung oder Personalausfall während der Abwesenheit</li>
