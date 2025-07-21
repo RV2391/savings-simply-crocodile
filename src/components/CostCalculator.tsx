@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
@@ -18,7 +19,7 @@ import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
 import { AddressComponents } from "@/types";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ExtendedTimeSavings } from "@/utils/calculations/extendedTimeSavingsCalculations";
 import { useGTMTracking } from "@/hooks/useGTMTracking";
 

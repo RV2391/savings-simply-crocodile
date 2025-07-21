@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DirectionsRenderer } from '@react-google-maps/api';
-import { useToast } from '../ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Card } from '../ui/card';
 
 interface MapDirectionsProps {
