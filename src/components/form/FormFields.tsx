@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -66,7 +67,7 @@ export const FormFields = ({
           <br /><br />
           Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
           <a 
-            href="https://www.crocodile.com/datenschutz" 
+            href="https://www.crocodile.de/datenschutz" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-primary hover:underline font-medium"

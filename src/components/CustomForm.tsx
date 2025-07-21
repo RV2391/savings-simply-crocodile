@@ -45,6 +45,50 @@ export const CustomForm = ({
       const timeSavingsExplanation = results.timeSavings ? 
         formatTimeSavingsExplanation({ timeSavings: results.timeSavings }) : '';
       
+      // Daten für Make.com Webhook vorbereiten
+      const webhookData = {
+        email: email,
+        company_name: companyName,
+        team_size: calculatorData.teamSize || 0,
+        dentists: calculatorData.dentists || 0,
+        assistants: (calculatorData.teamSize || 0) - (calculatorData.dentists || 0),
+        traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
+        crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
+        savings: Math.round(Number(results.savings)) || 0,
+        savings_percentage: Math.round(Number(results.savingsPercentage)) || 0,
+        time_savings_hours: Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0,
+        time_savings_value: Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0,
+        time_savings_explanation: timeSavingsExplanation,
+        address: {
+          street: addressComponents.street || '',
+          city: addressComponents.city || '',
+          postal_code: addressComponents.postalCode || ''
+        },
+        nearest_institute: results.nearestInstitute?.name || '',
+        travel_distance: Math.round(Number(results.nearestInstitute?.oneWayDistance)) || 0,
+        travel_costs: Math.round(Number(results.nearestInstitute?.travelCosts)) || 0,
+        timestamp: new Date().toISOString(),
+        source: 'Calculator Form',
+        page_url: window.location.href
+      };
+
+      // Make.com Webhook aufrufen
+      console.log("Sending data to Make.com webhook:", webhookData);
+      
+      const webhookResponse = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      if (!webhookResponse.ok) {
+        throw new Error(`Webhook request failed with status ${webhookResponse.status}`);
+      }
+
+      console.log("Webhook sent successfully");
+
       // GTM Event für Lead-Tracking über Taggrs
       trackEvent({
         event: 'lead_form_submission',
@@ -67,7 +111,7 @@ export const CustomForm = ({
         page_title: document.title
       });
 
-      console.log("Lead data tracked via GTM/Taggrs:", {
+      console.log("Lead data tracked via GTM/Taggrs and sent to Make.com:", {
         email,
         companyName,
         calculatorData,
