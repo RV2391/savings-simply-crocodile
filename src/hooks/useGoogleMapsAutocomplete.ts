@@ -56,24 +56,34 @@ export const useGoogleMapsAutocomplete = ({
 
     // Check if Google Maps API is available
     if (!window.google || !window.google.maps || !window.google.maps.places) {
-      console.log('Google Maps API not ready, using loader...');
+      console.info('Google Maps API not ready, retrying in 500ms');
       
-      if (window.googleMapsLoader) {
-        window.googleMapsLoader.load((error) => {
-          if (error) {
-            console.error('Failed to load Google Maps API:', error);
-            toast({
-              title: "Fehler",
-              description: "Google Maps konnte nicht geladen werden. Bitte versuchen Sie es später erneut.",
-              variant: "destructive",
-            });
-            return;
+      // Retry with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 10;
+      
+      const retryLoader = () => {
+        if (retryCount >= maxRetries) {
+          console.warn('Google Maps API failed to load after maximum retries');
+          toast({
+            title: "Info",
+            description: "Google Maps Autocomplete ist nicht verfügbar. Sie können trotzdem eine Adresse eingeben.",
+            variant: "default",
+          });
+          return;
+        }
+        
+        retryCount++;
+        setTimeout(() => {
+          if (window.google?.maps?.places) {
+            initializeAutocomplete();
+          } else {
+            retryLoader();
           }
-          
-          // Retry initialization after API loads
-          setTimeout(() => initializeAutocomplete(), 100);
-        });
-      }
+        }, 500);
+      };
+      
+      retryLoader();
       return;
     }
 
