@@ -53,12 +53,29 @@ export const useGTMTracking = () => {
     });
   }, [trackCalculatorInteraction]);
 
+  const trackFormStart = useCallback(() => {
+    trackEvent({
+      event: 'form_start',
+      form_type: 'calculator_results'
+    });
+  }, [trackEvent]);
+
+  const trackFormFieldComplete = useCallback((fieldName: string) => {
+    trackEvent({
+      event: 'form_field_complete',
+      form_type: 'calculator_results',
+      field_name: fieldName
+    });
+  }, [trackEvent]);
+
   return {
     trackEvent,
     trackCalculatorInteraction,
     trackTeamSizeChange,
     trackDentistsCountChange,
     trackLocationProvided,
-    trackCalculationCompleted
+    trackCalculationCompleted,
+    trackFormStart,
+    trackFormFieldComplete
   };
 };

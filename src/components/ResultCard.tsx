@@ -3,14 +3,15 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 import { ExtendedTimeSavings } from "@/utils/calculations/extendedTimeSavingsCalculations";
+import { ResultSummary } from "./result/ResultSummary";
+import { ResultDetails } from "./result/ResultDetails";
+import { TimeSavingsBreakdown } from "./result/TimeSavingsBreakdown";
+import { CustomForm } from "./CustomForm";
 
 // Extended results interface
 interface ExtendedResults extends Results {
   extendedTimeSavings?: ExtendedTimeSavings;
 }
-import { ResultSummary } from "./result/ResultSummary";
-import { ResultDetails } from "./result/ResultDetails";
-import { TimeSavingsBreakdown } from "./result/TimeSavingsBreakdown";
 
 interface ResultCardProps {
   results: ExtendedResults;
@@ -76,6 +77,13 @@ export const ResultCard: React.FC<ResultCardProps> = ({
       {results.extendedTimeSavings && (
         <TimeSavingsBreakdown extendedTimeSavings={results.extendedTimeSavings} />
       )}
+
+      {/* Contact Form */}
+      <CustomForm 
+        calculatorData={calculatorData}
+        results={results}
+        addressComponents={addressComponents}
+      />
     </div>
   );
 };

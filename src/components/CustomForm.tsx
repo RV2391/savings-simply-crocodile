@@ -1,10 +1,12 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { AddressComponents, CalculatorData, Results } from "@/types";
 import { FormHeader } from "./form/FormHeader";
 import { FormFields } from "./form/FormFields";
 import { formatTimeSavingsExplanation } from "./form/TimeSavingsExplanation";
+import { useGTMTracking } from "@/hooks/useGTMTracking";
 
 interface CustomFormProps {
   calculatorData: CalculatorData;
@@ -22,6 +24,7 @@ export const CustomForm = ({
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { trackEvent } = useGTMTracking();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,57 +39,41 @@ export const CustomForm = ({
     }
 
     setIsSubmitting(true);
-    console.log("Submitting form data to HubSpot...");
+    console.log("Processing form submission...");
 
     try {
-      const portalId = "139717164";
-      const formGuid = "13JR5IlFKTj-xcqP784kgoAeush9";
-      
       const timeSavingsExplanation = results.timeSavings ? 
         formatTimeSavingsExplanation({ timeSavings: results.timeSavings }) : '';
       
-      const response = await fetch(`https://api.hsforms.com/submissions/v3/integration/submit/${portalId}/${formGuid}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          fields: [
-            { name: "email", value: email },
-            { name: "company", value: companyName },
-            { name: "team_size", value: String(calculatorData.teamSize || 0) },
-            { name: "dentists", value: String(calculatorData.dentists || 0) },
-            { name: "assistants", value: String((calculatorData.teamSize || 0) - (calculatorData.dentists || 0)) },
-            { name: "traditional_costs", value: String(Math.round(Number(results.totalTraditionalCosts)) || 0) },
-            { name: "crocodile_costs", value: String(Math.round(Number(results.crocodileCosts)) || 0) },
-            { name: "savings", value: String(Math.round(Number(results.savings)) || 0) },
-            { name: "time_savings_hours", value: String(Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0) },
-            { name: "time_savings_value", value: String(Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0) },
-            { name: "time_savings_explanation", value: timeSavingsExplanation },
-            { name: "street_address", value: addressComponents.street || '' },
-            { name: "city", value: addressComponents.city || '' },
-            { name: "postal_code", value: addressComponents.postalCode || '' }
-          ],
-          context: {
-            pageUri: window.location.href,
-            pageName: document.title
-          },
-          legalConsentOptions: {
-            consent: {
-              consentToProcess: true,
-              text: "I agree to allow Crocodile to store and process my personal data."
-            }
-          }
-        })
+      // GTM Event für Lead-Tracking über Taggrs
+      trackEvent({
+        event: 'lead_form_submission',
+        form_type: 'calculator_results',
+        email: email,
+        company: companyName,
+        team_size: calculatorData.teamSize || 0,
+        dentists: calculatorData.dentists || 0,
+        assistants: (calculatorData.teamSize || 0) - (calculatorData.dentists || 0),
+        traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
+        crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
+        savings: Math.round(Number(results.savings)) || 0,
+        time_savings_hours: Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0,
+        time_savings_value: Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0,
+        time_savings_explanation: timeSavingsExplanation,
+        street_address: addressComponents.street || '',
+        city: addressComponents.city || '',
+        postal_code: addressComponents.postalCode || '',
+        page_url: window.location.href,
+        page_title: document.title
       });
 
-      if (!response.ok) {
-        throw new Error('Form submission failed');
-      }
-
-      const result = await response.json();
-      console.log("HubSpot form submission result:", result);
+      console.log("Lead data tracked via GTM/Taggrs:", {
+        email,
+        companyName,
+        calculatorData,
+        results,
+        addressComponents
+      });
 
       toast({
         title: "Erfolgreich gesendet",
@@ -132,7 +119,7 @@ export const CustomForm = ({
           className="w-full h-12 mt-8 text-lg font-medium bg-primary hover:bg-primary/90" 
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Wird gesendet..." : "Kostenlos anfordern"}
+          {isSubmitting ? "Wird verarbeitet..." : "Kostenlos anfordern"}
         </Button>
       </form>
     </div>
