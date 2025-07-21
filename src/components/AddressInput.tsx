@@ -1,9 +1,10 @@
+
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
-import { useGoogleMapsAutocomplete } from "@/hooks/useGoogleMapsAutocomplete";
+import { supabase } from "@/integrations/supabase/client";
 import type { AddressComponents } from "@/types";
 
 interface AddressInputProps {
@@ -18,64 +19,34 @@ export const AddressInput = ({
   onAddressComponentsChange,
 }: AddressInputProps) => {
   const [address, setAddress] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handlePlaceSelect = async (
-    place: google.maps.places.PlaceResult | null,
-    status: google.maps.places.PlacesServiceStatus
-  ) => {
-    if (status !== google.maps.places.PlacesServiceStatus.OK || !place?.geometry?.location) {
-      toast({
-        variant: "destructive",
-        title: "Keine Ergebnisse gefunden",
-        description: "Bitte überprüfen Sie die eingegebene Adresse und versuchen Sie es erneut.",
-        className: "bg-background border-2 border-destructive/50 text-foreground",
-      });
-      return;
-    }
-
-    const lat = place.geometry.location.lat();
-    const lng = place.geometry.location.lng();
-
-    onLocationChange({ lat, lng });
-
-    const nearestInstitute = await calculateNearestInstitute(lat, lng);
-    if (nearestInstitute) {
-      onNearestInstituteFound(
-        nearestInstitute.coordinates.lat,
-        nearestInstitute.coordinates.lng
-      );
-    }
-
-    // Extract address components
-    const components: AddressComponents = {};
-    place.address_components?.forEach((component) => {
-      const type = component.types[0];
-      if (type) {
-        components[type] = component.long_name;
-      }
-    });
-    onAddressComponentsChange(components);
-  };
-
-  const { initializeAutocomplete } = useGoogleMapsAutocomplete({
-    inputRef,
-    onPlaceSelect: handlePlaceSelect,
-  });
-
-  // Fallback geocoding function for manual address input
+  // Secure geocoding using our Supabase Edge Function
   const geocodeAddress = async (addressText: string) => {
+    setIsLoading(true);
     try {
-      // Simple geocoding using a free service
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressText)}&countrycodes=de,at,ch&limit=1`
-      );
-      const data = await response.json();
+      console.log('Starting geocoding for:', addressText);
       
-      if (data && data.length > 0) {
-        const lat = parseFloat(data[0].lat);
-        const lng = parseFloat(data[0].lon);
+      const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
+        body: {
+          action: 'geocode',
+          address: addressText
+        }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error('Geocoding service error');
+      }
+
+      if (data?.results && data.results.length > 0) {
+        const result = data.results[0];
+        const lat = result.geometry.location.lat;
+        const lng = result.geometry.location.lng;
+        
+        console.log('Geocoding successful:', { lat, lng });
         
         onLocationChange({ lat, lng });
         
@@ -87,11 +58,14 @@ export const AddressInput = ({
           );
         }
         
-        // Create basic address components from the response
-        const components: AddressComponents = {
-          city: data[0].display_name.split(',')[0] || '',
-          street: addressText
-        };
+        // Extract address components
+        const components: AddressComponents = {};
+        result.address_components?.forEach((component: any) => {
+          const type = component.types[0];
+          if (type) {
+            components[type] = component.long_name;
+          }
+        });
         onAddressComponentsChange(components);
         
         toast({
@@ -110,6 +84,8 @@ export const AddressInput = ({
         description: "Die eingegebene Adresse konnte nicht gefunden werden. Bitte überprüfen Sie die Eingabe.",
         className: "bg-background border-2 border-destructive/50 text-foreground",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,24 +95,6 @@ export const AddressInput = ({
       geocodeAddress(address);
     }
   };
-
-  useEffect(() => {
-    console.log('AddressInput useEffect triggered');
-    console.log('window.google available:', !!window.google);
-    
-    // Test if Google Maps API is loaded
-    const checkGoogleMaps = () => {
-      if (window.google && window.google.maps && window.google.maps.places) {
-        console.log('Google Maps API is fully loaded');
-        initializeAutocomplete();
-      } else {
-        console.log('Google Maps API not ready, will use fallback geocoding');
-        // Don't retry indefinitely, just use fallback
-      }
-    };
-    
-    checkGoogleMaps();
-  }, [initializeAutocomplete]);
 
   return (
     <div className="space-y-2">
@@ -157,14 +115,15 @@ export const AddressInput = ({
           }}
           placeholder="z.B. Hauptstraße 1, 10115 Berlin"
           className="input-transition bg-[#1a1a1a] text-white border-gray-700 flex-1"
+          disabled={isLoading}
         />
         <button
           type="button"
           onClick={handleManualAddressSubmit}
-          disabled={address.trim().length < 5}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          disabled={address.trim().length < 5 || isLoading}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-w-[80px]"
         >
-          Suchen
+          {isLoading ? "..." : "Suchen"}
         </button>
       </div>
       <p className="text-xs text-gray-500">

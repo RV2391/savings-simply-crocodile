@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
 import { GoogleMap, useLoadScript, MarkerF } from "@react-google-maps/api";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
@@ -34,8 +35,9 @@ export const PracticeMap = ({
 }: PracticeMapProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
+  // Load Google Maps without API key in the URL - we'll handle authentication through our proxy
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyA4a5Hayoa4YYlDiGmZDqIJg0F06hKQYyk",
+    googleMapsApiKey: "", // Empty string - we use our secure proxy instead
     libraries,
   });
 
