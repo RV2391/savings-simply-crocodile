@@ -38,6 +38,9 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Google Maps API Key - Ersetzen Sie YOUR_API_KEY durch Ihren echten API-Key
+      const API_KEY = 'YOUR_API_KEY';
+      
       console.log('Initializing Google Maps API loader...');
       
       // Singleton für Google Maps API Loading
@@ -81,7 +84,7 @@
             };
             
             const script = document.createElement('script');
-            script.src = 'https://maps.googleapis.com/maps/api/js?libraries=places,geometry&v=weekly&callback=initGoogleMaps';
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,geometry&v=weekly&callback=initGoogleMaps`;
             script.async = true;
             script.defer = true;
             script.onerror = function() {
