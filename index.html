@@ -37,77 +37,9 @@
     
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Google Maps API Key - Ersetzen Sie YOUR_API_KEY durch Ihren echten API-Key
-      const API_KEY = 'AIzaSyA4a5Hayoa4YYlDiGmZDqIJg0F06hKQYyk';
-      
-      console.log('Initializing Google Maps API loader...');
-      
-      // Singleton für Google Maps API Loading
-      window.googleMapsLoader = (function() {
-        let isLoaded = false;
-        let isLoading = false;
-        let callbacks = [];
-        
-        return {
-          load: function(callback) {
-            if (isLoaded) {
-              console.log('Google Maps API already loaded');
-              callback();
-              return;
-            }
-            
-            if (callback) {
-              callbacks.push(callback);
-            }
-            
-            if (isLoading) {
-              console.log('Google Maps API loading in progress...');
-              return;
-            }
-            
-            isLoading = true;
-            console.log('Starting Google Maps API load...');
-            
-            window.initGoogleMaps = function() {
-              console.log('Google Maps API loaded successfully');
-              isLoaded = true;
-              isLoading = false;
-              callbacks.forEach(cb => {
-                try {
-                  cb();
-                } catch (error) {
-                  console.error('Error in Google Maps callback:', error);
-                }
-              });
-              callbacks = [];
-            };
-            
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,geometry&v=weekly&callback=initGoogleMaps`;
-            script.async = true;
-            script.defer = true;
-            script.onerror = function() {
-              console.error('Failed to load Google Maps API');
-              isLoading = false;
-              callbacks.forEach(cb => {
-                try {
-                  cb(new Error('Failed to load Google Maps API'));
-                } catch (error) {
-                  console.error('Error in Google Maps error callback:', error);
-                }
-              });
-              callbacks = [];
-            };
-            
-            document.head.appendChild(script);
-          },
-          
-          isReady: function() {
-            return isLoaded;
-          }
-        };
-      })();
+    <!-- Google Maps API direkt laden -->
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4a5Hayoa4YYlDiGmZDqIJg0F06hKQYyk&libraries=places,geometry&v=weekly">
     </script>
   </body>
 </html>

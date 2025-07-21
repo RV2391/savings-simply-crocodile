@@ -45,98 +45,72 @@ export const useGoogleMapsAutocomplete = ({
 
   const initializeAutocomplete = useCallback(() => {
     console.log('Attempting to initialize Google Maps autocomplete...');
-    console.log('inputRef.current:', inputRef.current);
-    console.log('window.google available:', !!window.google);
-    console.log('places library available:', !!window.google?.maps?.places);
     
     if (!inputRef.current) {
       console.log('No input reference found');
       return;
     }
 
-    // Check if Google Maps API is available
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-      console.info('Google Maps API not ready, retrying in 500ms');
-      
-      // Retry with exponential backoff
-      let retryCount = 0;
-      const maxRetries = 10;
-      
-      const retryLoader = () => {
-        if (retryCount >= maxRetries) {
-          console.warn('Google Maps API failed to load after maximum retries');
-          toast({
-            title: "Info",
-            description: "Google Maps Autocomplete ist nicht verfügbar. Sie können trotzdem eine Adresse eingeben.",
-            variant: "default",
-          });
-          return;
-        }
+    // Simple check for Google Maps availability
+    const checkGoogle = () => {
+      if (!window.google || !window.google.maps || !window.google.maps.places || !window.google.maps.places.Autocomplete) {
+        setTimeout(checkGoogle, 100);
+        return;
+      }
+
+      try {
+        // Clean up any existing autocomplete
+        cleanup();
+
+        const options: google.maps.places.AutocompleteOptions = {
+          componentRestrictions: { country: "de" },
+          fields: ["address_components", "geometry", "formatted_address", "place_id"],
+          types: ["address"],
+        };
+
+        console.log('Creating autocomplete with options:', options);
+
+        autocompleteRef.current = new window.google.maps.places.Autocomplete(
+          inputRef.current,
+          options
+        );
         
-        retryCount++;
-        setTimeout(() => {
-          if (window.google?.maps?.places) {
-            initializeAutocomplete();
-          } else {
-            retryLoader();
-          }
-        }, 500);
-      };
-      
-      retryLoader();
-      return;
-    }
+        console.log('Autocomplete created successfully:', !!autocompleteRef.current);
 
-    // Clean up any existing autocomplete
-    cleanup();
-
-    try {
-      const options: google.maps.places.AutocompleteOptions = {
-        componentRestrictions: { country: "de" },
-        fields: ["address_components", "geometry", "formatted_address", "place_id"],
-        types: ["address"],
-      };
-
-      console.log('Creating autocomplete with options:', options);
-
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(
-        inputRef.current,
-        options
-      );
-      
-      console.log('Autocomplete created successfully:', !!autocompleteRef.current);
-
-      // Add place changed listener
-      listenerRef.current = autocompleteRef.current.addListener("place_changed", () => {
-        console.log('Place changed event triggered');
-        
-        try {
-          const place = autocompleteRef.current?.getPlace();
-          console.log('Selected place:', place);
+        // Add place changed listener
+        listenerRef.current = autocompleteRef.current.addListener("place_changed", () => {
+          console.log('Place changed event triggered');
           
-          if (!place || !place.geometry) {
-            console.warn('Place has no geometry');
-            onPlaceSelect(null, google.maps.places.PlacesServiceStatus.ZERO_RESULTS);
-            return;
+          try {
+            const place = autocompleteRef.current?.getPlace();
+            console.log('Selected place:', place);
+            
+            if (!place || !place.geometry) {
+              console.warn('Place has no geometry');
+              onPlaceSelect(null, google.maps.places.PlacesServiceStatus.ZERO_RESULTS);
+              return;
+            }
+            
+            const status = google.maps.places.PlacesServiceStatus.OK;
+            onPlaceSelect(place, status);
+          } catch (error) {
+            console.error('Error in place_changed handler:', error);
+            onPlaceSelect(null, google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR);
           }
-          
-          const status = google.maps.places.PlacesServiceStatus.OK;
-          onPlaceSelect(place, status);
-        } catch (error) {
-          console.error('Error in place_changed handler:', error);
-          onPlaceSelect(null, google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR);
-        }
-      });
+        });
 
-      console.log('Autocomplete initialized successfully');
-    } catch (error) {
-      console.error('Error creating autocomplete:', error);
-      toast({
-        title: "Fehler",
-        description: "Adresseingabe konnte nicht initialisiert werden.",
-        variant: "destructive",
-      });
-    }
+        console.log('Autocomplete initialized successfully');
+      } catch (error) {
+        console.error('Error creating autocomplete:', error);
+        toast({
+          title: "Fehler",
+          description: "Adresse-Autocomplete nicht verfügbar. Sie können die Adresse manuell eingeben und auf 'Suchen' klicken.",
+          variant: "default",
+        });
+      }
+    };
+
+    checkGoogle();
   }, [inputRef, onPlaceSelect, cleanup, toast]);
 
   // Effect for cleanup on unmount

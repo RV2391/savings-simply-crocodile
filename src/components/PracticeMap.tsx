@@ -35,7 +35,7 @@ export const PracticeMap = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: "AIzaSyA4a5Hayoa4YYlDiGmZDqIJg0F06hKQYyk",
     libraries,
   });
 
@@ -82,8 +82,24 @@ export const PracticeMap = ({
     }
   }, [map, practiceLocation, nearestInstitute]);
 
-  if (loadError) return <div>Error loading maps</div>;
-  if (!isLoaded) return <div>Loading...</div>;
+  if (loadError) return (
+    <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
+      <div className="text-center p-6">
+        <h3 className="text-lg font-semibold text-destructive mb-2">Kartenansicht nicht verfügbar</h3>
+        <p className="text-sm text-muted-foreground">
+          Die Karte konnte nicht geladen werden. Dies beeinträchtigt nicht die Berechnung der Entfernungen.
+        </p>
+      </div>
+    </div>
+  );
+  if (!isLoaded) return (
+    <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
+      <div className="text-center p-6">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+        <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="relative w-full rounded-lg overflow-hidden border border-gray-700">
