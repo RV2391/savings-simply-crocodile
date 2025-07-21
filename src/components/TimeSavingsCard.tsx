@@ -57,7 +57,7 @@ export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
               <Clock className="h-5 w-5 text-emerald-600" />
             </div>
             <CardTitle className="text-xl font-bold text-emerald-800">
-              Zeitersparnis pro Jahr
+              Zeitersparnis pro Jahr (konservativ berechnet)
             </CardTitle>
           </div>
         </CardHeader>
@@ -108,6 +108,17 @@ export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
             </div>
           </div>
 
+          {/* Berechnungshinweis */}
+          <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+            <h4 className="text-sm font-medium text-emerald-800 mb-2">Konservative Berechnung:</h4>
+            <ul className="text-xs text-emerald-700 space-y-1">
+              <li>• Ø 5 Stunden pro Präsenzfortbildung (statt 8h)</li>
+              <li>• 60% Praxisausfall-Faktor (Wochenendkurse berücksichtigt)</li>
+              <li>• Realistische CME-Punkte-Verteilung</li>
+              <li>• Inklusive Anfahrt und Vor-/Nachbereitung</li>
+            </ul>
+          </div>
+
           {/* Reisezeit */}
           <div className="bg-white/60 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
@@ -145,10 +156,11 @@ export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
           <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
             <h4 className="text-sm font-medium text-emerald-800 mb-2">Weitere Zeitvorteile:</h4>
             <ul className="text-xs text-emerald-700 space-y-1">
-              <li>• Flexible Fortbildung in der Praxis</li>
-              <li>• Keine Koordination von Terminen</li>
+              <li>• Flexible Fortbildung ohne Praxisschließung</li>
+              <li>• Keine Terminkoordination mit externen Anbietern</li>
               <li>• Kontinuierliches Lernen im Arbeitsalltag</li>
               <li>• Sofortige Umsetzung des Gelernten</li>
+              <li>• Keine Wochenend-/Abendtermine erforderlich</li>
             </ul>
           </div>
         </CardContent>

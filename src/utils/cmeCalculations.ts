@@ -1,3 +1,4 @@
+
 export interface CMEUnit {
   duration: number; // in minutes
   hasExercises: boolean;
@@ -29,7 +30,7 @@ export const calculateCMEPoints = (unit: CMEUnit): number => {
 
 export const calculateAnnualCMERequirements = (
   isDentist: boolean,
-  averageSessionDuration: number = 480, // 8 Stunden in Minuten
+  averageSessionDuration: number = 300, // 5 Stunden in Minuten (realistischer)
   includesExercises: boolean = false,
   includesTest: boolean = false
 ): CMECalculationResult => {
@@ -58,9 +59,9 @@ export const TYPICAL_CROCODILE_UNIT: CMEUnit = {
   hasTest: true
 };
 
-// Beispiel für eine typische traditionelle Präsenz-Fortbildung
+// Beispiel für eine typische traditionelle Präsenz-Fortbildung (realistischer)
 export const TYPICAL_TRADITIONAL_UNIT: CMEUnit = {
-  duration: 480, // 8 Stunden
+  duration: 300, // 5 Stunden (statt 8)
   hasExercises: true,
   hasTest: false
 };

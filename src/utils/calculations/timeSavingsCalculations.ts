@@ -7,6 +7,7 @@ import {
   PREPARATION_TIME,
   ASSISTANTS_PER_CAR
 } from './constants';
+import { TIME_SAVINGS_CONSTANTS } from './timeSavingsConstants';
 
 export const calculateTimeSavings = (
   dentists: number,
@@ -17,37 +18,44 @@ export const calculateTimeSavings = (
 ): TimeSavings => {
   const travelTimeHours = travelTimeMinutes / 60;
   
-  // Berechnung für Zahnärzte (3 Stunden pro Einheit statt 8)
-  const dentistTimePerSession = 3 + travelTimeHours + PREPARATION_TIME; // Training + Reise + Vor/Nach
+  // Realistische Berechnung für Zahnärzte (5 Stunden pro Einheit statt 8)
+  const dentistTimePerSession = TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS + travelTimeHours + PREPARATION_TIME;
   const totalDentistHours = dentistTimePerSession * traditionalDentistCME.requiredSessions * dentists;
-  const dentistMonetaryValue = totalDentistHours * DENTIST_HOURLY_RATE;
+  
+  // Berücksichtigung des Praxisausfall-Faktors (60% führen zu echtem Ausfall)
+  const adjustedDentistHours = totalDentistHours * TIME_SAVINGS_CONSTANTS.PRACTICE_IMPACT_FACTOR;
+  const dentistMonetaryValue = adjustedDentistHours * DENTIST_HOURLY_RATE;
 
-  // Berechnung für Assistenzkräfte (3 Stunden pro Einheit statt 8)
-  const assistantTimePerSession = 3 + travelTimeHours + PREPARATION_TIME;
+  // Realistische Berechnung für Assistenzkräfte (5 Stunden pro Einheit statt 8)
+  const assistantTimePerSession = TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS + travelTimeHours + PREPARATION_TIME;
   const totalAssistantHours = assistantTimePerSession * traditionalAssistantCME.requiredSessions * assistants;
-  const assistantMonetaryValue = totalAssistantHours * ASSISTANT_HOURLY_RATE;
+  
+  // Berücksichtigung des Praxisausfall-Faktors
+  const adjustedAssistantHours = totalAssistantHours * TIME_SAVINGS_CONSTANTS.PRACTICE_IMPACT_FACTOR;
+  const assistantMonetaryValue = adjustedAssistantHours * ASSISTANT_HOURLY_RATE;
 
-  // Gesamte Reisezeit
+  // Gesamte Reisezeit (konservativ berechnet)
   const totalTravelHours = travelTimeHours * 
     (traditionalDentistCME.requiredSessions * dentists + 
-     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR));
+     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR)) *
+    TIME_SAVINGS_CONSTANTS.PRACTICE_IMPACT_FACTOR; // Nur 60% führen zu echten Reisekosten
 
   return {
-    totalHoursPerYear: totalDentistHours + totalAssistantHours,
+    totalHoursPerYear: adjustedDentistHours + adjustedAssistantHours,
     totalMonetaryValue: dentistMonetaryValue + assistantMonetaryValue,
-    dentistHours: totalDentistHours,
-    assistantHours: totalAssistantHours,
+    dentistHours: adjustedDentistHours,
+    assistantHours: adjustedAssistantHours,
     travelHours: totalTravelHours,
     details: {
       perSession: {
         dentist: {
-          trainingHours: 3,
+          trainingHours: TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS,
           travelHours: travelTimeHours,
           prepHours: PREPARATION_TIME,
           totalHours: dentistTimePerSession
         },
         assistant: {
-          trainingHours: 3,
+          trainingHours: TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS,
           travelHours: travelTimeHours,
           prepHours: PREPARATION_TIME,
           totalHours: assistantTimePerSession

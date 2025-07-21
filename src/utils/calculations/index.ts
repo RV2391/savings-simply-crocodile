@@ -56,29 +56,36 @@ const calculateTimeSavings = (
 ): TimeSavings => {
   const travelTimeHours = travelTimeMinutes / 60;
   
+  // Konservative Berechnung: 5 Stunden pro Session (statt 8)
   const dentistTimePerSession = {
-    trainingHours: 3,
+    trainingHours: 5, // Realistischere Dauer
     travelHours: travelTimeHours,
     prepHours: PREPARATION_TIME,
-    totalHours: 3 + travelTimeHours + PREPARATION_TIME
+    totalHours: 5 + travelTimeHours + PREPARATION_TIME
   };
 
   const assistantTimePerSession = {
-    trainingHours: 3,
+    trainingHours: 5, // Realistischere Dauer
     travelHours: travelTimeHours,
     prepHours: PREPARATION_TIME,
-    totalHours: 3 + travelTimeHours + PREPARATION_TIME
+    totalHours: 5 + travelTimeHours + PREPARATION_TIME
   };
 
   const totalDentistHours = dentistTimePerSession.totalHours * traditionalDentistCME.requiredSessions * dentists;
   const totalAssistantHours = assistantTimePerSession.totalHours * traditionalAssistantCME.requiredSessions * assistants;
   
-  const dentistMonetaryValue = totalDentistHours * DENTIST_HOURLY_RATE;
-  const assistantMonetaryValue = totalAssistantHours * ASSISTANT_HOURLY_RATE;
+  // Praxisausfall-Faktor anwenden (60% der Fortbildungen führen zu echtem Ausfall)
+  const PRACTICE_IMPACT_FACTOR = 0.6;
+  const adjustedDentistHours = totalDentistHours * PRACTICE_IMPACT_FACTOR;
+  const adjustedAssistantHours = totalAssistantHours * PRACTICE_IMPACT_FACTOR;
+  
+  const dentistMonetaryValue = adjustedDentistHours * DENTIST_HOURLY_RATE;
+  const assistantMonetaryValue = adjustedAssistantHours * ASSISTANT_HOURLY_RATE;
 
   const totalTravelHours = travelTimeHours * 
     (traditionalDentistCME.requiredSessions * dentists + 
-     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR));
+     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR)) *
+    PRACTICE_IMPACT_FACTOR; // Auch Reisezeit konservativ berechnen
 
   const details: TimeSavingsDetails = {
     perSession: {
@@ -92,10 +99,10 @@ const calculateTimeSavings = (
   };
 
   return {
-    totalHoursPerYear: totalDentistHours + totalAssistantHours,
+    totalHoursPerYear: adjustedDentistHours + adjustedAssistantHours,
     totalMonetaryValue: dentistMonetaryValue + assistantMonetaryValue,
-    dentistHours: totalDentistHours,
-    assistantHours: totalAssistantHours,
+    dentistHours: adjustedDentistHours,
+    assistantHours: adjustedAssistantHours,
     travelHours: totalTravelHours,
     details
   };

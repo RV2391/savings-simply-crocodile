@@ -10,8 +10,13 @@ export const TIME_SAVINGS_CONSTANTS = {
   PRACTICE_CLOSURE_HOURS: {
     FULL_DAY_TRADITIONAL: 8,    // Ganztägige Präsenzfortbildung
     HALF_DAY_TRADITIONAL: 4,    // Halbtägige Präsenzfortbildung
+    AVERAGE_TRADITIONAL: 5,     // Durchschnittliche Präsenzfortbildung
     CROCODILE_ONLINE: 0         // Keine Praxisschließung bei Online-Fortbildung
   },
+  
+  // Praxisausfall-Faktoren (konservative Schätzung)
+  PRACTICE_IMPACT_FACTOR: 0.6,           // 60% der Fortbildungen führen zu echtem Praxisausfall
+  WEEKEND_TRAINING_RATE: 0.4,            // 40% der Fortbildungen finden am Wochenende statt
   
   // Organisationskosten (Quelle: Praxismanagement-Studien)
   RESCHEDULING_COST_PER_APPOINTMENT: 25,  // Kosten pro verschobenem Termin
@@ -32,6 +37,13 @@ export const TIME_SAVINGS_CONSTANTS = {
     DENTIST_GROSS_INCOME: 70,              // Brutto-Stundenlohn Zahnarzt
     ZFA_GROSS_INCOME: 16,                  // Brutto-Stundenlohn ZFA
     PRACTICE_OVERHEAD_FACTOR: 1.4          // Faktor für Praxisnebenkosten
+  },
+  
+  // CME-Anforderungen (realistischere Werte)
+  CME_REQUIREMENTS: {
+    AVERAGE_SESSION_DURATION_HOURS: 5,     // Durchschnittliche Dauer einer Präsenzfortbildung
+    AVERAGE_CME_POINTS_PER_SESSION: 5,     // Durchschnittliche CME-Punkte pro Session
+    MAX_CME_POINTS_PER_DAY: 8              // Maximum CME-Punkte pro Tag
   }
 };
 
@@ -41,5 +53,7 @@ export const DATA_SOURCES = {
   HOURLY_RATES: "Bundeszahnärztekammer (BZÄK) und ZFA-Tarifverträge 2023",
   ORGANIZATIONAL_COSTS: "Praxismanagement-Studien der Kassenzahnärztlichen Vereinigungen",
   PATIENT_BEHAVIOR: "Branchenanalysen zur Patientenbindung in Zahnarztpraxen",
-  OPPORTUNITY_COSTS: "Betriebswirtschaftliche Kennzahlen der Dentalbranche"
+  OPPORTUNITY_COSTS: "Betriebswirtschaftliche Kennzahlen der Dentalbranche",
+  CME_DATA: "Konservative Schätzungen basierend auf Branchenumfragen und BZÄK-Richtlinien",
+  PRACTICE_IMPACT: "Realistische Bewertung basierend auf Wochenend-/Abendfortbildungen"
 };
