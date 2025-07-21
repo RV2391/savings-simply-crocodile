@@ -55,9 +55,9 @@ export const CostLegend = () => {
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-primary">Crocodile Health Kosten</h4>
+                    <h4 className="font-medium text-primary">Crocodile Kosten</h4>
                     <p className="mt-1 text-gray-400">
-                      Die Kosten für Crocodile Health setzen sich wie folgt zusammen:
+                      Die Kosten für Crocodile setzen sich wie folgt zusammen:
                     </p>
                     <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-2">
                       <li>

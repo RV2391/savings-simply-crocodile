@@ -66,7 +66,7 @@ export const FormFields = ({
           <br /><br />
           Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
           <a 
-            href="https://www.crocodile-health.com/datenschutz" 
+            href="https://www.crocodile.com/datenschutz" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-primary hover:underline font-medium"
