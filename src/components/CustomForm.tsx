@@ -45,6 +45,29 @@ export const CustomForm = ({
       const timeSavingsExplanation = results.timeSavings ? 
         formatTimeSavingsExplanation({ timeSavings: results.timeSavings }) : '';
       
+      // IP-Adresse für DSGVO-Compliance ermitteln
+      let userIP = '';
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        userIP = ipData.ip;
+      } catch (error) {
+        console.warn('Could not retrieve IP address:', error);
+        userIP = 'unknown';
+      }
+
+      // DSGVO-konforme Consent-Daten
+      const consentTimestamp = new Date().toISOString();
+      const consentData = {
+        given: consent,
+        timestamp: consentTimestamp,
+        ip_address: userIP,
+        user_agent: navigator.userAgent,
+        privacy_policy_version: "2025-01",
+        opt_in_method: "calculator_form",
+        page_url: window.location.href
+      };
+      
       // Daten für Make.com Webhook vorbereiten
       const webhookData = {
         email: email,
@@ -67,9 +90,10 @@ export const CustomForm = ({
         nearest_institute: results.nearestInstitute?.name || '',
         travel_distance: Math.round(Number(results.nearestInstitute?.oneWayDistance)) || 0,
         travel_costs: Math.round(Number(results.nearestInstitute?.travelCosts)) || 0,
-        timestamp: new Date().toISOString(),
+        timestamp: consentTimestamp,
         source: 'Calculator Form',
-        page_url: window.location.href
+        page_url: window.location.href,
+        consent: consentData
       };
 
       // Make.com Webhook aufrufen
@@ -121,7 +145,7 @@ export const CustomForm = ({
 
       toast({
         title: "Erfolgreich gesendet",
-        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in Kürze eine E-Mail mit Ihrer persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
+        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in 5-10 Minuten eine individuell erstellte E-Mail mit Ihrer persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
       });
 
       // Reset form
@@ -157,6 +181,25 @@ export const CustomForm = ({
           setConsent={setConsent}
           isSubmitting={isSubmitting}
         />
+
+        {isSubmitting && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700">
+                  <strong>Ihre E-Mail wird individuell erstellt...</strong><br />
+                  Dies dauert ca. 5-10 Minuten. Sie erhalten eine Benachrichtigung, sobald Ihre persönliche Analyse bereit ist.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Button 
           type="submit" 
