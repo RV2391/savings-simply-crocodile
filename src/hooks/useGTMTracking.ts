@@ -44,14 +44,36 @@ export const useGTMTracking = () => {
     });
   }, [trackCalculatorInteraction]);
 
-  const trackCalculationCompleted = useCallback((savings: number, teamSize: number, dentistsCount: number, hasLocation: boolean) => {
+  const trackCalculationCompleted = useCallback((
+    savings: number, 
+    teamSize: number, 
+    dentistsCount: number, 
+    hasLocation: boolean,
+    timeSavingsHours?: number,
+    timeSavingsValue?: number
+  ) => {
     trackCalculatorInteraction('calculation_completed', {
       calculator_team_size: teamSize,
       calculator_dentists_count: dentistsCount,
       calculator_location_provided: hasLocation,
-      savings_amount: savings
+      savings_amount: savings,
+      time_savings_hours: timeSavingsHours ? Math.round(timeSavingsHours * 10) / 10 : undefined,
+      time_savings_value: timeSavingsValue ? Math.round(timeSavingsValue) : undefined
     });
   }, [trackCalculatorInteraction]);
+
+  const trackTimeSavingsViewed = useCallback((
+    timeSavingsHours: number,
+    timeSavingsValue: number,
+    teamSize: number
+  ) => {
+    trackEvent({
+      event: 'time_savings_viewed',
+      time_savings_hours: Math.round(timeSavingsHours * 10) / 10,
+      time_savings_value: Math.round(timeSavingsValue),
+      calculator_team_size: teamSize
+    });
+  }, [trackEvent]);
 
   const trackFormStart = useCallback(() => {
     trackEvent({
@@ -75,6 +97,7 @@ export const useGTMTracking = () => {
     trackDentistsCountChange,
     trackLocationProvided,
     trackCalculationCompleted,
+    trackTimeSavingsViewed,
     trackFormStart,
     trackFormFieldComplete
   };

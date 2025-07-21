@@ -9,7 +9,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ResultCard } from "./ResultCard";
+import { TimeSavingsCard } from "./TimeSavingsCard";
 import { CostLegend } from "./CostLegend";
+import { TimeSavingsLegend } from "./TimeSavingsLegend";
 import { calculateResults, type CalculationInputs } from "@/utils/calculations";
 import { Results } from "@/types";
 import { PracticeMap } from "./PracticeMap";
@@ -61,7 +63,8 @@ export const CostCalculator = () => {
     trackTeamSizeChange,
     trackDentistsCountChange,
     trackLocationProvided,
-    trackCalculationCompleted
+    trackCalculationCompleted,
+    trackTimeSavingsViewed
   } = useGTMTracking();
 
   useEffect(() => {
@@ -80,7 +83,9 @@ export const CostCalculator = () => {
           newResults.savings,
           inputs.teamSize,
           inputs.dentists,
-          !!(inputs.practiceLat && inputs.practiceLng)
+          !!(inputs.practiceLat && inputs.practiceLng),
+          newResults.extendedTimeSavings?.totalHoursPerYear,
+          newResults.extendedTimeSavings?.totalMonetaryValue
         );
       }
     };
@@ -217,6 +222,7 @@ export const CostCalculator = () => {
           </div>
 
           <CostLegend />
+          <TimeSavingsLegend />
         </motion.div>
 
         <div className="flex flex-col items-start justify-center space-y-6">
@@ -225,6 +231,9 @@ export const CostCalculator = () => {
             calculatorData={calculatorData}
             addressComponents={addressComponents}
           />
+          {results.extendedTimeSavings && (
+            <TimeSavingsCard timeSavings={results.extendedTimeSavings} />
+          )}
         </div>
       </div>
     </div>
