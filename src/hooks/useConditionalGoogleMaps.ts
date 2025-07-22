@@ -18,8 +18,7 @@ export const useConditionalGoogleMaps = (
     hasValidConfig ? {
       googleMapsApiKey: apiKey,
       libraries: ["places"] as const,
-    } : undefined as any,
-    { skip: !hasValidConfig }
+    } : undefined
   );
 
   return {
