@@ -1,7 +1,6 @@
 
-import { useState, useEffect } from "react";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
-import { googleMapsService } from "@/utils/googleMapsService";
 import { GoogleMapsWrapper } from "./map/GoogleMapsWrapper";
 import { BackendOnlyMap } from "./map/BackendOnlyMap";
 
@@ -21,35 +20,10 @@ export const PracticeMap = ({
   nearestInstitute,
   onPracticeLocationChange,
 }: PracticeMapProps) => {
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [mapMode, setMapMode] = useState<'loading' | 'maps' | 'backend-only'>('loading');
-
-  // Load API key and determine mode
-  useEffect(() => {
-    const initializeMode = async () => {
-      console.log('🗺️ PracticeMap: Initializing map mode...');
-      
-      try {
-        const key = await googleMapsService.loadApiKey();
-        if (key) {
-          console.log('✅ PracticeMap: API key loaded, using Google Maps');
-          setApiKey(key);
-          setMapMode('maps');
-        } else {
-          console.log('ℹ️ PracticeMap: No API key, using backend-only mode');
-          setMapMode('backend-only');
-        }
-      } catch (error) {
-        console.log('ℹ️ PracticeMap: Error loading API key, using backend-only mode');
-        setMapMode('backend-only');
-      }
-    };
-
-    initializeMode();
-  }, []);
+  const { isLoaded, loadError } = useGoogleMaps();
 
   // Loading state
-  if (mapMode === 'loading') {
+  if (!isLoaded && !loadError) {
     return (
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
@@ -60,8 +34,8 @@ export const PracticeMap = ({
     );
   }
 
-  // Backend-only mode
-  if (mapMode === 'backend-only') {
+  // Backend-only mode if there's an error or API not loaded
+  if (loadError || !isLoaded) {
     return (
       <BackendOnlyMap 
         practiceLocation={practiceLocation}
@@ -70,24 +44,13 @@ export const PracticeMap = ({
     );
   }
 
-  // Google Maps mode - only render when we have a valid API key
-  if (mapMode === 'maps' && apiKey) {
-    return (
-      <GoogleMapsWrapper
-        apiKey={apiKey}
-        institutes={institutes}
-        practiceLocation={practiceLocation}
-        nearestInstitute={nearestInstitute}
-        onPracticeLocationChange={onPracticeLocationChange}
-      />
-    );
-  }
-
-  // Fallback to backend-only if something goes wrong
+  // Google Maps mode
   return (
-    <BackendOnlyMap 
+    <GoogleMapsWrapper
+      institutes={institutes}
       practiceLocation={practiceLocation}
       nearestInstitute={nearestInstitute}
+      onPracticeLocationChange={onPracticeLocationChange}
     />
   );
 };

@@ -1,9 +1,10 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { GoogleMap, MarkerF, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, MarkerF } from "@react-google-maps/api";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
 import { MapDirections } from "./MapDirections";
 import { MapMarker } from "./MapMarker";
+import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 
 const mapContainerStyle = {
   width: "100%",
@@ -16,7 +17,6 @@ const options = {
 };
 
 interface GoogleMapsWrapperProps {
-  apiKey: string;
   institutes: DentalInstitute[];
   practiceLocation: {
     lat: number;
@@ -27,18 +27,13 @@ interface GoogleMapsWrapperProps {
 }
 
 export const GoogleMapsWrapper = ({
-  apiKey,
   institutes,
   practiceLocation,
   nearestInstitute,
   onPracticeLocationChange,
 }: GoogleMapsWrapperProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries: ["places"] as const,
-  });
+  const { isLoaded, loadError } = useGoogleMaps();
 
   const mapRef = useRef<google.maps.Map>();
   const onMapLoad = useCallback((map: google.maps.Map) => {
