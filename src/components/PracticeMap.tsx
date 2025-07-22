@@ -1,7 +1,6 @@
 
-import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
-import { GoogleMapsWrapper } from "./map/GoogleMapsWrapper";
+import { BackendMapContainer } from "./map/BackendMapContainer";
 import { BackendOnlyMap } from "./map/BackendOnlyMap";
 
 interface PracticeMapProps {
@@ -20,37 +19,15 @@ export const PracticeMap = ({
   nearestInstitute,
   onPracticeLocationChange,
 }: PracticeMapProps) => {
-  const { isLoaded, loadError } = useGoogleMaps();
-
-  // Loading state
-  if (!isLoaded && !loadError) {
-    return (
-      <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
-        <div className="text-center p-6">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-          <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Backend-only mode if there's an error or API not loaded
-  if (loadError || !isLoaded) {
-    return (
-      <BackendOnlyMap 
-        practiceLocation={practiceLocation}
-        nearestInstitute={nearestInstitute}
-      />
-    );
-  }
-
-  // Google Maps mode
+  // Immer Backend-Karte verwenden
   return (
-    <GoogleMapsWrapper
-      institutes={institutes}
+    <BackendMapContainer
+      center={practiceLocation}
       practiceLocation={practiceLocation}
       nearestInstitute={nearestInstitute}
+      institutes={institutes}
       onPracticeLocationChange={onPracticeLocationChange}
+      showDirections={!!nearestInstitute}
     />
   );
 };
