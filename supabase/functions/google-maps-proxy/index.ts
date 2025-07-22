@@ -1,3 +1,4 @@
+
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("🚀 Enhanced Google Maps Proxy function started")

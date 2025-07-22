@@ -1,9 +1,11 @@
+
 import { calculateNearestInstitute } from './dentalInstitutes';
 import { 
   calculateAnnualCMERequirements, 
   TYPICAL_TRADITIONAL_UNIT, 
   TYPICAL_CROCODILE_UNIT 
 } from './cmeCalculations';
+import { calculateDistanceViaBackend, calculateTravelTimeViaBackend } from './backendDistanceCalculations';
 
 export interface NearestInstitute {
   name: string;
@@ -67,7 +69,7 @@ const ASSISTANTS_PER_CAR = 5;
 const MONTHS_PER_YEAR = 12;
 const DENTIST_HOURLY_RATE = 150;
 const ASSISTANT_HOURLY_RATE = 35;
-const PREPARATION_TIME = 1; // 1 hour for preparation per training session
+const PREPARATION_TIME = 1;
 
 export const calculateCrocodileCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
@@ -97,17 +99,14 @@ const calculateTimeSavings = (
 ): TimeSavings => {
   const travelTimeHours = travelTimeMinutes / 60;
   
-  // Berechnung für Zahnärzte
-  const dentistTimePerSession = 8 + travelTimeHours + PREPARATION_TIME; // Training + Reise + Vor/Nach
+  const dentistTimePerSession = 8 + travelTimeHours + PREPARATION_TIME;
   const totalDentistHours = dentistTimePerSession * traditionalDentistCME.requiredSessions * dentists;
   const dentistMonetaryValue = totalDentistHours * DENTIST_HOURLY_RATE;
 
-  // Berechnung für Assistenzkräfte
   const assistantTimePerSession = 8 + travelTimeHours + PREPARATION_TIME;
   const totalAssistantHours = assistantTimePerSession * traditionalAssistantCME.requiredSessions * assistants;
   const assistantMonetaryValue = totalAssistantHours * ASSISTANT_HOURLY_RATE;
 
-  // Gesamte Reisezeit
   const totalTravelHours = travelTimeHours * 
     (traditionalDentistCME.requiredSessions * dentists + 
      traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR));
@@ -148,76 +147,47 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
     const nearest = await calculateNearestInstitute(inputs.practiceLat, inputs.practiceLng);
     
     try {
-      const service = new google.maps.DistanceMatrixService();
-      const result = await service.getDistanceMatrix({
-        origins: [{ lat: inputs.practiceLat, lng: inputs.practiceLng }],
-        destinations: [{ lat: nearest.coordinates.lat, lng: nearest.coordinates.lng }],
-        travelMode: google.maps.TravelMode.DRIVING,
-        unitSystem: google.maps.UnitSystem.METRIC,
-        avoidHighways: false,
-        avoidTolls: false,
-        drivingOptions: {
-          departureTime: new Date(),
-          trafficModel: google.maps.TrafficModel.BEST_GUESS
-        }
-      });
+      const oneWayDistance = await calculateDistanceViaBackend(
+        inputs.practiceLat, 
+        inputs.practiceLng,
+        nearest.coordinates.lat, 
+        nearest.coordinates.lng
+      );
+      
+      const oneWayTime = await calculateTravelTimeViaBackend(
+        inputs.practiceLat, 
+        inputs.practiceLng,
+        nearest.coordinates.lat, 
+        nearest.coordinates.lng
+      );
 
-      if (result.rows[0]?.elements[0]?.status === "OK") {
-        const element = result.rows[0].elements[0];
-        
-        const directionsService = new google.maps.DirectionsService();
-        const directionsResult = await directionsService.route({
-          origin: { lat: inputs.practiceLat, lng: inputs.practiceLng },
-          destination: { lat: nearest.coordinates.lat, lng: nearest.coordinates.lng },
-          travelMode: google.maps.TravelMode.DRIVING,
-          provideRouteAlternatives: true,
-          optimizeWaypoints: true
-        });
+      const roundTripDistance = oneWayDistance * 2;
+      const roundTripTime = oneWayTime * 2;
 
-        let shortestRoute = directionsResult.routes[0];
-        let shortestDistance = Number.MAX_VALUE;
-        let shortestDuration = Number.MAX_VALUE;
+      const dentistTrips = traditionalDentistCME.requiredSessions;
+      const assistantGroups = Math.ceil(assistants / ASSISTANTS_PER_CAR);
+      const assistantTrips = traditionalAssistantCME.requiredSessions * assistantGroups;
+      
+      const travelCosts = calculateTravelCosts(roundTripDistance, dentistTrips, assistantTrips);
 
-        directionsResult.routes.forEach(route => {
-          const distance = route.legs[0].distance.value;
-          if (distance < shortestDistance) {
-            shortestDistance = distance;
-            shortestDuration = route.legs[0].duration.value;
-            shortestRoute = route;
-          }
-        });
+      nearestInstitute = {
+        name: nearest.name,
+        oneWayDistance: oneWayDistance,
+        distance: roundTripDistance,
+        oneWayTravelTime: oneWayTime,
+        travelTime: roundTripTime,
+        travelCosts: Math.round(travelCosts)
+      };
 
-        const oneWayDistance = shortestDistance / 1000;
-        const oneWayTime = shortestDuration / 60;
-        
-        const roundTripDistance = oneWayDistance * 2;
-        const roundTripTime = oneWayTime * 2;
-
-        const dentistTrips = traditionalDentistCME.requiredSessions;
-        const assistantGroups = Math.ceil(assistants / ASSISTANTS_PER_CAR);
-        const assistantTrips = traditionalAssistantCME.requiredSessions * assistantGroups;
-        
-        const travelCosts = (roundTripDistance * COST_PER_KM) * (dentistTrips + assistantTrips);
-
-        nearestInstitute = {
-          name: nearest.name,
-          oneWayDistance: oneWayDistance,
-          distance: roundTripDistance,
-          oneWayTravelTime: oneWayTime,
-          travelTime: roundTripTime,
-          travelCosts: Math.round(travelCosts)
-        };
-
-        timeSavings = calculateTimeSavings(
-          inputs.dentists,
-          assistants,
-          roundTripTime,
-          traditionalDentistCME,
-          traditionalAssistantCME
-        );
-      }
+      timeSavings = calculateTimeSavings(
+        inputs.dentists,
+        assistants,
+        roundTripTime,
+        traditionalDentistCME,
+        traditionalAssistantCME
+      );
     } catch (error) {
-      console.error('Error calculating distance:', error);
+      console.error('Error calculating backend distance:', error);
     }
   }
 
