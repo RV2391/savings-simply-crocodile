@@ -31,7 +31,7 @@ export const BackendMapContainer = ({
     const generateStaticMap = async () => {
       setLoading(true);
       setError('');
-      console.log('🗺️ Generating static map for center:', center);
+      console.log('🗺️ Generating secure static map for center:', center);
       
       try {
         const markers = [
@@ -83,7 +83,8 @@ export const BackendMapContainer = ({
 
         console.log('📍 Total markers to add:', markers.length);
 
-        const mapUrl = await backendMapsService.getStaticMapUrl({
+        // Use the new secure image proxy method
+        const mapUrl = await backendMapsService.getStaticMapImageUrl({
           center: `${center.lat},${center.lng}`,
           zoom: 10,
           size: '800x400',
@@ -92,13 +93,13 @@ export const BackendMapContainer = ({
         });
 
         if (!mapUrl) {
-          throw new Error('No map URL returned from service');
+          throw new Error('No map URL returned from secure image proxy');
         }
 
-        console.log('✅ Static map URL received successfully');
+        console.log('✅ Secure static map image URL received successfully');
         setMapImageUrl(mapUrl);
       } catch (error) {
-        console.error('❌ Map generation failed:', error);
+        console.error('❌ Secure map generation failed:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
         setMapImageUrl('');
@@ -108,15 +109,31 @@ export const BackendMapContainer = ({
     };
 
     generateStaticMap();
+
+    // Cleanup function to revoke blob URLs and prevent memory leaks
+    return () => {
+      if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(mapImageUrl);
+      }
+    };
   }, [center, practiceLocation, nearestInstitute, institutes, showDirections]);
+
+  // Cleanup blob URL when component unmounts or URL changes
+  useEffect(() => {
+    return () => {
+      if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(mapImageUrl);
+      }
+    };
+  }, [mapImageUrl]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
           <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Karte wird generiert...</p>
-          <p className="text-xs text-muted-foreground mt-1">Backend-Service wird kontaktiert...</p>
+          <p className="text-sm text-muted-foreground">Sichere Karte wird generiert...</p>
+          <p className="text-xs text-muted-foreground mt-1">Backend-Image-Proxy wird verwendet...</p>
         </div>
       </div>
     );
@@ -131,88 +148,13 @@ export const BackendMapContainer = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-sm text-muted-foreground mb-2">Karte konnte nicht geladen werden</p>
+          <p className="text-sm text-muted-foreground mb-2">Sichere Karte konnte nicht geladen werden</p>
           <p className="text-xs text-red-400">{error}</p>
           <button 
-            onClick={() => {
-              setError('');
-              setLoading(true);
-              const generateStaticMap = async () => {
-                setLoading(true);
-                setError('');
-                console.log('🗺️ Retrying map generation for center:', center);
-                
-                try {
-                  const markers = [
-                    {
-                      location: `${practiceLocation.lat},${practiceLocation.lng}`,
-                      color: 'green',
-                      label: 'P'
-                    }
-                  ];
-
-                  if (nearestInstitute) {
-                    markers.push({
-                      location: `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`,
-                      color: 'red',
-                      label: 'I'
-                    });
-                  }
-
-                  const nearbyInstitutes = institutes
-                    .filter(inst => inst !== nearestInstitute)
-                    .slice(0, 5);
-                  
-                  nearbyInstitutes.forEach((institute, index) => {
-                    markers.push({
-                      location: `${institute.coordinates.lat},${institute.coordinates.lng}`,
-                      color: 'blue',
-                      label: String(index + 1)
-                    });
-                  });
-
-                  let polylinePath = '';
-                  
-                  if (showDirections && nearestInstitute) {
-                    try {
-                      const directions = await backendMapsService.getDirections(
-                        `${practiceLocation.lat},${practiceLocation.lng}`,
-                        `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`
-                      );
-                      
-                      setDirectionsData(directions);
-                      polylinePath = directions.polyline;
-                    } catch (error) {
-                      console.warn('Directions failed:', error);
-                    }
-                  }
-
-                  const mapUrl = await backendMapsService.getStaticMapUrl({
-                    center: `${center.lat},${center.lng}`,
-                    zoom: 10,
-                    size: '800x400',
-                    markers,
-                    path: polylinePath
-                  });
-
-                  if (!mapUrl) {
-                    throw new Error('No map URL returned from service');
-                  }
-
-                  setMapImageUrl(mapUrl);
-                } catch (error) {
-                  console.error('❌ Retry failed:', error);
-                  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-                  setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
-                } finally {
-                  setLoading(false);
-                }
-              };
-              generateStaticMap();
-            }}
+            onClick={() => window.location.reload()}
             className="mt-3 px-3 py-1 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/80"
           >
-            Erneut versuchen
+            Seite neu laden
           </button>
         </div>
       </div>
@@ -224,11 +166,11 @@ export const BackendMapContainer = ({
       {mapImageUrl ? (
         <img 
           src={mapImageUrl}
-          alt="Statische Karte mit Praxis und Instituten"
+          alt="Sichere statische Karte mit Praxis und Instituten"
           className="w-full h-[400px] object-cover"
           onError={() => {
-            console.error('❌ Map image failed to load:', mapImageUrl);
-            setError('Kartenbild konnte nicht geladen werden');
+            console.error('❌ Secure map image failed to display:', mapImageUrl);
+            setError('Sicheres Kartenbild konnte nicht angezeigt werden');
             setMapImageUrl('');
           }}
         />
@@ -236,7 +178,7 @@ export const BackendMapContainer = ({
         <div className="flex items-center justify-center h-[400px] bg-muted">
           <div className="text-center p-6">
             <MapPin className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Karte konnte nicht geladen werden</p>
+            <p className="text-sm text-muted-foreground">Sichere Karte konnte nicht geladen werden</p>
           </div>
         </div>
       )}

@@ -1,4 +1,3 @@
-
 import { corsHeaders } from '../_shared/cors.ts'
 
 console.log("🚀 Enhanced Google Maps Proxy function started")
@@ -153,7 +152,7 @@ Deno.serve(async (req) => {
         }
         break
 
-      case 'static_map':
+      case 'static_map_image':
         if (!params.center) {
           return new Response(
             JSON.stringify({ error: 'Center parameter is required' }),
@@ -182,12 +181,71 @@ Deno.serve(async (req) => {
           staticMapUrl += `&path=color:0x0000ff|weight:3|enc:${params.path}`
         }
         
-        console.log('🗺️ Static map request for:', params.center)
-        console.log('📍 Markers added:', params.markers?.length || 0)
-        console.log('🛣️ Path included:', !!params.path)
-        console.log('✅ Static map URL generated:', staticMapUrl.substring(0, 100) + '...')
+        console.log('🗺️ Static map image proxy request for:', params.center)
+        console.log('📍 Loading image from Google:', staticMapUrl.substring(0, 100) + '...')
         
-        return new Response(JSON.stringify({ url: staticMapUrl }), {
+        try {
+          const imageResponse = await fetch(staticMapUrl)
+          
+          if (!imageResponse.ok) {
+            console.error('❌ Google Maps image request failed:', imageResponse.status, imageResponse.statusText)
+            throw new Error(`Google Maps API returned ${imageResponse.status}: ${imageResponse.statusText}`)
+          }
+          
+          const imageBuffer = await imageResponse.arrayBuffer()
+          const contentType = imageResponse.headers.get('content-type') || 'image/png'
+          
+          console.log('✅ Successfully loaded map image from Google, size:', imageBuffer.byteLength, 'bytes')
+          
+          return new Response(imageBuffer, {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': contentType,
+              'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+            }
+          })
+        } catch (fetchError) {
+          console.error('❌ Static map image proxy error:', fetchError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to load map image', details: fetchError.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        break
+
+      case 'static_map':
+        if (!params.center) {
+          return new Response(
+            JSON.stringify({ error: 'Center parameter is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        
+        const mapSize = params.size || '600x400'
+        const mapZoom = params.zoom || 10
+        const mapMaptype = params.maptype || 'roadmap'
+        
+        let mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${mapZoom}&size=${mapSize}&maptype=${mapMaptype}&key=${GOOGLE_MAPS_API_KEY}`
+        
+        // Add markers if provided
+        if (params.markers) {
+          params.markers.forEach((marker: any) => {
+            const color = marker.color || 'red'
+            const label = marker.label || ''
+            const location = marker.location
+            mapUrl += `&markers=color:${color}|label:${label}|${encodeURIComponent(location)}`
+          })
+        }
+        
+        // Add path if provided
+        if (params.path) {
+          mapUrl += `&path=color:0x0000ff|weight:3|enc:${params.path}`
+        }
+        
+        console.log('🗺️ Static map URL generation for:', params.center)
+        console.log('✅ Static map URL generated:', mapUrl.substring(0, 100) + '...')
+        
+        return new Response(JSON.stringify({ url: mapUrl }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
 

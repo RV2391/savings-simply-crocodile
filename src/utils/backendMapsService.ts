@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export class BackendMapsService {
@@ -89,7 +88,70 @@ export class BackendMapsService {
     }
   }
 
-  // Backend-basierte statische Karte
+  // Backend-basierte statische Karte als Bild (sicher über Proxy)
+  public async getStaticMapImageUrl(options: {
+    center: string;
+    zoom?: number;
+    size?: string;
+    markers?: Array<{
+      location: string;
+      color?: string;
+      label?: string;
+    }>;
+    path?: string;
+  }): Promise<string> {
+    console.log('🗺️ Backend static map image request for:', options.center, 'with options:', options);
+    
+    try {
+      // Get the Supabase function URL directly
+      const { data: { session } } = await supabase.auth.getSession();
+      const functionUrl = `https://vkarnxgrniqtyeeibgxq.supabase.co/functions/v1/google-maps-proxy`;
+      
+      // Create a direct fetch request with the image proxy action
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || supabase.supabaseKey}`,
+        },
+        body: JSON.stringify({ 
+          action: 'static_map_image', 
+          ...options 
+        })
+      });
+
+      if (!response.ok) {
+        console.error('❌ Static map image request failed:', response.status, response.statusText);
+        throw new Error(`Static map image request failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Check if response is actually an image
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.startsWith('image/')) {
+        const errorText = await response.text();
+        console.error('❌ Response is not an image:', contentType, errorText);
+        throw new Error(`Expected image response, got: ${contentType}`);
+      }
+
+      // Convert the image response to a blob URL
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      
+      console.log('✅ Static map image blob URL created successfully');
+      return imageUrl;
+    } catch (error) {
+      console.error('❌ Backend static map image failed:', error);
+      
+      // Enhanced error information
+      if (error instanceof Error) {
+        throw new Error(`Backend static map image failed: ${error.message}`);
+      } else {
+        throw new Error(`Backend static map image failed: ${String(error)}`);
+      }
+    }
+  }
+
+  // LEGACY: Backward compatibility for URL-based approach (deprecated)
   public async getStaticMapUrl(options: {
     center: string;
     zoom?: number;
@@ -101,35 +163,8 @@ export class BackendMapsService {
     }>;
     path?: string;
   }): Promise<string> {
-    console.log('🗺️ Backend static map request for:', options.center, 'with options:', options);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
-        body: { action: 'static_map', ...options }
-      });
-
-      if (error) {
-        console.error('❌ Static map supabase error:', error);
-        throw new Error(`Static map error: ${error.message || 'Unknown error'}`);
-      }
-
-      if (!data || !data.url) {
-        console.error('❌ Static map response invalid:', data);
-        throw new Error('Invalid response from static map service - no URL returned');
-      }
-
-      console.log('✅ Static map URL received:', data.url.substring(0, 100) + '...');
-      return data.url;
-    } catch (error) {
-      console.error('❌ Backend static map failed:', error);
-      
-      // Enhanced error information
-      if (error instanceof Error) {
-        throw new Error(`Backend static map failed: ${error.message}`);
-      } else {
-        throw new Error(`Backend static map failed: ${String(error)}`);
-      }
-    }
+    console.log('⚠️ Using legacy getStaticMapUrl - switching to secure image proxy');
+    return this.getStaticMapImageUrl(options);
   }
 
   // Backend-basierte Geocodierung (bestehend)
