@@ -4,7 +4,7 @@ import { useDebounce } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Search, Loader2, AlertCircle, RefreshCw, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { googleMapsService } from "@/utils/googleMapsService";
@@ -25,25 +25,43 @@ export const AddressInput = ({
   const [address, setAddress] = useState("");
   const [debouncedAddress] = useDebounce(address, 500);
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
   const autocompleteContainerRef = useRef<HTMLDivElement>(null);
   const autocompleteElementRef = useRef<any>(null);
   const { toast } = useToast();
 
-  const { isLoaded, isPlacesReady, loadError, retryLoading } = useGoogleMaps();
+  const { isLoaded, isPlacesReady, loadError, retryLoading, apiKey } = useGoogleMaps();
 
   const MIN_ADDRESS_LENGTH = 5;
+
+  // Debug function to log API status
+  const logDebugInfo = useCallback((message: string) => {
+    console.log(`🔍 AddressInput Debug: ${message}`);
+    setDebugInfo(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${message}`]);
+  }, []);
+
+  // Enhanced API status check
+  useEffect(() => {
+    logDebugInfo(`API Status - Loaded: ${isLoaded}, Places: ${isPlacesReady}, Error: ${loadError || 'none'}, Key: ${apiKey ? 'present' : 'missing'}`);
+    
+    if (window.google?.maps) {
+      logDebugInfo(`Google Maps APIs available: ${Object.keys(window.google.maps).join(', ')}`);
+      if (window.google.maps.places) {
+        logDebugInfo(`Places APIs: ${Object.keys(window.google.maps.places).join(', ')}`);
+      }
+    }
+  }, [isLoaded, isPlacesReady, loadError, apiKey, logDebugInfo]);
 
   // Try to initialize new PlaceAutocompleteElement
   useEffect(() => {
     if (isPlacesReady && autocompleteContainerRef.current && !autocompleteElementRef.current) {
       try {
-        console.log('🔧 AddressInput: Attempting to create PlaceAutocompleteElement...');
+        logDebugInfo('Attempting to create PlaceAutocompleteElement...');
         
-        // Check if new API is available with proper error handling
         if (window.google?.maps?.places?.PlaceAutocompleteElement) {
           const autocompleteElement = new window.google.maps.places.PlaceAutocompleteElement({
             componentRestrictions: { country: "de" },
-            requestedRegion: "de", // Fixed: was requestedRegionCode
+            requestedRegion: "de",
             types: ["address"],
           });
 
@@ -51,7 +69,7 @@ export const AddressInput = ({
           
           // Add event listener for place selection
           autocompleteElement.addEventListener('gmp-placeselect', (event: any) => {
-            console.log('🎯 Place selected via new API:', event.place);
+            logDebugInfo(`Place selected via new API: ${event.place?.displayName || 'unknown'}`);
             handlePlaceSelectionNew(event.place);
           });
 
@@ -60,33 +78,36 @@ export const AddressInput = ({
           autocompleteContainerRef.current.appendChild(autocompleteElement);
           autocompleteElementRef.current = autocompleteElement;
           
-          console.log('✅ AddressInput: PlaceAutocompleteElement initialized successfully');
+          logDebugInfo('PlaceAutocompleteElement initialized successfully');
         } else {
-          console.log('⚠️ PlaceAutocompleteElement not available, using fallback input');
+          logDebugInfo('PlaceAutocompleteElement not available, using fallback input');
         }
       } catch (error) {
-        console.error('❌ AddressInput: Failed to create autocomplete:', error);
-        console.log('🔄 Falling back to manual input');
+        logDebugInfo(`Failed to create autocomplete: ${error}`);
       }
     }
-  }, [isPlacesReady]);
+  }, [isPlacesReady, logDebugInfo]);
 
   // Handle place selection from new PlaceAutocompleteElement
   const handlePlaceSelectionNew = async (place: any) => {
-    if (!place?.location) return;
+    if (!place?.location) {
+      logDebugInfo('No location in selected place');
+      return;
+    }
 
     setLoading(true);
     try {
       const lat = place.location.lat();
       const lng = place.location.lng();
       
-      console.log('📍 Place selected (new API):', { lat, lng });
+      logDebugInfo(`Place selected coordinates: ${lat}, ${lng}`);
       setAddress(place.displayName || place.formattedAddress || "");
       
       onLocationChange({ lat, lng });
       
       const nearestInstitute = await calculateNearestInstitute(lat, lng);
       if (nearestInstitute) {
+        logDebugInfo(`Nearest institute found: ${nearestInstitute.name}`);
         onNearestInstituteFound(
           nearestInstitute.coordinates.lat,
           nearestInstitute.coordinates.lng
@@ -110,7 +131,7 @@ export const AddressInput = ({
         description: "Die Entfernung zum nächsten Fortbildungsinstitut wurde berechnet.",
       });
     } catch (error) {
-      console.error('Error processing place selection:', error);
+      logDebugInfo(`Error processing place selection: ${error}`);
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -121,8 +142,8 @@ export const AddressInput = ({
     }
   };
 
-  // Address validation
-  const validateAddress = (addressText: string): { valid: boolean; message?: string } => {
+  // Address validation with better feedback
+  const validateAddress = (addressText: string): { valid: boolean; message?: string; suggestion?: string } => {
     const trimmed = addressText.trim();
     
     if (!trimmed) {
@@ -130,42 +151,52 @@ export const AddressInput = ({
     }
     
     if (trimmed.length < MIN_ADDRESS_LENGTH) {
-      return { valid: false, message: `Adresse muss mindestens ${MIN_ADDRESS_LENGTH} Zeichen lang sein.` };
+      return { 
+        valid: false, 
+        message: `Adresse muss mindestens ${MIN_ADDRESS_LENGTH} Zeichen lang sein.`,
+        suggestion: "Versuchen Sie eine vollständigere Eingabe."
+      };
     }
     
     const hasNumbers = /\d/.test(trimmed);
     const hasLetters = /[a-zA-ZäöüÄÖÜß]/.test(trimmed);
     
     if (!hasNumbers || !hasLetters) {
-      return { valid: false, message: "Bitte geben Sie eine vollständige Adresse mit Straße und Hausnummer ein." };
+      return { 
+        valid: false, 
+        message: "Bitte geben Sie eine vollständige Adresse mit Straße und Hausnummer ein.",
+        suggestion: "Beispiel: 'Musterstraße 123, 12345 Musterstadt'"
+      };
     }
     
     return { valid: true };
   };
 
-  // Backend geocoding fallback
+  // Enhanced backend geocoding with better error handling
   const handleManualAddressSubmit = async () => {
     const validation = validateAddress(address);
     if (!validation.valid) {
       toast({
         variant: "destructive",
         title: "Ungültige Eingabe",
-        description: validation.message,
+        description: validation.message + (validation.suggestion ? ` ${validation.suggestion}` : ''),
       });
       return;
     }
 
     setLoading(true);
+    logDebugInfo(`Starting backend geocoding for: ${address}`);
+    
     try {
-      console.log('🗺️ Using backend geocoding for:', address);
-      
       const result = await googleMapsService.geocodeAddress(address);
       
       if (result) {
+        logDebugInfo(`Geocoding successful: ${result.lat}, ${result.lng}`);
         onLocationChange({ lat: result.lat, lng: result.lng });
         
         const nearestInstitute = await calculateNearestInstitute(result.lat, result.lng);
         if (nearestInstitute) {
+          logDebugInfo(`Nearest institute: ${nearestInstitute.name}`);
           onNearestInstituteFound(
             nearestInstitute.coordinates.lat,
             nearestInstitute.coordinates.lng
@@ -190,12 +221,16 @@ export const AddressInput = ({
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Geocoding error:', errorMessage);
+      logDebugInfo(`Geocoding error: ${errorMessage}`);
       
       let userMessage = "Die eingegebene Adresse konnte nicht gefunden werden.";
       let suggestions = "Bitte überprüfen Sie die Eingabe.";
       
-      if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+      if (errorMessage.includes('REQUEST_DENIED')) {
+        userMessage = "Google Maps API Konfigurationsfehler.";
+        suggestions = "Bitte kontaktieren Sie den Support.";
+        logDebugInfo('API Key authorization issue detected');
+      } else if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
         userMessage = "Service temporär nicht verfügbar.";
         suggestions = "Bitte versuchen Sie es in wenigen Minuten erneut.";
       } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
@@ -269,7 +304,10 @@ export const AddressInput = ({
     }
 
     return (
-      <span>Beginnen Sie mit der Eingabe für Vorschläge oder klicken Sie 'Suchen'</span>
+      <div className="flex items-center gap-2">
+        <CheckCircle2 className="w-4 h-4 text-green-500" />
+        <span>Beginnen Sie mit der Eingabe für Vorschläge oder klicken Sie 'Suchen'</span>
+      </div>
     );
   };
 
@@ -336,6 +374,18 @@ export const AddressInput = ({
       <div className="text-sm text-muted-foreground mt-2">
         {getStatusMessage()}
       </div>
+
+      {/* Debug Information (only in development) */}
+      {process.env.NODE_ENV === 'development' && debugInfo.length > 0 && (
+        <details className="text-xs text-muted-foreground mt-2">
+          <summary className="cursor-pointer">Debug Info ({debugInfo.length})</summary>
+          <div className="mt-1 p-2 bg-muted rounded text-xs max-h-32 overflow-y-auto">
+            {debugInfo.map((info, index) => (
+              <div key={index} className="font-mono">{info}</div>
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 };
