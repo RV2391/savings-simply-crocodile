@@ -44,12 +44,11 @@ export const AddressInput = ({
           // Use new PlaceAutocompleteElement
           const autocompleteElement = new window.google.maps.places.PlaceAutocompleteElement({
             componentRestrictions: { country: "de" },
-            requestedRegionCode: "de",
+            requestedRegion: "de",
             types: ["address"],
           });
 
           autocompleteElement.id = "place-autocomplete-input";
-          autocompleteElement.placeholder = "Adresse eingeben...";
           
           // Add event listener for place selection
           autocompleteElement.addEventListener('gmp-placeselect', (event: any) => {
