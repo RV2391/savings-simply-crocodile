@@ -30,16 +30,25 @@ export const AddressInput = ({
   useEffect(() => {
     const loadKey = async () => {
       console.log('🔑 AddressInput: Loading API key...');
+      
+      // Use the environment variable directly since it's available
+      const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      if (envKey) {
+        console.log('✅ AddressInput: Using API key from environment');
+        setApiKey(envKey);
+        return;
+      }
+      
+      // Fallback to Supabase function if env key not available
       const key = await googleMapsService.loadApiKey();
       if (key) {
-        console.log('✅ AddressInput: API key loaded successfully');
+        console.log('✅ AddressInput: API key loaded from Supabase function');
         setApiKey(key);
       } else {
-        console.error('❌ AddressInput: Failed to load API key');
+        console.error('❌ AddressInput: Failed to load API key from all sources');
         toast({
-          variant: "destructive",
-          title: "Konfigurationsfehler",
-          description: "Google Maps konnte nicht initialisiert werden. Bitte versuchen Sie es später erneut.",
+          title: "Information",
+          description: "Adresse kann weiterhin manuell eingegeben werden.",
         });
       }
     };
