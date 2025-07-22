@@ -38,10 +38,13 @@ export const useGoogleMapsAutocomplete = ({
     loadKey();
   }, []);
 
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries: ["places"],
-  }, shouldLoadScript && !!apiKey);
+  const shouldLoad = shouldLoadScript && !!apiKey;
+  const { isLoaded } = useLoadScript(
+    shouldLoad ? {
+      googleMapsApiKey: apiKey,
+      libraries: ["places"],
+    } : {} as any
+  );
 
   const cleanup = useCallback(() => {
     console.log('Cleaning up autocomplete...');

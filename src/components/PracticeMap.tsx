@@ -60,10 +60,13 @@ export const PracticeMap = ({
   }, []);
 
   // Only use useLoadScript when we have a valid API key
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries: ["places"],
-  }, mapMode === 'maps' && !!apiKey);
+  const shouldLoadMaps = mapMode === 'maps' && !!apiKey;
+  const { isLoaded, loadError } = useLoadScript(
+    shouldLoadMaps ? {
+      googleMapsApiKey: apiKey,
+      libraries: ["places"],
+    } : {} as any
+  );
 
   const mapRef = useRef<google.maps.Map>();
   const onMapLoad = useCallback((map: google.maps.Map) => {
