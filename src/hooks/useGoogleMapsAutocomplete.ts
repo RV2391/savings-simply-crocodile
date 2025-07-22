@@ -2,7 +2,7 @@
 import { RefObject, useRef, useCallback, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { googleMapsService } from "@/utils/googleMapsService";
-import { useConditionalGoogleMaps } from "./useConditionalGoogleMaps";
+import { useLoadScript } from "@react-google-maps/api";
 
 interface AutocompleteHookProps {
   inputRef: RefObject<HTMLInputElement>;
@@ -38,8 +38,12 @@ export const useGoogleMapsAutocomplete = ({
     loadKey();
   }, []);
 
-  // Use conditional Google Maps hook
-  const { isLoaded } = useConditionalGoogleMaps(apiKey, shouldLoadScript);
+  // Use Google Maps hook only when we have an API key
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: apiKey || '',
+    libraries: ['places'],
+    preventGoogleFontsLoading: true,
+  });
 
   const cleanup = useCallback(() => {
     console.log('Cleaning up autocomplete...');
