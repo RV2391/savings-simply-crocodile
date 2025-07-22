@@ -1,8 +1,8 @@
 
 import { RefObject, useRef, useCallback, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useLoadScript } from "@react-google-maps/api";
 import { googleMapsService } from "@/utils/googleMapsService";
+import { useConditionalGoogleMaps } from "./useConditionalGoogleMaps";
 
 interface AutocompleteHookProps {
   inputRef: RefObject<HTMLInputElement>;
@@ -19,7 +19,7 @@ export const useGoogleMapsAutocomplete = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const listenerRef = useRef<google.maps.MapsEventListener | null>(null);
   const { toast } = useToast();
-  const [apiKey, setApiKey] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [shouldLoadScript, setShouldLoadScript] = useState(false);
   
   useEffect(() => {
@@ -38,13 +38,8 @@ export const useGoogleMapsAutocomplete = ({
     loadKey();
   }, []);
 
-  const shouldLoad = shouldLoadScript && !!apiKey;
-  const { isLoaded } = useLoadScript(
-    shouldLoad ? {
-      googleMapsApiKey: apiKey,
-      libraries: ["places"],
-    } : {} as any
-  );
+  // Use conditional Google Maps hook
+  const { isLoaded } = useConditionalGoogleMaps(apiKey, shouldLoadScript);
 
   const cleanup = useCallback(() => {
     console.log('Cleaning up autocomplete...');

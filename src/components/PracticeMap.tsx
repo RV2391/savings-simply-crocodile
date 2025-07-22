@@ -1,9 +1,11 @@
+
 import { useState, useCallback, useRef, useEffect } from "react";
-import { GoogleMap, useLoadScript, MarkerF } from "@react-google-maps/api";
+import { GoogleMap, MarkerF } from "@react-google-maps/api";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
 import { MapDirections } from "./map/MapDirections";
 import { MapMarker } from "./map/MapMarker";
 import { googleMapsService } from "@/utils/googleMapsService";
+import { useConditionalGoogleMaps } from "@/hooks/useConditionalGoogleMaps";
 
 const mapContainerStyle = {
   width: "100%",
@@ -32,7 +34,7 @@ export const PracticeMap = ({
   onPracticeLocationChange,
 }: PracticeMapProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [apiKey, setApiKey] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [mapMode, setMapMode] = useState<'loading' | 'maps' | 'backend-only'>('loading');
 
   // Load API key and determine mode
@@ -59,13 +61,10 @@ export const PracticeMap = ({
     initializeMode();
   }, []);
 
-  // Only use useLoadScript when we have a valid API key
-  const shouldLoadMaps = mapMode === 'maps' && !!apiKey;
-  const { isLoaded, loadError } = useLoadScript(
-    shouldLoadMaps ? {
-      googleMapsApiKey: apiKey,
-      libraries: ["places"],
-    } : {} as any
+  // Use conditional Google Maps hook
+  const { isLoaded, loadError, shouldRender } = useConditionalGoogleMaps(
+    apiKey, 
+    mapMode === 'maps'
   );
 
   const mapRef = useRef<google.maps.Map>();
@@ -155,7 +154,7 @@ export const PracticeMap = ({
     </div>
   );
 
-  if (mapMode === 'loading' || !isLoaded) return (
+  if (mapMode === 'loading' || !shouldRender || !isLoaded) return (
     <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
       <div className="text-center p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
