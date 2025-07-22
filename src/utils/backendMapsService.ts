@@ -112,7 +112,7 @@ export class BackendMapsService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || supabase.supabaseKey}`,
+          'Authorization': `Bearer ${session?.access_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrYXJueGdybmlxdHllZWliZ3hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwODYwNjUsImV4cCI6MjA2ODY2MjA2NX0.ULXL4SIwqXzzRWkxW15MO3OCkVfGlEvJ-NQ0_cnI9y8'}`,
         },
         body: JSON.stringify({ 
           action: 'static_map_image', 
