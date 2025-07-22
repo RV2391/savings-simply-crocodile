@@ -33,18 +33,17 @@ export const AddressInput = ({
 
   const MIN_ADDRESS_LENGTH = 5;
 
-  // Initialize the new PlaceAutocompleteElement when ready
+  // Try to initialize new PlaceAutocompleteElement
   useEffect(() => {
     if (isPlacesReady && autocompleteContainerRef.current && !autocompleteElementRef.current) {
       try {
-        console.log('🔧 AddressInput: Creating PlaceAutocompleteElement...');
+        console.log('🔧 AddressInput: Attempting to create PlaceAutocompleteElement...');
         
-        // Check if new API is available
+        // Check if new API is available with proper error handling
         if (window.google?.maps?.places?.PlaceAutocompleteElement) {
-          // Use new PlaceAutocompleteElement
           const autocompleteElement = new window.google.maps.places.PlaceAutocompleteElement({
             componentRestrictions: { country: "de" },
-            requestedRegion: "de",
+            requestedRegion: "de", // Fixed: was requestedRegionCode
             types: ["address"],
           });
 
@@ -62,13 +61,12 @@ export const AddressInput = ({
           autocompleteElementRef.current = autocompleteElement;
           
           console.log('✅ AddressInput: PlaceAutocompleteElement initialized successfully');
-        } else if (window.google?.maps?.places?.Autocomplete) {
-          // Fallback to legacy API
-          console.log('⚠️ Using legacy Autocomplete API');
-          // Legacy implementation would go here if needed
+        } else {
+          console.log('⚠️ PlaceAutocompleteElement not available, using fallback input');
         }
       } catch (error) {
         console.error('❌ AddressInput: Failed to create autocomplete:', error);
+        console.log('🔄 Falling back to manual input');
       }
     }
   }, [isPlacesReady]);
@@ -275,14 +273,16 @@ export const AddressInput = ({
     );
   };
 
+  const hasPlaceAutocomplete = isPlacesReady && !loadError && autocompleteElementRef.current;
+
   return (
     <div className="space-y-2">
       <Label htmlFor="address">
         Adresse der Praxis
       </Label>
       
-      {/* New PlaceAutocompleteElement container */}
-      {isPlacesReady && !loadError ? (
+      {/* Try PlaceAutocompleteElement first, fallback to manual input */}
+      {hasPlaceAutocomplete ? (
         <div className="flex gap-2">
           <div 
             ref={autocompleteContainerRef}
@@ -306,7 +306,7 @@ export const AddressInput = ({
           </Button>
         </div>
       ) : (
-        /* Fallback input when Google Maps is not available */
+        /* Fallback input when PlaceAutocompleteElement is not available */
         <div className="flex gap-2">
           <Input
             type="text"

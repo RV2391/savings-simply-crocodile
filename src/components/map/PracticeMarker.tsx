@@ -1,18 +1,16 @@
 
 import { useEffect, useRef } from 'react';
 
-interface MapMarkerProps {
+interface PracticeMarkerProps {
   position: google.maps.LatLngLiteral;
-  isNearest?: boolean;
-  name: string;
-  onClick?: () => void;
+  draggable?: boolean;
+  onDragEnd?: (position: google.maps.LatLngLiteral) => void;
 }
 
-export const MapMarker: React.FC<MapMarkerProps> = ({ 
-  position, 
-  isNearest = false, 
-  name,
-  onClick 
+export const PracticeMarker: React.FC<PracticeMarkerProps> = ({
+  position,
+  draggable = true,
+  onDragEnd
 }) => {
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
 
@@ -25,53 +23,49 @@ export const MapMarker: React.FC<MapMarkerProps> = ({
       markerRef.current.map = null;
     }
 
-    // Create marker element
+    // Create custom marker element for practice
     const markerElement = document.createElement('div');
     markerElement.innerHTML = `
       <div style="
-        background: ${isNearest ? '#EF4444' : '#3B82F6'}; 
-        width: 24px; 
-        height: 24px; 
+        background: #059669; 
+        width: 40px; 
+        height: 40px; 
         border-radius: 50%; 
         display: flex; 
         align-items: center; 
         justify-content: center;
-        border: 2px solid white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        cursor: pointer;
-        transition: transform 0.2s ease;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        cursor: ${draggable ? 'grab' : 'pointer'};
       ">
         <div style="
           background: white; 
-          width: 8px; 
-          height: 8px; 
+          width: 16px; 
+          height: 16px; 
           border-radius: 50%;
         "></div>
       </div>
     `;
-
-    // Add hover effect
-    markerElement.addEventListener('mouseenter', () => {
-      markerElement.style.transform = 'scale(1.1)';
-    });
-    markerElement.addEventListener('mouseleave', () => {
-      markerElement.style.transform = 'scale(1)';
-    });
 
     // Create the marker
     const marker = new google.maps.marker.AdvancedMarkerElement({
       map,
       position,
       content: markerElement,
-      title: name
+      gmpDraggable: draggable,
+      title: 'Ihre Praxis'
     });
 
-    // Add click event listener
-    if (onClick) {
-      marker.addListener('click', onClick);
-    } else {
-      marker.addListener('click', () => {
-        console.log(`Clicked marker: ${name}`);
+    // Add drag event listener
+    if (draggable && onDragEnd) {
+      marker.addListener('dragend', () => {
+        const newPosition = marker.position;
+        if (newPosition) {
+          onDragEnd({
+            lat: newPosition.lat,
+            lng: newPosition.lng
+          });
+        }
       });
     }
 
@@ -82,7 +76,7 @@ export const MapMarker: React.FC<MapMarkerProps> = ({
         markerRef.current.map = null;
       }
     };
-  }, [position, isNearest, name, onClick]);
+  }, [position, draggable, onDragEnd]);
 
   return null;
 };

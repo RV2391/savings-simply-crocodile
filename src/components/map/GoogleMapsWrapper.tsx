@@ -1,20 +1,11 @@
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { GoogleMap, MarkerF } from "@react-google-maps/api";
+import { useState, useCallback, useEffect } from "react";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
-import { MapDirections } from "./MapDirections";
+import { GoogleMapContainer } from "./GoogleMapContainer";
+import { PracticeMarker } from "./PracticeMarker";
 import { MapMarker } from "./MapMarker";
+import { ModernDirections } from "./ModernDirections";
 import { useGoogleMaps } from "@/contexts/GoogleMapsContext";
-
-const mapContainerStyle = {
-  width: "100%",
-  height: "400px",
-};
-
-const options = {
-  disableDefaultUI: true,
-  zoomControl: true,
-};
 
 interface GoogleMapsWrapperProps {
   institutes: DentalInstitute[];
@@ -35,47 +26,43 @@ export const GoogleMapsWrapper = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const { isLoaded, loadError } = useGoogleMaps();
 
-  const mapRef = useRef<google.maps.Map>();
-  const onMapLoad = useCallback((map: google.maps.Map) => {
-    mapRef.current = map;
-    setMap(map);
+  const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
+    setMap(mapInstance);
+    console.log('✅ Map loaded and stored in GoogleMapsWrapper');
   }, []);
 
   const handleMarkerDragEnd = useCallback(
-    (e: google.maps.MapMouseEvent) => {
-      if (e.latLng) {
-        const lat = e.latLng.lat();
-        const lng = e.latLng.lng();
-        onPracticeLocationChange({ lat, lng });
-      }
+    (position: google.maps.LatLngLiteral) => {
+      onPracticeLocationChange(position);
     },
     [onPracticeLocationChange]
   );
 
+  // Auto-fit bounds when institutes or practice location changes
   useEffect(() => {
-    if (map && isLoaded) {
-      const bounds = new google.maps.LatLngBounds();
-      bounds.extend(practiceLocation);
-      
-      if (nearestInstitute) {
-        bounds.extend({
-          lat: nearestInstitute.coordinates.lat,
-          lng: nearestInstitute.coordinates.lng,
-        });
-      }
+    if (!map || !isLoaded) return;
 
-      map.fitBounds(bounds);
-
-      const listener = google.maps.event.addListenerOnce(map, 'idle', () => {
-        if (map.getZoom()! > 12) {
-          map.setZoom(12);
-        }
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(practiceLocation);
+    
+    if (nearestInstitute) {
+      bounds.extend({
+        lat: nearestInstitute.coordinates.lat,
+        lng: nearestInstitute.coordinates.lng,
       });
-
-      return () => {
-        google.maps.event.removeListener(listener);
-      };
     }
+
+    map.fitBounds(bounds);
+
+    const listener = google.maps.event.addListenerOnce(map, 'idle', () => {
+      if (map.getZoom()! > 12) {
+        map.setZoom(12);
+      }
+    });
+
+    return () => {
+      google.maps.event.removeListener(listener);
+    };
   }, [map, practiceLocation, nearestInstitute, isLoaded]);
 
   if (loadError) return (
@@ -100,24 +87,20 @@ export const GoogleMapsWrapper = ({
 
   return (
     <div className="relative w-full rounded-lg overflow-hidden border border-gray-700">
-      <GoogleMap
-        id="practice-map"
-        mapContainerStyle={mapContainerStyle}
-        zoom={12}
+      <GoogleMapContainer
         center={practiceLocation}
-        options={options}
-        onLoad={onMapLoad}
+        zoom={10}
+        onMapLoad={onMapLoad}
+        className="w-full h-[400px]"
       >
-        <MarkerF
+        {/* Practice marker */}
+        <PracticeMarker
           position={practiceLocation}
           draggable={true}
           onDragEnd={handleMarkerDragEnd}
-          icon={{
-            url: "/logo.svg",
-            scaledSize: new google.maps.Size(40, 40),
-          }}
         />
 
+        {/* Institute markers */}
         {institutes.map((institute) => (
           <MapMarker
             key={institute.name}
@@ -130,8 +113,9 @@ export const GoogleMapsWrapper = ({
           />
         ))}
 
+        {/* Directions */}
         {nearestInstitute && (
-          <MapDirections
+          <ModernDirections
             origin={practiceLocation}
             destination={{
               lat: nearestInstitute.coordinates.lat,
@@ -139,7 +123,7 @@ export const GoogleMapsWrapper = ({
             }}
           />
         )}
-      </GoogleMap>
+      </GoogleMapContainer>
     </div>
   );
 };
