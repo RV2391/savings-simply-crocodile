@@ -25,52 +25,66 @@ export const AddressInput = ({
   const [address, setAddress] = useState("");
   const [debouncedAddress] = useDebounce(address, 500);
   const [loading, setLoading] = useState(false);
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteContainerRef = useRef<HTMLDivElement>(null);
+  const autocompleteElementRef = useRef<any>(null);
   const { toast } = useToast();
 
   const { isLoaded, isPlacesReady, loadError, retryLoading } = useGoogleMaps();
 
   const MIN_ADDRESS_LENGTH = 5;
 
-  // Initialize autocomplete when Google Maps and Places are ready
+  // Initialize the new PlaceAutocompleteElement when ready
   useEffect(() => {
-    if (isPlacesReady && addressInputRef.current && !autocompleteRef.current) {
+    if (isPlacesReady && autocompleteContainerRef.current && !autocompleteElementRef.current) {
       try {
-        console.log('🔧 AddressInput: Creating autocomplete...');
+        console.log('🔧 AddressInput: Creating PlaceAutocompleteElement...');
         
-        const autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
-          componentRestrictions: { country: "de" },
-          fields: ["address_components", "geometry", "formatted_address"],
-          types: ["address"],
-        });
+        // Check if new API is available
+        if (window.google?.maps?.places?.PlaceAutocompleteElement) {
+          // Use new PlaceAutocompleteElement
+          const autocompleteElement = new window.google.maps.places.PlaceAutocompleteElement({
+            componentRestrictions: { country: "de" },
+            requestedRegionCode: "de",
+            types: ["address"],
+          });
 
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (place?.geometry?.location) {
-            handlePlaceSelection(place);
-          }
-        });
+          autocompleteElement.id = "place-autocomplete-input";
+          autocompleteElement.placeholder = "Adresse eingeben...";
+          
+          // Add event listener for place selection
+          autocompleteElement.addEventListener('gmp-placeselect', (event: any) => {
+            console.log('🎯 Place selected via new API:', event.place);
+            handlePlaceSelectionNew(event.place);
+          });
 
-        autocompleteRef.current = autocomplete;
-        console.log('✅ AddressInput: Autocomplete initialized successfully');
+          // Clear container and append new element
+          autocompleteContainerRef.current.innerHTML = '';
+          autocompleteContainerRef.current.appendChild(autocompleteElement);
+          autocompleteElementRef.current = autocompleteElement;
+          
+          console.log('✅ AddressInput: PlaceAutocompleteElement initialized successfully');
+        } else if (window.google?.maps?.places?.Autocomplete) {
+          // Fallback to legacy API
+          console.log('⚠️ Using legacy Autocomplete API');
+          // Legacy implementation would go here if needed
+        }
       } catch (error) {
         console.error('❌ AddressInput: Failed to create autocomplete:', error);
       }
     }
   }, [isPlacesReady]);
 
-  // Handle place selection from autocomplete
-  const handlePlaceSelection = async (place: google.maps.places.PlaceResult) => {
-    if (!place.geometry?.location) return;
+  // Handle place selection from new PlaceAutocompleteElement
+  const handlePlaceSelectionNew = async (place: any) => {
+    if (!place?.location) return;
 
     setLoading(true);
     try {
-      const lat = place.geometry.location.lat();
-      const lng = place.geometry.location.lng();
+      const lat = place.location.lat();
+      const lng = place.location.lng();
       
-      console.log('📍 Place selected:', { lat, lng });
-      setAddress(place.formatted_address || "");
+      console.log('📍 Place selected (new API):', { lat, lng });
+      setAddress(place.displayName || place.formattedAddress || "");
       
       onLocationChange({ lat, lng });
       
@@ -82,14 +96,16 @@ export const AddressInput = ({
         );
       }
       
-      // Extract address components
+      // Extract address components from new API
       const components: AddressComponents = {};
-      place.address_components?.forEach((component: any) => {
-        const type = component.types[0];
-        if (type) {
-          components[type] = component.long_name;
-        }
-      });
+      if (place.addressComponents) {
+        place.addressComponents.forEach((component: any) => {
+          const type = component.types[0];
+          if (type) {
+            components[type] = component.longText || component.shortText;
+          }
+        });
+      }
       onAddressComponentsChange(components);
       
       toast({
@@ -130,7 +146,7 @@ export const AddressInput = ({
     return { valid: true };
   };
 
-  // Backend geocoding
+  // Backend geocoding fallback
   const handleManualAddressSubmit = async () => {
     const validation = validateAddress(address);
     if (!validation.valid) {
@@ -206,9 +222,9 @@ export const AddressInput = ({
   // Cleanup
   useEffect(() => {
     return () => {
-      if (autocompleteRef.current) {
+      if (autocompleteElementRef.current) {
         try {
-          google.maps.event.clearInstanceListeners(autocompleteRef.current);
+          autocompleteElementRef.current.remove();
         } catch (error) {
           console.warn('Cleanup warning:', error);
         }
@@ -265,31 +281,59 @@ export const AddressInput = ({
       <Label htmlFor="address">
         Adresse der Praxis
       </Label>
-      <div className="flex gap-2">
-        <Input
-          ref={addressInputRef}
-          type="text"
-          id="address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleManualAddressSubmit();
-            }
-          }}
-          placeholder="Adresse eingeben..."
-          disabled={loading}
-          className="w-full"
-        />
-        <Button 
-          onClick={handleManualAddressSubmit}
-          disabled={loading || !address.trim()}
-          className="px-6"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-        </Button>
-      </div>
+      
+      {/* New PlaceAutocompleteElement container */}
+      {isPlacesReady && !loadError ? (
+        <div className="flex gap-2">
+          <div 
+            ref={autocompleteContainerRef}
+            className="w-full"
+            style={{
+              '--gmp-autocomplete-input-height': '40px',
+              '--gmp-autocomplete-input-padding': '0 12px',
+              '--gmp-autocomplete-input-border': '1px solid hsl(var(--border))',
+              '--gmp-autocomplete-input-border-radius': '6px',
+              '--gmp-autocomplete-input-font-size': '14px',
+              '--gmp-autocomplete-input-background': 'hsl(var(--background))',
+              '--gmp-autocomplete-input-color': 'hsl(var(--foreground))',
+            } as React.CSSProperties}
+          />
+          <Button 
+            onClick={handleManualAddressSubmit}
+            disabled={loading}
+            className="px-6"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          </Button>
+        </div>
+      ) : (
+        /* Fallback input when Google Maps is not available */
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            id="address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleManualAddressSubmit();
+              }
+            }}
+            placeholder="Adresse eingeben..."
+            disabled={loading}
+            className="w-full"
+          />
+          <Button 
+            onClick={handleManualAddressSubmit}
+            disabled={loading || !address.trim()}
+            className="px-6"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          </Button>
+        </div>
+      )}
+      
       <div className="text-sm text-muted-foreground mt-2">
         {getStatusMessage()}
       </div>

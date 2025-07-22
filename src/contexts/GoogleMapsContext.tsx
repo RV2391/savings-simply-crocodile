@@ -79,7 +79,11 @@ const loadGoogleMapsScript = async (apiKey: string): Promise<void> => {
 
 const waitForPlacesLibrary = async (maxRetries = 20): Promise<boolean> => {
   for (let i = 0; i < maxRetries; i++) {
-    if (window.google?.maps?.places) {
+    // Check for both old and new Places API
+    if (window.google?.maps?.places && (
+      window.google.maps.places.PlaceAutocompleteElement || 
+      window.google.maps.places.Autocomplete
+    )) {
       console.log('✅ Places library ready after', i + 1, 'attempts');
       return true;
     }
@@ -124,6 +128,13 @@ export const GoogleMapsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       if (placesReady) {
         console.log('✅ GoogleMapsProvider: Fully initialized');
+        
+        // Log which Places API is available
+        if (window.google?.maps?.places?.PlaceAutocompleteElement) {
+          console.log('✅ New PlaceAutocompleteElement API available');
+        } else if (window.google?.maps?.places?.Autocomplete) {
+          console.log('⚠️ Using legacy Autocomplete API');
+        }
       } else {
         console.warn('⚠️ GoogleMapsProvider: Maps loaded but Places library not ready');
       }

@@ -1,5 +1,5 @@
 
-// Enhanced Google Maps Service with better error handling and fallbacks
+// Enhanced Google Maps Service with new PlaceAutocompleteElement support
 import { supabase } from "@/integrations/supabase/client";
 
 export class GoogleMapsService {
@@ -62,14 +62,42 @@ export class GoogleMapsService {
     return null;
   }
 
-  // Create autocomplete when Google Maps is ready with enhanced error handling
+  // Create the new PlaceAutocompleteElement
+  public createPlaceAutocompleteElement(
+    options?: any
+  ): any | null {
+    if (!window.google?.maps?.places?.PlaceAutocompleteElement) {
+      console.warn('🚨 PlaceAutocompleteElement not available');
+      console.warn('Available APIs:', Object.keys(window.google?.maps?.places || {}));
+      return null;
+    }
+
+    try {
+      const defaultOptions = {
+        componentRestrictions: { country: "de" },
+        requestedRegionCode: "de",
+        types: ["address"],
+        ...options
+      };
+
+      console.log('✅ Creating PlaceAutocompleteElement with options:', defaultOptions);
+      const element = new window.google.maps.places.PlaceAutocompleteElement(defaultOptions);
+      console.log('✅ PlaceAutocompleteElement created successfully');
+      return element;
+    } catch (error) {
+      console.error('❌ Error creating PlaceAutocompleteElement:', error);
+      console.error('❌ Available Google Maps APIs:', window.google?.maps ? Object.keys(window.google.maps) : 'none');
+      return null;
+    }
+  }
+
+  // Legacy autocomplete creation (fallback)
   public createAutocomplete(
     input: HTMLInputElement,
     options?: google.maps.places.AutocompleteOptions
   ): google.maps.places.Autocomplete | null {
-    if (!window.google?.maps?.places) {
-      console.warn('🚨 Google Maps Places API not ready for autocomplete');
-      console.warn('Available APIs:', Object.keys(window.google?.maps || {}));
+    if (!window.google?.maps?.places?.Autocomplete) {
+      console.warn('🚨 Legacy Autocomplete API not available');
       return null;
     }
 
@@ -81,14 +109,12 @@ export class GoogleMapsService {
         ...options
       };
 
-      console.log('✅ Creating Google Maps Autocomplete with options:', defaultOptions);
+      console.log('⚠️ Using legacy Autocomplete API with options:', defaultOptions);
       const autocomplete = new google.maps.places.Autocomplete(input, defaultOptions);
-      console.log('✅ Autocomplete created successfully');
+      console.log('✅ Legacy Autocomplete created successfully');
       return autocomplete;
     } catch (error) {
-      console.error('❌ Error creating autocomplete:', error);
-      console.error('❌ Input element:', input);
-      console.error('❌ Available Google Maps APIs:', window.google?.maps ? Object.keys(window.google.maps) : 'none');
+      console.error('❌ Error creating legacy autocomplete:', error);
       return null;
     }
   }
@@ -147,17 +173,24 @@ export class GoogleMapsService {
     throw lastError || new Error('Geocoding failed after multiple attempts');
   }
 
-  // Check if Google Maps API is ready
-  public isGoogleMapsReady(): boolean {
-    const isReady = !!(window.google?.maps?.places);
+  // Check if new Places API is ready
+  public isNewPlacesApiReady(): boolean {
+    const isReady = !!(window.google?.maps?.places?.PlaceAutocompleteElement);
     if (!isReady) {
-      console.warn('🚨 Google Maps API not ready. Available:', {
+      console.warn('🚨 New Places API not ready. Available:', {
         google: !!window.google,
         maps: !!window.google?.maps,
-        places: !!window.google?.maps?.places
+        places: !!window.google?.maps?.places,
+        PlaceAutocompleteElement: !!window.google?.maps?.places?.PlaceAutocompleteElement,
+        legacyAutocomplete: !!window.google?.maps?.places?.Autocomplete
       });
     }
     return isReady;
+  }
+
+  // Check if Google Maps API is ready (legacy check)
+  public isGoogleMapsReady(): boolean {
+    return this.isNewPlacesApiReady() || !!(window.google?.maps?.places?.Autocomplete);
   }
 }
 
