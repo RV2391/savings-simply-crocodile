@@ -7,6 +7,7 @@ export class GoogleMapsService {
   private apiKey: string | null = null;
   private isLoaded = false;
   private loadPromise: Promise<boolean> | null = null;
+  private scriptLoaded = false;
 
   private constructor() {}
 
@@ -22,22 +23,61 @@ export class GoogleMapsService {
     if (this.apiKey) return this.apiKey;
     
     try {
-      // Get the frontend API key from Supabase secrets via edge function
+      console.log('Loading Google Maps frontend API key from Supabase...');
+      
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
         body: { action: 'get_frontend_key' }
       });
       
       if (!error && data?.key) {
         this.apiKey = data.key;
-        // Store globally for Google Maps API loading
-        (window as any).GOOGLE_MAPS_FRONTEND_KEY = this.apiKey;
+        console.log('Frontend API key loaded successfully');
         return this.apiKey;
+      } else {
+        console.error('Failed to load frontend API key:', error);
       }
     } catch (error) {
-      console.warn('Could not load frontend API key:', error);
+      console.error('Error loading frontend API key:', error);
     }
     
     return null;
+  }
+
+  // Dynamically load Google Maps script with API key
+  private async loadGoogleMapsScript(): Promise<boolean> {
+    if (this.scriptLoaded) return true;
+
+    const apiKey = await this.loadApiKey();
+    if (!apiKey) {
+      console.error('No API key available, cannot load Google Maps');
+      return false;
+    }
+
+    return new Promise((resolve) => {
+      try {
+        const script = document.createElement('script');
+        script.async = true;
+        script.defer = true;
+        script.src = `https://maps.googleapis.com/maps/api/js?libraries=places,geometry&v=weekly&key=${apiKey}`;
+        
+        script.onload = () => {
+          console.log('Google Maps script loaded successfully');
+          this.scriptLoaded = true;
+          resolve(true);
+        };
+
+        script.onerror = (error) => {
+          console.error('Failed to load Google Maps script:', error);
+          this.scriptLoaded = false;
+          resolve(false);
+        };
+
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error creating Google Maps script:', error);
+        resolve(false);
+      }
+    });
   }
 
   // Initialize Google Maps API
@@ -47,19 +87,18 @@ export class GoogleMapsService {
 
     this.loadPromise = new Promise(async (resolve) => {
       try {
-        // Load API key first
-        await this.loadApiKey();
-
-        // Check if Google Maps is already loaded
-        if (window.google?.maps) {
-          this.isLoaded = true;
-          resolve(true);
+        // First load the script with API key
+        const scriptLoaded = await this.loadGoogleMapsScript();
+        if (!scriptLoaded) {
+          console.error('Failed to load Google Maps script');
+          resolve(false);
           return;
         }
 
-        // Wait for Google Maps to load (script tag in HTML)
+        // Wait for Google Maps to be available
         const checkLoaded = () => {
           if (window.google?.maps) {
+            console.log('Google Maps API is ready');
             this.isLoaded = true;
             resolve(true);
           } else {
@@ -111,6 +150,8 @@ export class GoogleMapsService {
     addressComponents?: any;
   } | null> {
     try {
+      console.log('Using backend geocoding for:', address);
+      
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
         body: {
           action: 'geocode',
@@ -119,6 +160,7 @@ export class GoogleMapsService {
       });
 
       if (error || !data?.results?.[0]) {
+        console.error('Backend geocoding failed:', error);
         return null;
       }
 

@@ -20,6 +20,7 @@ export const AddressInput = ({
 }: AddressInputProps) => {
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
@@ -29,16 +30,24 @@ export const AddressInput = ({
     const initializeAutocomplete = async () => {
       if (!inputRef.current) return;
 
-      const isReady = await googleMapsService.initialize();
-      if (!isReady) {
-        console.log('Google Maps not ready, using backend fallback');
-        return;
-      }
-
       try {
+        console.log('Initializing Google Maps for address input...');
+        setIsInitializing(true);
+        
+        const isReady = await googleMapsService.initialize();
+        if (!isReady) {
+          console.log('Google Maps not ready, using backend fallback only');
+          setIsInitializing(false);
+          return;
+        }
+
         // Clean up existing autocomplete
         if (autocompleteRef.current) {
-          autocompleteRef.current.unbindAll();
+          try {
+            autocompleteRef.current.unbindAll();
+          } catch (error) {
+            console.error('Error cleaning up autocomplete:', error);
+          }
         }
 
         // Create new autocomplete with frontend API
@@ -54,8 +63,11 @@ export const AddressInput = ({
           
           console.log('Frontend autocomplete initialized successfully');
         }
+        
+        setIsInitializing(false);
       } catch (error) {
         console.error('Error initializing frontend autocomplete:', error);
+        setIsInitializing(false);
       }
     };
 
@@ -187,19 +199,22 @@ export const AddressInput = ({
           }}
           placeholder="z.B. Hauptstraße 1, 10115 Berlin"
           className="input-transition bg-[#1a1a1a] text-white border-gray-700 flex-1"
-          disabled={isLoading}
+          disabled={isLoading || isInitializing}
         />
         <button
           type="button"
           onClick={handleManualAddressSubmit}
-          disabled={address.trim().length < 5 || isLoading}
+          disabled={address.trim().length < 5 || isLoading || isInitializing}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-w-[80px]"
         >
           {isLoading ? "..." : "Suchen"}
         </button>
       </div>
       <p className="text-xs text-gray-500">
-        Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie "Suchen"
+        {isInitializing 
+          ? "System wird initialisiert..." 
+          : "Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
+        }
       </p>
     </div>
   );

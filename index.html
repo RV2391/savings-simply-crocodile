@@ -36,18 +36,5 @@
     
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Google Maps API with Frontend API Key - loaded dynamically for security -->
-    <script>
-      // Load Google Maps API with the frontend key from environment
-      (function() {
-        const script = document.createElement('script');
-        script.async = true;
-        script.defer = true;
-        script.src = 'https://maps.googleapis.com/maps/api/js?libraries=places,geometry&v=weekly&key=' + 
-          (window.GOOGLE_MAPS_FRONTEND_KEY || '');
-        document.head.appendChild(script);
-      })();
-    </script>
   </body>
 </html>

@@ -34,19 +34,32 @@ export const PracticeMap = ({
 }: PracticeMapProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   // Initialize Google Maps service
   useEffect(() => {
     const initializeMaps = async () => {
-      const ready = await googleMapsService.initialize();
-      setIsGoogleMapsReady(ready);
+      try {
+        console.log('Initializing Google Maps service...');
+        const ready = await googleMapsService.initialize();
+        if (ready) {
+          console.log('Google Maps service ready');
+          setIsGoogleMapsReady(true);
+        } else {
+          console.error('Google Maps service failed to initialize');
+          setLoadError(true);
+        }
+      } catch (error) {
+        console.error('Error initializing Google Maps service:', error);
+        setLoadError(true);
+      }
     };
     
     initializeMaps();
   }, []);
 
   // Use the optimized Google Maps loading without API key in useLoadScript
-  const { isLoaded, loadError } = useLoadScript({
+  const { isLoaded } = useLoadScript({
     googleMapsApiKey: "", // Empty - we load via our service
     libraries: ["places"],
   });

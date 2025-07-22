@@ -50,19 +50,19 @@ export const useGoogleMapsAutocomplete = ({
       return;
     }
 
-    // Use our new service for initialization
-    const isReady = await googleMapsService.initialize();
-    if (!isReady) {
-      console.log('Google Maps service not ready');
-      toast({
-        title: "Info",
-        description: "Adresse-Autocomplete wird über Backup-Service bereitgestellt.",
-        variant: "default",
-      });
-      return;
-    }
-
     try {
+      // Use our new service for initialization
+      const isReady = await googleMapsService.initialize();
+      if (!isReady) {
+        console.log('Google Maps service not ready');
+        toast({
+          title: "Info",
+          description: "Adresse-Autocomplete wird über Backup-Service bereitgestellt.",
+          variant: "default",
+        });
+        return;
+      }
+
       // Clean up any existing autocomplete
       cleanup();
 
