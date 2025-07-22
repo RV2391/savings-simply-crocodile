@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
-import { supabase } from "@/integrations/supabase/client";
+import { googleMapsService } from "@/utils/googleMapsService";
 import type { AddressComponents } from "@/types";
 
 interface AddressInputProps {
@@ -21,36 +21,115 @@ export const AddressInput = ({
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
-  // Secure geocoding using our Supabase Edge Function
-  const geocodeAddress = async (addressText: string) => {
-    setIsLoading(true);
-    try {
-      console.log('Starting geocoding for:', addressText);
-      
-      const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
-        body: {
-          action: 'geocode',
-          address: addressText
-        }
-      });
+  // Initialize frontend autocomplete
+  useEffect(() => {
+    const initializeAutocomplete = async () => {
+      if (!inputRef.current) return;
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error('Geocoding service error');
+      const isReady = await googleMapsService.initialize();
+      if (!isReady) {
+        console.log('Google Maps not ready, using backend fallback');
+        return;
       }
 
-      if (data?.results && data.results.length > 0) {
-        const result = data.results[0];
-        const lat = result.geometry.location.lat;
-        const lng = result.geometry.location.lng;
+      try {
+        // Clean up existing autocomplete
+        if (autocompleteRef.current) {
+          autocompleteRef.current.unbindAll();
+        }
+
+        // Create new autocomplete with frontend API
+        autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current);
         
-        console.log('Geocoding successful:', { lat, lng });
+        if (autocompleteRef.current) {
+          autocompleteRef.current.addListener("place_changed", async () => {
+            const place = autocompleteRef.current?.getPlace();
+            if (place && place.geometry) {
+              await handlePlaceSelection(place);
+            }
+          });
+          
+          console.log('Frontend autocomplete initialized successfully');
+        }
+      } catch (error) {
+        console.error('Error initializing frontend autocomplete:', error);
+      }
+    };
+
+    initializeAutocomplete();
+
+    return () => {
+      if (autocompleteRef.current) {
+        try {
+          autocompleteRef.current.unbindAll();
+        } catch (error) {
+          console.error('Error cleaning up autocomplete:', error);
+        }
+      }
+    };
+  }, []);
+
+  // Handle place selection from autocomplete
+  const handlePlaceSelection = async (place: google.maps.places.PlaceResult) => {
+    if (!place.geometry?.location) return;
+
+    setIsLoading(true);
+    try {
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+      
+      console.log('Place selected via frontend autocomplete:', { lat, lng });
+      
+      onLocationChange({ lat, lng });
+      
+      const nearestInstitute = await calculateNearestInstitute(lat, lng);
+      if (nearestInstitute) {
+        onNearestInstituteFound(
+          nearestInstitute.coordinates.lat,
+          nearestInstitute.coordinates.lng
+        );
+      }
+      
+      // Extract address components
+      const components: AddressComponents = {};
+      place.address_components?.forEach((component: any) => {
+        const type = component.types[0];
+        if (type) {
+          components[type] = component.long_name;
+        }
+      });
+      onAddressComponentsChange(components);
+      
+      toast({
+        title: "Adresse gefunden",
+        description: "Die Entfernung zum nächsten Fortbildungsinstitut wurde berechnet.",
+        className: "bg-background border-2 border-primary/50 text-foreground",
+      });
+    } catch (error) {
+      console.error('Error processing place selection:', error);
+      await handleManualAddressSubmit(); // Fallback to backend
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Backend geocoding fallback
+  const handleManualAddressSubmit = async () => {
+    if (address.trim().length < 5) return;
+
+    setIsLoading(true);
+    try {
+      console.log('Using backend geocoding for:', address);
+      
+      const result = await googleMapsService.geocodeAddress(address);
+      
+      if (result) {
+        onLocationChange({ lat: result.lat, lng: result.lng });
         
-        onLocationChange({ lat, lng });
-        
-        const nearestInstitute = await calculateNearestInstitute(lat, lng);
+        const nearestInstitute = await calculateNearestInstitute(result.lat, result.lng);
         if (nearestInstitute) {
           onNearestInstituteFound(
             nearestInstitute.coordinates.lat,
@@ -60,7 +139,7 @@ export const AddressInput = ({
         
         // Extract address components
         const components: AddressComponents = {};
-        result.address_components?.forEach((component: any) => {
+        result.addressComponents?.forEach((component: any) => {
           const type = component.types[0];
           if (type) {
             components[type] = component.long_name;
@@ -86,13 +165,6 @@ export const AddressInput = ({
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleManualAddressSubmit = () => {
-    if (address.trim().length > 5) {
-      console.log('Processing manual address:', address);
-      geocodeAddress(address);
     }
   };
 
@@ -127,7 +199,7 @@ export const AddressInput = ({
         </button>
       </div>
       <p className="text-xs text-gray-500">
-        Geben Sie Ihre Adresse ein und drücken Sie Enter oder klicken Sie auf "Suchen"
+        Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie "Suchen"
       </p>
     </div>
   );

@@ -1,8 +1,7 @@
 
 import { RefObject, useRef, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
-import { AddressComponents } from "@/types";
+import { googleMapsService } from "@/utils/googleMapsService";
 
 interface AutocompleteHookProps {
   inputRef: RefObject<HTMLInputElement>;
@@ -43,7 +42,7 @@ export const useGoogleMapsAutocomplete = ({
     }
   }, []);
 
-  const initializeAutocomplete = useCallback(() => {
+  const initializeAutocomplete = useCallback(async () => {
     console.log('Attempting to initialize Google Maps autocomplete...');
     
     if (!inputRef.current) {
@@ -51,31 +50,27 @@ export const useGoogleMapsAutocomplete = ({
       return;
     }
 
-    // Simple check for Google Maps availability
-    const checkGoogle = () => {
-      if (!window.google || !window.google.maps || !window.google.maps.places || !window.google.maps.places.Autocomplete) {
-        setTimeout(checkGoogle, 100);
-        return;
-      }
+    // Use our new service for initialization
+    const isReady = await googleMapsService.initialize();
+    if (!isReady) {
+      console.log('Google Maps service not ready');
+      toast({
+        title: "Info",
+        description: "Adresse-Autocomplete wird über Backup-Service bereitgestellt.",
+        variant: "default",
+      });
+      return;
+    }
 
-      try {
-        // Clean up any existing autocomplete
-        cleanup();
+    try {
+      // Clean up any existing autocomplete
+      cleanup();
 
-        const options: google.maps.places.AutocompleteOptions = {
-          componentRestrictions: { country: "de" },
-          fields: ["address_components", "geometry", "formatted_address", "place_id"],
-          types: ["address"],
-        };
-
-        console.log('Creating autocomplete with options:', options);
-
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(
-          inputRef.current,
-          options
-        );
-        
-        console.log('Autocomplete created successfully:', !!autocompleteRef.current);
+      // Create autocomplete using our service
+      autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current);
+      
+      if (autocompleteRef.current) {
+        console.log('Autocomplete created successfully');
 
         // Add place changed listener
         listenerRef.current = autocompleteRef.current.addListener("place_changed", () => {
@@ -99,18 +94,16 @@ export const useGoogleMapsAutocomplete = ({
           }
         });
 
-        console.log('Autocomplete initialized successfully');
-      } catch (error) {
-        console.error('Error creating autocomplete:', error);
-        toast({
-          title: "Fehler",
-          description: "Adresse-Autocomplete nicht verfügbar. Sie können die Adresse manuell eingeben und auf 'Suchen' klicken.",
-          variant: "default",
-        });
+        console.log('Frontend autocomplete initialized successfully');
       }
-    };
-
-    checkGoogle();
+    } catch (error) {
+      console.error('Error creating autocomplete:', error);
+      toast({
+        title: "Info",
+        description: "Autocomplete verwendet Backup-Service. Funktionalität bleibt erhalten.",
+        variant: "default",
+      });
+    }
   }, [inputRef, onPlaceSelect, cleanup, toast]);
 
   // Effect for cleanup on unmount
@@ -135,5 +128,6 @@ declare global {
       isReady: () => boolean;
     };
     initGoogleMaps?: () => void;
+    GOOGLE_MAPS_FRONTEND_KEY?: string;
   }
 }

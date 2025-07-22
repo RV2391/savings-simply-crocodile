@@ -4,8 +4,7 @@ import { GoogleMap, useLoadScript, MarkerF } from "@react-google-maps/api";
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
 import { MapDirections } from "./map/MapDirections";
 import { MapMarker } from "./map/MapMarker";
-
-const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
+import { googleMapsService } from "@/utils/googleMapsService";
 
 const mapContainerStyle = {
   width: "100%",
@@ -34,11 +33,22 @@ export const PracticeMap = ({
   onPracticeLocationChange,
 }: PracticeMapProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
 
-  // Load Google Maps without API key in the URL - we'll handle authentication through our proxy
+  // Initialize Google Maps service
+  useEffect(() => {
+    const initializeMaps = async () => {
+      const ready = await googleMapsService.initialize();
+      setIsGoogleMapsReady(ready);
+    };
+    
+    initializeMaps();
+  }, []);
+
+  // Use the optimized Google Maps loading without API key in useLoadScript
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "", // Empty string - we use our secure proxy instead
-    libraries,
+    googleMapsApiKey: "", // Empty - we load via our service
+    libraries: ["places"],
   });
 
   const mapRef = useRef<google.maps.Map>();
@@ -59,7 +69,7 @@ export const PracticeMap = ({
   );
 
   useEffect(() => {
-    if (map) {
+    if (map && isGoogleMapsReady) {
       const bounds = new google.maps.LatLngBounds();
       bounds.extend(practiceLocation);
       
@@ -82,7 +92,7 @@ export const PracticeMap = ({
         google.maps.event.removeListener(listener);
       };
     }
-  }, [map, practiceLocation, nearestInstitute]);
+  }, [map, practiceLocation, nearestInstitute, isGoogleMapsReady]);
 
   if (loadError) return (
     <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
@@ -94,7 +104,8 @@ export const PracticeMap = ({
       </div>
     </div>
   );
-  if (!isLoaded) return (
+
+  if (!isLoaded || !isGoogleMapsReady) return (
     <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
       <div className="text-center p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
