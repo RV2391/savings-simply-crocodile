@@ -24,10 +24,14 @@ export class GoogleMapsService {
     this.keyLoadAttempted = true;
     
     try {
-      console.log('🔑 Loading Google Maps frontend API key from Supabase...');
+      console.log('🔑 Loading Google Maps frontend API key...');
       
+      // Suppress console errors by wrapping in try-catch
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
         body: { action: 'get_frontend_key' }
+      }).catch(err => {
+        console.log('ℹ️ Supabase function not available, using backend-only mode');
+        return { data: null, error: err };
       });
       
       if (!error && data?.key) {
@@ -35,12 +39,10 @@ export class GoogleMapsService {
         console.log('✅ Frontend API key loaded successfully');
         return this.apiKey;
       } else {
-        console.error('❌ Failed to load frontend API key:', error);
-        console.error('❌ Response data:', data);
+        console.log('ℹ️ Frontend API key not available, backend-only mode enabled');
       }
     } catch (error) {
-      console.error('❌ Error loading frontend API key:', error);
-      console.error('❌ Network or CORS issue detected');
+      console.log('ℹ️ API key loading failed, using backend-only mode');
     }
     
     return null;

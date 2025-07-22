@@ -1,11 +1,11 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { googleMapsService } from "@/utils/googleMapsService";
-import { useLoadScript } from "@react-google-maps/api";
 import type { AddressComponents } from "@/types";
 
 interface AddressInputProps {
@@ -20,113 +20,74 @@ export const AddressInput = ({
   onAddressComponentsChange,
 }: AddressInputProps) => {
   const [address, setAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [backendOnlyMode, setBackendOnlyMode] = useState(false);
+  const addressInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
-  // Load API key with enhanced error handling
+  // Load API key and determine mode
   useEffect(() => {
-    const loadKey = async () => {
-      console.log('🔑 AddressInput: Loading API key...');
+    const initializeService = async () => {
+      console.log('🔑 AddressInput: Initializing address service...');
       
-      // Use the environment variable directly since it's available
-      const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      if (envKey) {
-        console.log('✅ AddressInput: Using API key from environment');
-        setApiKey(envKey);
-        return;
-      }
-      
-      // Fallback to Supabase function if env key not available
-      const key = await googleMapsService.loadApiKey();
-      if (key) {
-        console.log('✅ AddressInput: API key loaded from Supabase function');
-        setApiKey(key);
-      } else {
-        console.error('❌ AddressInput: Failed to load API key from all sources');
-        toast({
-          title: "Information",
-          description: "Adresse kann weiterhin manuell eingegeben werden.",
-        });
+      try {
+        const key = await googleMapsService.loadApiKey();
+        if (key && window.google?.maps?.places) {
+          console.log('✅ AddressInput: Full Google Maps service available');
+          initializeAutocomplete();
+        } else {
+          console.log('ℹ️ AddressInput: Using backend-only mode');
+          setBackendOnlyMode(true);
+        }
+      } catch (error) {
+        console.log('ℹ️ AddressInput: Fallback to backend-only mode due to error:', error);
+        setBackendOnlyMode(true);
       }
     };
-    loadKey();
-  }, [toast]);
 
-  // Use useLoadScript with the loaded API key
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries: ["places"],
-  });
+    initializeService();
+  }, []);
 
-  // Initialize autocomplete when Google Maps is loaded with enhanced error handling
-  useEffect(() => {
-    if (!isLoaded || !inputRef.current || !apiKey) {
-      console.log('🚨 AddressInput: Prerequisites not met', { 
-        isLoaded, 
-        hasInput: !!inputRef.current, 
-        hasApiKey: !!apiKey 
-      });
-      return;
-    }
+  // Initialize autocomplete in a safe way
+  const initializeAutocomplete = () => {
+    if (!addressInputRef.current || autocompleteRef.current) return;
 
     try {
-      console.log('🔧 AddressInput: Initializing autocomplete with loaded Google Maps...');
-      console.log('🔧 AddressInput: Google Maps readiness check:', googleMapsService.isGoogleMapsReady());
+      console.log('🔧 AddressInput: Creating autocomplete...');
       
-      // Clean up existing autocomplete
-      if (autocompleteRef.current) {
-        try {
-          autocompleteRef.current.unbindAll();
-        } catch (error) {
-          console.error('❌ AddressInput: Error cleaning up autocomplete:', error);
-        }
-      }
+      const autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
+        componentRestrictions: { country: "de" },
+        fields: ["address_components", "geometry", "formatted_address"],
+        types: ["address"],
+      });
 
-      // Create new autocomplete
-      autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current);
-      
-      if (autocompleteRef.current) {
-        autocompleteRef.current.addListener("place_changed", async () => {
-          const place = autocompleteRef.current?.getPlace();
-          if (place && place.geometry) {
-            console.log('📍 AddressInput: Place selected via autocomplete');
-            await handlePlaceSelection(place);
-          }
-        });
-        
-        console.log('✅ AddressInput: Autocomplete initialized successfully');
-      } else {
-        console.error('❌ AddressInput: Failed to create autocomplete - will use backend fallback only');
-      }
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place?.geometry?.location) {
+          handlePlaceSelection(place);
+        }
+      });
+
+      autocompleteRef.current = autocomplete;
+      console.log('✅ AddressInput: Autocomplete initialized');
     } catch (error) {
-      console.error('❌ AddressInput: Error initializing autocomplete:', error);
-      console.error('❌ AddressInput: Will use backend geocoding as fallback');
+      console.error('❌ AddressInput: Autocomplete error, using backend mode:', error);
+      setBackendOnlyMode(true);
     }
-
-    return () => {
-      if (autocompleteRef.current) {
-        try {
-          autocompleteRef.current.unbindAll();
-        } catch (error) {
-          console.error('❌ AddressInput: Error cleaning up autocomplete:', error);
-        }
-      }
-    };
-  }, [isLoaded, apiKey]);
+  };
 
   // Handle place selection from autocomplete
   const handlePlaceSelection = async (place: google.maps.places.PlaceResult) => {
     if (!place.geometry?.location) return;
 
-    setIsLoading(true);
+    setLoading(true);
     try {
       const lat = place.geometry.location.lat();
       const lng = place.geometry.location.lng();
       
-      console.log('Place selected via autocomplete:', { lat, lng });
+      console.log('📍 Place selected:', { lat, lng });
+      setAddress(place.formatted_address || "");
       
       onLocationChange({ lat, lng });
       
@@ -151,23 +112,33 @@ export const AddressInput = ({
       toast({
         title: "Adresse gefunden",
         description: "Die Entfernung zum nächsten Fortbildungsinstitut wurde berechnet.",
-        className: "bg-background border-2 border-primary/50 text-foreground",
       });
     } catch (error) {
       console.error('Error processing place selection:', error);
-      await handleManualAddressSubmit(); // Fallback to backend
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Fehler beim Verarbeiten der Adresse.",
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Backend geocoding fallback
+  // Backend geocoding (fallback and primary for backend-only mode)
   const handleManualAddressSubmit = async () => {
-    if (address.trim().length < 5) return;
+    if (!address.trim() || address.trim().length < 3) {
+      toast({
+        variant: "destructive",
+        title: "Ungültige Eingabe",
+        description: "Bitte geben Sie eine vollständige Adresse ein.",
+      });
+      return;
+    }
 
-    setIsLoading(true);
+    setLoading(true);
     try {
-      console.log('Using backend geocoding for:', address);
+      console.log('🗺️ Using backend geocoding for:', address);
       
       const result = await googleMapsService.geocodeAddress(address);
       
@@ -195,7 +166,6 @@ export const AddressInput = ({
         toast({
           title: "Adresse gefunden",
           description: "Die Entfernung zum nächsten Fortbildungsinstitut wurde berechnet.",
-          className: "bg-background border-2 border-primary/50 text-foreground",
         });
       } else {
         throw new Error('Keine Ergebnisse gefunden');
@@ -206,50 +176,61 @@ export const AddressInput = ({
         variant: "destructive",
         title: "Adresse nicht gefunden",
         description: "Die eingegebene Adresse konnte nicht gefunden werden. Bitte überprüfen Sie die Eingabe.",
-        className: "bg-background border-2 border-destructive/50 text-foreground",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (autocompleteRef.current) {
+        try {
+          google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        } catch (error) {
+          console.warn('Cleanup warning:', error);
+        }
+      }
+    };
+  }, []);
+
   return (
     <div className="space-y-2">
-      <Label htmlFor="address" className="text-gray-300">
-        Adresse
+      <Label htmlFor="address">
+        Adresse der Praxis
       </Label>
       <div className="flex gap-2">
         <Input
-          ref={inputRef}
+          ref={addressInputRef}
           type="text"
           id="address"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
+              e.preventDefault();
               handleManualAddressSubmit();
             }
           }}
-          placeholder="z.B. Hauptstraße 1, 10115 Berlin"
-          className="input-transition bg-[#1a1a1a] text-white border-gray-700 flex-1"
-          disabled={isLoading}
+          placeholder="Adresse eingeben..."
+          disabled={loading}
+          className="w-full"
         />
-        <button
-          type="button"
+        <Button 
           onClick={handleManualAddressSubmit}
-          disabled={address.trim().length < 5 || isLoading}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-w-[80px]"
+          disabled={loading || !address.trim()}
+          className="px-6"
         >
-          {isLoading ? "..." : "Suchen"}
-        </button>
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+        </Button>
       </div>
-      <p className="text-xs text-gray-500">
-        {!isLoaded || !apiKey
-          ? "System wird initialisiert..." 
-          : googleMapsService.isGoogleMapsReady()
-            ? "Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
-            : "Automatische Vorschläge nicht verfügbar - geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
-        }
+      <p className="text-sm text-muted-foreground mt-2">
+        {backendOnlyMode ? (
+          "Adresse eingeben und 'Suchen' klicken"
+        ) : (
+          "Beginnen Sie mit der Eingabe für Vorschläge oder klicken Sie 'Suchen'"
+        )}
       </p>
     </div>
   );
