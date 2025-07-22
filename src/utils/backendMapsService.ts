@@ -101,7 +101,7 @@ export class BackendMapsService {
     }>;
     path?: string;
   }): Promise<string> {
-    console.log('🗺️ Backend static map for:', options.center);
+    console.log('🗺️ Backend static map request for:', options.center, 'with options:', options);
     
     try {
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
@@ -109,14 +109,26 @@ export class BackendMapsService {
       });
 
       if (error) {
-        console.error('❌ Static map error:', error);
-        throw new Error(`Static map error: ${error.message}`);
+        console.error('❌ Static map supabase error:', error);
+        throw new Error(`Static map error: ${error.message || 'Unknown error'}`);
       }
 
+      if (!data || !data.url) {
+        console.error('❌ Static map response invalid:', data);
+        throw new Error('Invalid response from static map service - no URL returned');
+      }
+
+      console.log('✅ Static map URL received:', data.url.substring(0, 100) + '...');
       return data.url;
     } catch (error) {
       console.error('❌ Backend static map failed:', error);
-      throw error;
+      
+      // Enhanced error information
+      if (error instanceof Error) {
+        throw new Error(`Backend static map failed: ${error.message}`);
+      } else {
+        throw new Error(`Backend static map failed: ${String(error)}`);
+      }
     }
   }
 

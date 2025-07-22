@@ -24,11 +24,15 @@ export const BackendMapContainer = ({
 }: BackendMapContainerProps) => {
   const [mapImageUrl, setMapImageUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [directionsData, setDirectionsData] = useState<any>(null);
 
   useEffect(() => {
     const generateStaticMap = async () => {
       setLoading(true);
+      setError('');
+      console.log('🗺️ Generating static map for center:', center);
+      
       try {
         const markers = [
           {
@@ -77,6 +81,8 @@ export const BackendMapContainer = ({
           }
         }
 
+        console.log('📍 Total markers to add:', markers.length);
+
         const mapUrl = await backendMapsService.getStaticMapUrl({
           center: `${center.lat},${center.lng}`,
           zoom: 10,
@@ -85,9 +91,17 @@ export const BackendMapContainer = ({
           path: polylinePath
         });
 
+        if (!mapUrl) {
+          throw new Error('No map URL returned from service');
+        }
+
+        console.log('✅ Static map URL received successfully');
         setMapImageUrl(mapUrl);
       } catch (error) {
-        console.error('Map generation failed:', error);
+        console.error('❌ Map generation failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
+        setMapImageUrl('');
       } finally {
         setLoading(false);
       }
@@ -102,6 +116,104 @@ export const BackendMapContainer = ({
         <div className="text-center p-6">
           <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Karte wird generiert...</p>
+          <p className="text-xs text-muted-foreground mt-1">Backend-Service wird kontaktiert...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
+        <div className="text-center p-6 max-w-md">
+          <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-3">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-sm text-muted-foreground mb-2">Karte konnte nicht geladen werden</p>
+          <p className="text-xs text-red-400">{error}</p>
+          <button 
+            onClick={() => {
+              setError('');
+              setLoading(true);
+              const generateStaticMap = async () => {
+                setLoading(true);
+                setError('');
+                console.log('🗺️ Retrying map generation for center:', center);
+                
+                try {
+                  const markers = [
+                    {
+                      location: `${practiceLocation.lat},${practiceLocation.lng}`,
+                      color: 'green',
+                      label: 'P'
+                    }
+                  ];
+
+                  if (nearestInstitute) {
+                    markers.push({
+                      location: `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`,
+                      color: 'red',
+                      label: 'I'
+                    });
+                  }
+
+                  const nearbyInstitutes = institutes
+                    .filter(inst => inst !== nearestInstitute)
+                    .slice(0, 5);
+                  
+                  nearbyInstitutes.forEach((institute, index) => {
+                    markers.push({
+                      location: `${institute.coordinates.lat},${institute.coordinates.lng}`,
+                      color: 'blue',
+                      label: String(index + 1)
+                    });
+                  });
+
+                  let polylinePath = '';
+                  
+                  if (showDirections && nearestInstitute) {
+                    try {
+                      const directions = await backendMapsService.getDirections(
+                        `${practiceLocation.lat},${practiceLocation.lng}`,
+                        `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`
+                      );
+                      
+                      setDirectionsData(directions);
+                      polylinePath = directions.polyline;
+                    } catch (error) {
+                      console.warn('Directions failed:', error);
+                    }
+                  }
+
+                  const mapUrl = await backendMapsService.getStaticMapUrl({
+                    center: `${center.lat},${center.lng}`,
+                    zoom: 10,
+                    size: '800x400',
+                    markers,
+                    path: polylinePath
+                  });
+
+                  if (!mapUrl) {
+                    throw new Error('No map URL returned from service');
+                  }
+
+                  setMapImageUrl(mapUrl);
+                } catch (error) {
+                  console.error('❌ Retry failed:', error);
+                  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                  setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              generateStaticMap();
+            }}
+            className="mt-3 px-3 py-1 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/80"
+          >
+            Erneut versuchen
+          </button>
         </div>
       </div>
     );
@@ -114,6 +226,11 @@ export const BackendMapContainer = ({
           src={mapImageUrl}
           alt="Statische Karte mit Praxis und Instituten"
           className="w-full h-[400px] object-cover"
+          onError={() => {
+            console.error('❌ Map image failed to load:', mapImageUrl);
+            setError('Kartenbild konnte nicht geladen werden');
+            setMapImageUrl('');
+          }}
         />
       ) : (
         <div className="flex items-center justify-center h-[400px] bg-muted">

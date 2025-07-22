@@ -183,6 +183,9 @@ Deno.serve(async (req) => {
         }
         
         console.log('🗺️ Static map request for:', params.center)
+        console.log('📍 Markers added:', params.markers?.length || 0)
+        console.log('🛣️ Path included:', !!params.path)
+        console.log('✅ Static map URL generated:', staticMapUrl.substring(0, 100) + '...')
         
         return new Response(JSON.stringify({ url: staticMapUrl }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
