@@ -206,19 +206,19 @@ export const CostCalculator = () => {
                 onAddressComponentsChange={handleAddressComponentsChange}
               />
               
-              {inputs.practiceLat && inputs.practiceLng && (
-                <div className="mt-4">
-                  <PracticeMap
-                    institutes={dentalInstitutes}
-                    practiceLocation={{
-                      lat: inputs.practiceLat,
-                      lng: inputs.practiceLng
-                    }}
-                    nearestInstitute={nearestInstitute}
-                    onPracticeLocationChange={handleLocationChange}
-                  />
-                </div>
-              )}
+              {/* Karte immer anzeigen - auch ohne Praxis-Adresse */}
+              <div className="mt-4">
+                <PracticeMap
+                  institutes={dentalInstitutes}
+                  practiceLocation={
+                    inputs.practiceLat && inputs.practiceLng 
+                      ? { lat: inputs.practiceLat, lng: inputs.practiceLng }
+                      : { lat: 51.1657, lng: 10.4515 } // Deutschland Zentrum
+                  }
+                  nearestInstitute={nearestInstitute}
+                  onPracticeLocationChange={handleLocationChange}
+                />
+              </div>
             </div>
           </div>
 
