@@ -26,16 +26,25 @@ export const AddressInput = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
-  // Load API key
+  // Load API key with enhanced error handling
   useEffect(() => {
     const loadKey = async () => {
+      console.log('🔑 AddressInput: Loading API key...');
       const key = await googleMapsService.loadApiKey();
       if (key) {
+        console.log('✅ AddressInput: API key loaded successfully');
         setApiKey(key);
+      } else {
+        console.error('❌ AddressInput: Failed to load API key');
+        toast({
+          variant: "destructive",
+          title: "Konfigurationsfehler",
+          description: "Google Maps konnte nicht initialisiert werden. Bitte versuchen Sie es später erneut.",
+        });
       }
     };
     loadKey();
-  }, []);
+  }, [toast]);
 
   // Use useLoadScript with the loaded API key
   const { isLoaded } = useLoadScript({
@@ -43,19 +52,27 @@ export const AddressInput = ({
     libraries: ["places"],
   });
 
-  // Initialize autocomplete when Google Maps is loaded
+  // Initialize autocomplete when Google Maps is loaded with enhanced error handling
   useEffect(() => {
-    if (!isLoaded || !inputRef.current || !apiKey) return;
+    if (!isLoaded || !inputRef.current || !apiKey) {
+      console.log('🚨 AddressInput: Prerequisites not met', { 
+        isLoaded, 
+        hasInput: !!inputRef.current, 
+        hasApiKey: !!apiKey 
+      });
+      return;
+    }
 
     try {
-      console.log('Initializing autocomplete with loaded Google Maps...');
+      console.log('🔧 AddressInput: Initializing autocomplete with loaded Google Maps...');
+      console.log('🔧 AddressInput: Google Maps readiness check:', googleMapsService.isGoogleMapsReady());
       
       // Clean up existing autocomplete
       if (autocompleteRef.current) {
         try {
           autocompleteRef.current.unbindAll();
         } catch (error) {
-          console.error('Error cleaning up autocomplete:', error);
+          console.error('❌ AddressInput: Error cleaning up autocomplete:', error);
         }
       }
 
@@ -66,14 +83,18 @@ export const AddressInput = ({
         autocompleteRef.current.addListener("place_changed", async () => {
           const place = autocompleteRef.current?.getPlace();
           if (place && place.geometry) {
+            console.log('📍 AddressInput: Place selected via autocomplete');
             await handlePlaceSelection(place);
           }
         });
         
-        console.log('Autocomplete initialized successfully');
+        console.log('✅ AddressInput: Autocomplete initialized successfully');
+      } else {
+        console.error('❌ AddressInput: Failed to create autocomplete - will use backend fallback only');
       }
     } catch (error) {
-      console.error('Error initializing autocomplete:', error);
+      console.error('❌ AddressInput: Error initializing autocomplete:', error);
+      console.error('❌ AddressInput: Will use backend geocoding as fallback');
     }
 
     return () => {
@@ -81,7 +102,7 @@ export const AddressInput = ({
         try {
           autocompleteRef.current.unbindAll();
         } catch (error) {
-          console.error('Error cleaning up autocomplete:', error);
+          console.error('❌ AddressInput: Error cleaning up autocomplete:', error);
         }
       }
     };
@@ -216,7 +237,9 @@ export const AddressInput = ({
       <p className="text-xs text-gray-500">
         {!isLoaded || !apiKey
           ? "System wird initialisiert..." 
-          : "Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
+          : googleMapsService.isGoogleMapsReady()
+            ? "Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
+            : "Automatische Vorschläge nicht verfügbar - geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
         }
       </p>
     </div>
