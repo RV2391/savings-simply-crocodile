@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { googleMapsService } from "@/utils/googleMapsService";
+import { useLoadScript } from "@react-google-maps/api";
 import type { AddressComponents } from "@/types";
 
 interface AddressInputProps {
@@ -20,58 +21,60 @@ export const AddressInput = ({
 }: AddressInputProps) => {
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [apiKey, setApiKey] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
-  // Initialize frontend autocomplete
+  // Load API key
   useEffect(() => {
-    const initializeAutocomplete = async () => {
-      if (!inputRef.current) return;
-
-      try {
-        console.log('Initializing Google Maps for address input...');
-        setIsInitializing(true);
-        
-        const isReady = await googleMapsService.initialize();
-        if (!isReady) {
-          console.log('Google Maps not ready, using backend fallback only');
-          setIsInitializing(false);
-          return;
-        }
-
-        // Clean up existing autocomplete
-        if (autocompleteRef.current) {
-          try {
-            autocompleteRef.current.unbindAll();
-          } catch (error) {
-            console.error('Error cleaning up autocomplete:', error);
-          }
-        }
-
-        // Create new autocomplete with frontend API
-        autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current);
-        
-        if (autocompleteRef.current) {
-          autocompleteRef.current.addListener("place_changed", async () => {
-            const place = autocompleteRef.current?.getPlace();
-            if (place && place.geometry) {
-              await handlePlaceSelection(place);
-            }
-          });
-          
-          console.log('Frontend autocomplete initialized successfully');
-        }
-        
-        setIsInitializing(false);
-      } catch (error) {
-        console.error('Error initializing frontend autocomplete:', error);
-        setIsInitializing(false);
+    const loadKey = async () => {
+      const key = await googleMapsService.loadApiKey();
+      if (key) {
+        setApiKey(key);
       }
     };
+    loadKey();
+  }, []);
 
-    initializeAutocomplete();
+  // Use useLoadScript with the loaded API key
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: apiKey,
+    libraries: ["places"],
+  });
+
+  // Initialize autocomplete when Google Maps is loaded
+  useEffect(() => {
+    if (!isLoaded || !inputRef.current || !apiKey) return;
+
+    try {
+      console.log('Initializing autocomplete with loaded Google Maps...');
+      
+      // Clean up existing autocomplete
+      if (autocompleteRef.current) {
+        try {
+          autocompleteRef.current.unbindAll();
+        } catch (error) {
+          console.error('Error cleaning up autocomplete:', error);
+        }
+      }
+
+      // Create new autocomplete
+      autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current);
+      
+      if (autocompleteRef.current) {
+        autocompleteRef.current.addListener("place_changed", async () => {
+          const place = autocompleteRef.current?.getPlace();
+          if (place && place.geometry) {
+            await handlePlaceSelection(place);
+          }
+        });
+        
+        console.log('Autocomplete initialized successfully');
+      }
+    } catch (error) {
+      console.error('Error initializing autocomplete:', error);
+    }
 
     return () => {
       if (autocompleteRef.current) {
@@ -82,7 +85,7 @@ export const AddressInput = ({
         }
       }
     };
-  }, []);
+  }, [isLoaded, apiKey]);
 
   // Handle place selection from autocomplete
   const handlePlaceSelection = async (place: google.maps.places.PlaceResult) => {
@@ -93,7 +96,7 @@ export const AddressInput = ({
       const lat = place.geometry.location.lat();
       const lng = place.geometry.location.lng();
       
-      console.log('Place selected via frontend autocomplete:', { lat, lng });
+      console.log('Place selected via autocomplete:', { lat, lng });
       
       onLocationChange({ lat, lng });
       
@@ -199,19 +202,19 @@ export const AddressInput = ({
           }}
           placeholder="z.B. Hauptstraße 1, 10115 Berlin"
           className="input-transition bg-[#1a1a1a] text-white border-gray-700 flex-1"
-          disabled={isLoading || isInitializing}
+          disabled={isLoading}
         />
         <button
           type="button"
           onClick={handleManualAddressSubmit}
-          disabled={address.trim().length < 5 || isLoading || isInitializing}
+          disabled={address.trim().length < 5 || isLoading}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-w-[80px]"
         >
           {isLoading ? "..." : "Suchen"}
         </button>
       </div>
       <p className="text-xs text-gray-500">
-        {isInitializing 
+        {!isLoaded || !apiKey
           ? "System wird initialisiert..." 
           : "Beginnen Sie zu tippen für automatische Vorschläge oder geben Sie eine komplette Adresse ein und klicken Sie \"Suchen\""
         }

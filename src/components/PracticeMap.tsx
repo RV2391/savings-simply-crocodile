@@ -33,34 +33,22 @@ export const PracticeMap = ({
   onPracticeLocationChange,
 }: PracticeMapProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [isGoogleMapsReady, setIsGoogleMapsReady] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [apiKey, setApiKey] = useState<string>("");
 
-  // Initialize Google Maps service
+  // Load API key
   useEffect(() => {
-    const initializeMaps = async () => {
-      try {
-        console.log('Initializing Google Maps service...');
-        const ready = await googleMapsService.initialize();
-        if (ready) {
-          console.log('Google Maps service ready');
-          setIsGoogleMapsReady(true);
-        } else {
-          console.error('Google Maps service failed to initialize');
-          setLoadError(true);
-        }
-      } catch (error) {
-        console.error('Error initializing Google Maps service:', error);
-        setLoadError(true);
+    const loadKey = async () => {
+      const key = await googleMapsService.loadApiKey();
+      if (key) {
+        setApiKey(key);
       }
     };
-    
-    initializeMaps();
+    loadKey();
   }, []);
 
-  // Use the optimized Google Maps loading without API key in useLoadScript
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "", // Empty - we load via our service
+  // Use useLoadScript with the loaded API key
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: apiKey,
     libraries: ["places"],
   });
 
@@ -82,7 +70,7 @@ export const PracticeMap = ({
   );
 
   useEffect(() => {
-    if (map && isGoogleMapsReady) {
+    if (map && isLoaded) {
       const bounds = new google.maps.LatLngBounds();
       bounds.extend(practiceLocation);
       
@@ -105,7 +93,7 @@ export const PracticeMap = ({
         google.maps.event.removeListener(listener);
       };
     }
-  }, [map, practiceLocation, nearestInstitute, isGoogleMapsReady]);
+  }, [map, practiceLocation, nearestInstitute, isLoaded]);
 
   if (loadError) return (
     <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
@@ -118,7 +106,7 @@ export const PracticeMap = ({
     </div>
   );
 
-  if (!isLoaded || !isGoogleMapsReady) return (
+  if (!isLoaded || !apiKey) return (
     <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
       <div className="text-center p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>

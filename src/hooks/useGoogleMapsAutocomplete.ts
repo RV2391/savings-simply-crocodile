@@ -1,6 +1,7 @@
 
 import { RefObject, useRef, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useLoadScript } from "@react-google-maps/api";
 import { googleMapsService } from "@/utils/googleMapsService";
 
 interface AutocompleteHookProps {
@@ -18,6 +19,24 @@ export const useGoogleMapsAutocomplete = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const listenerRef = useRef<google.maps.MapsEventListener | null>(null);
   const { toast } = useToast();
+
+  // Get API key and load script
+  const [apiKey, setApiKey] = useState<string>("");
+  
+  useEffect(() => {
+    const loadKey = async () => {
+      const key = await googleMapsService.loadApiKey();
+      if (key) {
+        setApiKey(key);
+      }
+    };
+    loadKey();
+  }, []);
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: apiKey,
+    libraries: ["places"],
+  });
 
   const cleanup = useCallback(() => {
     console.log('Cleaning up autocomplete...');
@@ -45,24 +64,12 @@ export const useGoogleMapsAutocomplete = ({
   const initializeAutocomplete = useCallback(async () => {
     console.log('Attempting to initialize Google Maps autocomplete...');
     
-    if (!inputRef.current) {
-      console.log('No input reference found');
+    if (!inputRef.current || !isLoaded || !apiKey) {
+      console.log('Prerequisites not met for autocomplete initialization');
       return;
     }
 
     try {
-      // Use our new service for initialization
-      const isReady = await googleMapsService.initialize();
-      if (!isReady) {
-        console.log('Google Maps service not ready');
-        toast({
-          title: "Info",
-          description: "Adresse-Autocomplete wird über Backup-Service bereitgestellt.",
-          variant: "default",
-        });
-        return;
-      }
-
       // Clean up any existing autocomplete
       cleanup();
 
@@ -94,7 +101,14 @@ export const useGoogleMapsAutocomplete = ({
           }
         });
 
-        console.log('Frontend autocomplete initialized successfully');
+        console.log('Autocomplete initialized successfully');
+      } else {
+        console.log('Failed to create autocomplete, using fallback');
+        toast({
+          title: "Info",
+          description: "Autocomplete verwendet Backup-Service. Funktionalität bleibt erhalten.",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error('Error creating autocomplete:', error);
@@ -104,7 +118,7 @@ export const useGoogleMapsAutocomplete = ({
         variant: "default",
       });
     }
-  }, [inputRef, onPlaceSelect, cleanup, toast]);
+  }, [inputRef, onPlaceSelect, cleanup, toast, isLoaded, apiKey]);
 
   // Effect for cleanup on unmount
   useEffect(() => {
@@ -119,6 +133,9 @@ export const useGoogleMapsAutocomplete = ({
     cleanup: cleanup
   };
 };
+
+// Add missing import
+import { useState } from "react";
 
 // Declare global types for the loader
 declare global {
