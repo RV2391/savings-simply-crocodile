@@ -1,5 +1,5 @@
 
-import { RefObject, useRef, useCallback, useEffect } from "react";
+import { RefObject, useRef, useCallback, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useLoadScript } from "@react-google-maps/api";
 import { googleMapsService } from "@/utils/googleMapsService";
@@ -19,15 +19,20 @@ export const useGoogleMapsAutocomplete = ({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const listenerRef = useRef<google.maps.MapsEventListener | null>(null);
   const { toast } = useToast();
-
-  // Get API key and load script
   const [apiKey, setApiKey] = useState<string>("");
+  const [shouldLoadScript, setShouldLoadScript] = useState(false);
   
   useEffect(() => {
     const loadKey = async () => {
+      console.log('🔑 useGoogleMapsAutocomplete: Loading API key...');
       const key = await googleMapsService.loadApiKey();
       if (key) {
+        console.log('✅ useGoogleMapsAutocomplete: API key loaded');
         setApiKey(key);
+        setShouldLoadScript(true);
+      } else {
+        console.log('ℹ️ useGoogleMapsAutocomplete: No API key available');
+        setShouldLoadScript(false);
       }
     };
     loadKey();
@@ -36,7 +41,7 @@ export const useGoogleMapsAutocomplete = ({
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: apiKey,
     libraries: ["places"],
-  });
+  }, shouldLoadScript && !!apiKey);
 
   const cleanup = useCallback(() => {
     console.log('Cleaning up autocomplete...');
@@ -64,7 +69,7 @@ export const useGoogleMapsAutocomplete = ({
   const initializeAutocomplete = useCallback(async () => {
     console.log('Attempting to initialize Google Maps autocomplete...');
     
-    if (!inputRef.current || !isLoaded || !apiKey) {
+    if (!inputRef.current || !isLoaded || !apiKey || !shouldLoadScript) {
       console.log('Prerequisites not met for autocomplete initialization');
       return;
     }
@@ -118,7 +123,7 @@ export const useGoogleMapsAutocomplete = ({
         variant: "default",
       });
     }
-  }, [inputRef, onPlaceSelect, cleanup, toast, isLoaded, apiKey]);
+  }, [inputRef, onPlaceSelect, cleanup, toast, isLoaded, apiKey, shouldLoadScript]);
 
   // Effect for cleanup on unmount
   useEffect(() => {
@@ -133,9 +138,6 @@ export const useGoogleMapsAutocomplete = ({
     cleanup: cleanup
   };
 };
-
-// Add missing import
-import { useState } from "react";
 
 // Declare global types for the loader
 declare global {
