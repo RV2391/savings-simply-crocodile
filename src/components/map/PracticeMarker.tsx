@@ -61,10 +61,9 @@ export const PracticeMarker: React.FC<PracticeMarkerProps> = ({
       marker.addListener('dragend', () => {
         const newPosition = marker.position;
         if (newPosition) {
-          onDragEnd({
-            lat: newPosition.lat,
-            lng: newPosition.lng
-          });
+          const lat = typeof newPosition.lat === 'function' ? newPosition.lat() : newPosition.lat;
+          const lng = typeof newPosition.lng === 'function' ? newPosition.lng() : newPosition.lng;
+          onDragEnd({ lat, lng });
         }
       });
     }
