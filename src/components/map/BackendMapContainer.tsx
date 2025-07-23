@@ -116,18 +116,18 @@ export const BackendMapContainer = ({
       console.error('❌ Google Maps generation failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      // Check for 403 errors (API key restrictions)
+      // Check for 403 errors (API key restrictions) - immediately switch to fallback
       if (errorMessage.includes('403') || errorMessage.includes('Forbidden') || 
           errorMessage.includes('API Key Problem')) {
-        console.log('🔄 API Key problem detected - switching to fallback immediately');
+        console.log('🔄 API Key problem detected - switching to OpenStreetMap immediately');
         setApiStatus('unavailable');
         setUseFallback(true);
-        setError('Google Maps nicht verfügbar - API-Konfigurationsproblem');
+        setError('Google Maps nicht verfügbar - OpenStreetMap wird verwendet');
         setLoading(false);
         return;
       }
       
-      // Retry logic for other errors
+      // For other errors, still try fallback after retries
       if (retryCount < MAX_RETRIES) {
         console.log(`🔄 Retrying map generation (${retryCount + 1}/${MAX_RETRIES})...`);
         setRetryCount(prev => prev + 1);
@@ -136,7 +136,7 @@ export const BackendMapContainer = ({
       }
       
       // After all retries failed, switch to fallback
-      console.log('🔄 All retries failed - switching to fallback');
+      console.log('🔄 All retries failed - switching to OpenStreetMap');
       setApiStatus('unavailable');
       setUseFallback(true);
       setError(`Google Maps nicht verfügbar: ${errorMessage}`);
@@ -165,9 +165,9 @@ export const BackendMapContainer = ({
   if (useFallback || apiStatus === 'unavailable') {
     return (
       <div className="space-y-2">
-        <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 p-2 rounded">
+        <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 p-2 rounded">
           <AlertCircle className="w-4 h-4" />
-          <span>Google Maps nicht verfügbar - Fallback-Karte wird verwendet</span>
+          <span>Google Maps nicht verfügbar - OpenStreetMap wird verwendet</span>
         </div>
         <OpenStreetMapContainer
           center={center}
