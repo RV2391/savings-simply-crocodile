@@ -116,12 +116,27 @@ export class BackendMapsService {
 
       if (error) {
         console.error('❌ Static map image error from function:', error);
-        throw new Error(`Static map image error: ${error.message}`);
+        
+        // Enhanced error handling with specific error types
+        if (error.message?.includes('403')) {
+          throw new Error('Google Maps API: Zugriff verweigert. Bitte überprüfen Sie die API-Schlüssel-Konfiguration in Google Cloud Console.');
+        } else if (error.message?.includes('429')) {
+          throw new Error('Google Maps API: Rate-Limit erreicht. Bitte versuchen Sie es später erneut.');
+        } else if (error.message?.includes('400')) {
+          throw new Error('Google Maps API: Ungültige Anfrage-Parameter.');
+        } else {
+          throw new Error(`Static map image error: ${error.message}`);
+        }
       }
 
       // Check if we received binary data (ArrayBuffer)
       if (data instanceof ArrayBuffer) {
         console.log('✅ Received ArrayBuffer data, size:', data.byteLength, 'bytes');
+        
+        // Validate that we actually received image data
+        if (data.byteLength === 0) {
+          throw new Error('Empty image data received from Google Maps API');
+        }
         
         // Create blob from ArrayBuffer
         const blob = new Blob([data], { type: 'image/png' });
@@ -131,6 +146,12 @@ export class BackendMapsService {
         return imageUrl;
       }
 
+      // If we get here, check if it's an error response
+      if (typeof data === 'object' && data !== null && 'error' in data) {
+        console.error('❌ Error response from backend:', data);
+        throw new Error(`Backend error: ${data.error}`);
+      }
+
       // If we get here, the response format is unexpected
       console.error('❌ Unexpected response format from static_map_image:', typeof data);
       throw new Error(`Unexpected response format: ${typeof data}`);
@@ -138,11 +159,19 @@ export class BackendMapsService {
     } catch (error) {
       console.error('❌ Backend static map image failed:', error);
       
-      // Enhanced error information
+      // Enhanced error information with user-friendly messages
       if (error instanceof Error) {
-        throw new Error(`Backend static map image failed: ${error.message}`);
+        if (error.message.includes('403') || error.message.includes('Zugriff verweigert')) {
+          throw new Error('Kartendienst nicht verfügbar: API-Schlüssel-Problem. Bitte kontaktieren Sie den Administrator.');
+        } else if (error.message.includes('429') || error.message.includes('Rate-Limit')) {
+          throw new Error('Kartendienst vorübergehend nicht verfügbar: Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
+        } else if (error.message.includes('Network')) {
+          throw new Error('Netzwerkfehler beim Laden der Karte. Bitte überprüfen Sie Ihre Internetverbindung.');
+        } else {
+          throw new Error(`Kartenfehler: ${error.message}`);
+        }
       } else {
-        throw new Error(`Backend static map image failed: ${String(error)}`);
+        throw new Error(`Unbekannter Kartenfehler: ${String(error)}`);
       }
     }
   }

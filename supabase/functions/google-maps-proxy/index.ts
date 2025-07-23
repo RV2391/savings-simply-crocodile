@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
     
     if (!GOOGLE_MAPS_API_KEY) {
-      console.error('❌ Google Maps API key not found')
+      console.error('❌ Google Maps API key not found in environment')
       return new Response(
         JSON.stringify({ error: 'Google Maps API key not configured' }),
         { 
@@ -28,6 +28,8 @@ Deno.serve(async (req) => {
         }
       )
     }
+
+    console.log(`🔑 API Key configured: ${GOOGLE_MAPS_API_KEY.substring(0, 20)}...`)
 
     let response
     
@@ -154,6 +156,7 @@ Deno.serve(async (req) => {
 
       case 'static_map_image':
         if (!params.center) {
+          console.error('❌ Missing center parameter')
           return new Response(
             JSON.stringify({ error: 'Center parameter is required' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -167,48 +170,86 @@ Deno.serve(async (req) => {
         let staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${zoom}&size=${size}&maptype=${maptype}&key=${GOOGLE_MAPS_API_KEY}`
         
         // Add markers if provided
-        if (params.markers) {
-          params.markers.forEach((marker: any) => {
+        if (params.markers && Array.isArray(params.markers)) {
+          console.log(`📍 Adding ${params.markers.length} markers to map`)
+          params.markers.forEach((marker: any, index: number) => {
             const color = marker.color || 'red'
             const label = marker.label || ''
             const location = marker.location
+            console.log(`  Marker ${index + 1}: ${color} ${label} at ${location}`)
             staticMapUrl += `&markers=color:${color}|label:${label}|${encodeURIComponent(location)}`
           })
         }
         
         // Add path if provided
         if (params.path) {
+          console.log(`🛣️ Adding path to map: ${params.path.substring(0, 50)}...`)
           staticMapUrl += `&path=color:0x0000ff|weight:3|enc:${params.path}`
         }
         
-        console.log('🗺️ Static map image proxy request for:', params.center)
-        console.log('📍 Loading image from Google:', staticMapUrl.substring(0, 100) + '...')
+        console.log('🗺️ Static map image request for:', params.center)
+        console.log('📋 Final Google Maps URL length:', staticMapUrl.length)
+        console.log('🌐 Making request to Google Maps API...')
         
         try {
           const imageResponse = await fetch(staticMapUrl)
           
+          console.log(`📊 Google Maps API response status: ${imageResponse.status}`)
+          console.log(`📊 Google Maps API response headers:`, Object.fromEntries(imageResponse.headers.entries()))
+          
           if (!imageResponse.ok) {
-            console.error('❌ Google Maps image request failed:', imageResponse.status, imageResponse.statusText)
-            throw new Error(`Google Maps API returned ${imageResponse.status}: ${imageResponse.statusText}`)
+            const errorText = await imageResponse.text()
+            console.error('❌ Google Maps API error response:', errorText)
+            console.error('❌ Request URL (first 200 chars):', staticMapUrl.substring(0, 200))
+            
+            // Enhanced error handling for different status codes
+            let errorMessage = `Google Maps API returned ${imageResponse.status}: ${imageResponse.statusText}`
+            
+            if (imageResponse.status === 403) {
+              errorMessage += ' - API Key might be invalid, restricted, or quota exceeded. Check Google Cloud Console.'
+            } else if (imageResponse.status === 400) {
+              errorMessage += ' - Invalid request parameters. Check the map configuration.'
+            } else if (imageResponse.status === 429) {
+              errorMessage += ' - Rate limit exceeded. Try again later.'
+            }
+            
+            return new Response(
+              JSON.stringify({ 
+                error: errorMessage,
+                details: errorText,
+                status: imageResponse.status,
+                url_preview: staticMapUrl.substring(0, 200) + '...'
+              }),
+              { 
+                status: imageResponse.status, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            )
           }
           
-          const imageBuffer = await imageResponse.arrayBuffer()
           const contentType = imageResponse.headers.get('content-type') || 'image/png'
+          const imageBuffer = await imageResponse.arrayBuffer()
           
-          console.log('✅ Successfully loaded map image from Google, size:', imageBuffer.byteLength, 'bytes')
+          console.log('✅ Successfully loaded map image from Google')
+          console.log(`📊 Image details: ${imageBuffer.byteLength} bytes, type: ${contentType}`)
           
           return new Response(imageBuffer, {
             headers: {
               ...corsHeaders,
               'Content-Type': contentType,
-              'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+              'Cache-Control': 'public, max-age=3600',
+              'Content-Length': imageBuffer.byteLength.toString()
             }
           })
         } catch (fetchError) {
-          console.error('❌ Static map image proxy error:', fetchError)
+          console.error('❌ Network error while fetching from Google Maps:', fetchError)
           return new Response(
-            JSON.stringify({ error: 'Failed to load map image', details: fetchError.message }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ 
+              error: 'Network error while loading map image',
+              details: fetchError.message,
+              type: 'network_error'
+            }),
+            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
         break
@@ -287,7 +328,11 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('❌ Error in Google Maps proxy:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error.message,
+        type: 'internal_error'
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

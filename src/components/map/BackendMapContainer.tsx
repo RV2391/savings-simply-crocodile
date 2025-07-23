@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card } from '../ui/card';
-import { Loader2, Navigation, MapPin } from 'lucide-react';
+import { Loader2, Navigation, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
 import { backendMapsService } from '@/utils/backendMapsService';
 import type { DentalInstitute } from '@/utils/dentalInstitutes';
 
@@ -26,99 +26,115 @@ export const BackendMapContainer = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [directionsData, setDirectionsData] = useState<any>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    const generateStaticMap = async () => {
+  const MAX_RETRIES = 2;
+
+  const generateStaticMap = async (isRetry = false) => {
+    if (!isRetry) {
       setLoading(true);
       setError('');
-      console.log('🗺️ Generating secure static map for center:', center);
-      
-      try {
-        const markers = [
-          {
-            location: `${practiceLocation.lat},${practiceLocation.lng}`,
-            color: 'green',
-            label: 'P'
-          }
-        ];
-
-        // Nächstes Institut hervorheben
-        if (nearestInstitute) {
-          markers.push({
-            location: `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`,
-            color: 'red',
-            label: 'I'
-          });
+    }
+    
+    console.log('🗺️ Generating secure static map for center:', center);
+    
+    try {
+      const markers = [
+        {
+          location: `${practiceLocation.lat},${practiceLocation.lng}`,
+          color: 'green',
+          label: 'P'
         }
+      ];
 
-        // Weitere Institute hinzufügen (maximal 5 für Performance)
-        const nearbyInstitutes = institutes
-          .filter(inst => inst !== nearestInstitute)
-          .slice(0, 5);
-        
-        nearbyInstitutes.forEach((institute, index) => {
-          markers.push({
-            location: `${institute.coordinates.lat},${institute.coordinates.lng}`,
-            color: 'blue',
-            label: String(index + 1)
-          });
+      // Nächstes Institut hervorheben
+      if (nearestInstitute) {
+        markers.push({
+          location: `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`,
+          color: 'red',
+          label: 'I'
         });
-
-        let polylinePath = '';
-        
-        // Route berechnen wenn gewünscht
-        if (showDirections && nearestInstitute) {
-          try {
-            console.log('🛣️ Calculating directions...');
-            const directions = await backendMapsService.getDirections(
-              `${practiceLocation.lat},${practiceLocation.lng}`,
-              `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`
-            );
-            
-            console.log('✅ Directions calculated successfully');
-            setDirectionsData(directions);
-            polylinePath = directions.polyline;
-          } catch (error) {
-            console.warn('⚠️ Directions failed, continuing without route:', error);
-          }
-        }
-
-        console.log('📍 Total markers to add:', markers.length);
-        console.log('🛣️ Polyline path length:', polylinePath.length);
-
-        // Cleanup previous blob URL to prevent memory leaks
-        if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
-          console.log('🧹 Cleaning up previous blob URL');
-          URL.revokeObjectURL(mapImageUrl);
-        }
-
-        // Use the secure image proxy method
-        console.log('🔄 Requesting secure static map image...');
-        const imageUrl = await backendMapsService.getStaticMapImageUrl({
-          center: `${center.lat},${center.lng}`,
-          zoom: 10,
-          size: '800x400',
-          markers,
-          path: polylinePath
-        });
-
-        if (!imageUrl) {
-          throw new Error('No map image URL returned from secure proxy');
-        }
-
-        console.log('✅ Secure static map image URL received:', imageUrl.substring(0, 50) + '...');
-        setMapImageUrl(imageUrl);
-        
-      } catch (error) {
-        console.error('❌ Secure map generation failed:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
-        setMapImageUrl('');
-      } finally {
-        setLoading(false);
       }
-    };
 
+      // Weitere Institute hinzufügen (maximal 5 für Performance)
+      const nearbyInstitutes = institutes
+        .filter(inst => inst !== nearestInstitute)
+        .slice(0, 5);
+      
+      nearbyInstitutes.forEach((institute, index) => {
+        markers.push({
+          location: `${institute.coordinates.lat},${institute.coordinates.lng}`,
+          color: 'blue',
+          label: String(index + 1)
+        });
+      });
+
+      let polylinePath = '';
+      
+      // Route berechnen wenn gewünscht
+      if (showDirections && nearestInstitute) {
+        try {
+          console.log('🛣️ Calculating directions...');
+          const directions = await backendMapsService.getDirections(
+            `${practiceLocation.lat},${practiceLocation.lng}`,
+            `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`
+          );
+          
+          console.log('✅ Directions calculated successfully');
+          setDirectionsData(directions);
+          polylinePath = directions.polyline;
+        } catch (error) {
+          console.warn('⚠️ Directions failed, continuing without route:', error);
+        }
+      }
+
+      console.log('📍 Total markers to add:', markers.length);
+      console.log('🛣️ Polyline path length:', polylinePath.length);
+
+      // Cleanup previous blob URL to prevent memory leaks
+      if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
+        console.log('🧹 Cleaning up previous blob URL');
+        URL.revokeObjectURL(mapImageUrl);
+      }
+
+      // Use the secure image proxy method
+      console.log('🔄 Requesting secure static map image...');
+      const imageUrl = await backendMapsService.getStaticMapImageUrl({
+        center: `${center.lat},${center.lng}`,
+        zoom: 10,
+        size: '800x400',
+        markers,
+        path: polylinePath
+      });
+
+      if (!imageUrl) {
+        throw new Error('Keine Karten-URL vom sicheren Proxy erhalten');
+      }
+
+      console.log('✅ Secure static map image URL received');
+      setMapImageUrl(imageUrl);
+      setRetryCount(0); // Reset retry count on success
+      
+    } catch (error) {
+      console.error('❌ Secure map generation failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      
+      // Enhanced error handling with retry logic
+      if (retryCount < MAX_RETRIES && !errorMessage.includes('API-Schlüssel')) {
+        console.log(`🔄 Retrying map generation (${retryCount + 1}/${MAX_RETRIES})...`);
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => generateStaticMap(true), 1000 * (retryCount + 1)); // Exponential backoff
+        return;
+      }
+      
+      setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
+      setMapImageUrl('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     generateStaticMap();
 
     // Cleanup function to revoke blob URLs and prevent memory leaks
@@ -147,6 +163,11 @@ export const BackendMapContainer = ({
           <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Sichere Karte wird generiert...</p>
           <p className="text-xs text-muted-foreground mt-1">Backend-Image-Proxy wird verwendet...</p>
+          {retryCount > 0 && (
+            <p className="text-xs text-yellow-600 mt-2">
+              Wiederholung {retryCount}/{MAX_RETRIES}...
+            </p>
+          )}
         </div>
       </div>
     );
@@ -157,18 +178,28 @@ export const BackendMapContainer = ({
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6 max-w-md">
           <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-3">
-            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <AlertCircle className="w-8 h-8 text-red-500" />
           </div>
           <p className="text-sm text-muted-foreground mb-2">Sichere Karte konnte nicht geladen werden</p>
-          <p className="text-xs text-red-400">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-3 px-3 py-1 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/80"
-          >
-            Seite neu laden
-          </button>
+          <p className="text-xs text-red-400 mb-4">{error}</p>
+          <div className="space-y-2">
+            <button 
+              onClick={() => {
+                setRetryCount(0);
+                generateStaticMap();
+              }}
+              className="px-3 py-1 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/80 flex items-center gap-1 mx-auto"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Erneut versuchen
+            </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-3 py-1 bg-muted text-muted-foreground rounded text-xs hover:bg-muted/80"
+            >
+              Seite neu laden
+            </button>
+          </div>
         </div>
       </div>
     );
