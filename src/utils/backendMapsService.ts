@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export class BackendMapsService {
@@ -16,7 +17,7 @@ export class BackendMapsService {
   public async getAddressSuggestions(input: string): Promise<any[]> {
     if (!input || input.length < 3) return [];
 
-    console.log('🔍 Backend autocomplete for:', input);
+    console.log('🔍 Frontend: Backend autocomplete request for:', input);
     
     try {
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
@@ -24,13 +25,46 @@ export class BackendMapsService {
       });
 
       if (error) {
-        console.error('❌ Autocomplete error:', error);
+        console.error('❌ Frontend: Autocomplete supabase error:', error);
+        console.error('📋 Error details:', {
+          message: error.message,
+          name: error.name,
+          context: error.context,
+          timestamp: new Date().toISOString()
+        });
         throw new Error(`Autocomplete error: ${error.message}`);
       }
 
-      return data.suggestions || [];
+      console.log('📋 Frontend: Autocomplete response:', data);
+      
+      if (!data) {
+        console.warn('⚠️ Frontend: No data received from autocomplete');
+        return [];
+      }
+
+      if (data.error) {
+        console.error('❌ Frontend: Backend returned error:', data.error);
+        console.error('📋 Debug info:', data.debug);
+        throw new Error(`Backend error: ${data.error}`);
+      }
+
+      const suggestions = data.suggestions || [];
+      console.log(`✅ Frontend: Received ${suggestions.length} autocomplete suggestions`);
+      
+      return suggestions;
     } catch (error) {
-      console.error('❌ Backend autocomplete failed:', error);
+      console.error('❌ Frontend: Backend autocomplete failed:', error);
+      
+      // Enhanced error information
+      if (error instanceof Error) {
+        if (error.message.includes('403') || error.message.includes('API key')) {
+          console.error('🚨 Frontend: API Key problem detected for autocomplete');
+          throw new Error('Google Places API Konfigurationsproblem: Möglicherweise ist die Places API nicht für den API-Schlüssel aktiviert.');
+        } else if (error.message.includes('Network')) {
+          throw new Error('Netzwerkfehler beim Laden der Adressvorschläge. Bitte überprüfen Sie Ihre Internetverbindung.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -42,7 +76,7 @@ export class BackendMapsService {
     formatted_address: string;
     address_components: any[];
   }> {
-    console.log('📍 Backend place details for:', placeId);
+    console.log('📍 Frontend: Backend place details request for:', placeId);
     
     try {
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
@@ -50,13 +84,44 @@ export class BackendMapsService {
       });
 
       if (error) {
-        console.error('❌ Place details error:', error);
+        console.error('❌ Frontend: Place details supabase error:', error);
+        console.error('📋 Error details:', {
+          message: error.message,
+          name: error.name,
+          context: error.context,
+          timestamp: new Date().toISOString()
+        });
         throw new Error(`Place details error: ${error.message}`);
       }
 
+      console.log('📋 Frontend: Place details response:', data);
+      
+      if (!data) {
+        console.error('❌ Frontend: No data received from place details');
+        throw new Error('Keine Ortsdetails erhalten');
+      }
+
+      if (data.error) {
+        console.error('❌ Frontend: Backend returned error:', data.error);
+        console.error('📋 Debug info:', data.debug);
+        throw new Error(`Backend error: ${data.error}`);
+      }
+
+      console.log('✅ Frontend: Place details successfully retrieved');
       return data;
     } catch (error) {
-      console.error('❌ Backend place details failed:', error);
+      console.error('❌ Frontend: Backend place details failed:', error);
+      
+      // Enhanced error information
+      if (error instanceof Error) {
+        if (error.message.includes('403') || error.message.includes('API key')) {
+          console.error('🚨 Frontend: API Key problem detected for place details');
+          throw new Error('Google Places API Konfigurationsproblem: Möglicherweise ist die Places API nicht für den API-Schlüssel aktiviert.');
+        } else if (error.message.includes('Network')) {
+          throw new Error('Netzwerkfehler beim Laden der Ortsdetails. Bitte überprüfen Sie Ihre Internetverbindung.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -69,7 +134,7 @@ export class BackendMapsService {
     duration_value: number;
     polyline: string;
   }> {
-    console.log('🗺️ Backend directions from:', origin, 'to:', destination);
+    console.log('🗺️ Frontend: Backend directions request from:', origin, 'to:', destination);
     
     try {
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
@@ -77,13 +142,14 @@ export class BackendMapsService {
       });
 
       if (error) {
-        console.error('❌ Directions error:', error);
+        console.error('❌ Frontend: Directions supabase error:', error);
         throw new Error(`Directions error: ${error.message}`);
       }
 
+      console.log('✅ Frontend: Directions successfully calculated');
       return data;
     } catch (error) {
-      console.error('❌ Backend directions failed:', error);
+      console.error('❌ Frontend: Backend directions failed:', error);
       throw error;
     }
   }
@@ -100,18 +166,18 @@ export class BackendMapsService {
     }>;
     path?: string;
   }): Promise<string> {
-    console.log('🗺️ Backend static map image request for:', options.center);
+    console.log('🗺️ Frontend: Backend static map image request for:', options.center);
     console.log('📋 Map options:', JSON.stringify(options, null, 2));
     
     try {
-      console.log('🔄 Invoking google-maps-proxy with static_map_image action...');
+      console.log('🔄 Frontend: Invoking google-maps-proxy with static_map_image action...');
       console.log('🕒 Request timestamp:', new Date().toISOString());
       
       // Use fetch directly for binary response handling
       const supabaseUrl = "https://vkarnxgrniqtyeeibgxq.supabase.co";
       const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrYXJueGdybmlxdHllZWliZ3hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwODYwNjUsImV4cCI6MjA2ODY2MjA2NX0.ULXL4SIwqXzzRWkxW15MO3OCkVfGlEvJ-NQ0_cnI9y8";
       
-      console.log('🔄 Making direct fetch request for binary image data...');
+      console.log('🔄 Frontend: Making direct fetch request for binary image data...');
       
       const response = await fetch(`${supabaseUrl}/functions/v1/google-maps-proxy`, {
         method: 'POST',
@@ -126,37 +192,37 @@ export class BackendMapsService {
         })
       });
 
-      console.log(`📊 Direct fetch response status: ${response.status}`);
+      console.log(`📊 Frontend: Direct fetch response status: ${response.status}`);
       console.log(`📊 Response headers:`, Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Direct fetch error response:', errorText);
+        console.error('❌ Frontend: Direct fetch error response:', errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const contentType = response.headers.get('content-type') || 'image/png';
-      console.log(`📊 Content-Type: ${contentType}`);
+      console.log(`📊 Frontend: Content-Type: ${contentType}`);
 
       // Check if it's actually image data
       if (contentType.startsWith('image/')) {
-        console.log('✅ Received binary image data');
+        console.log('✅ Frontend: Received binary image data');
         const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);
         
-        console.log('✅ Created blob URL:', imageUrl);
+        console.log('✅ Frontend: Created blob URL:', imageUrl);
         console.log('📊 Blob size:', blob.size, 'bytes');
         
         return imageUrl;
       } else {
         // It's probably an error response in JSON format
         const errorData = await response.json();
-        console.error('❌ Error response from backend:', errorData);
+        console.error('❌ Frontend: Error response from backend:', errorData);
         throw new Error(`Backend error: ${errorData.error || 'Unknown error'}`);
       }
       
     } catch (error) {
-      console.error('❌ Backend static map image failed:', error);
+      console.error('❌ Frontend: Backend static map image failed:', error);
       console.error('🔍 Full error context:', {
         name: error.name,
         message: error.message,
@@ -198,7 +264,7 @@ export class BackendMapsService {
     }>;
     path?: string;
   }): Promise<string> {
-    console.log('⚠️ Using legacy getStaticMapUrl - switching to secure image proxy');
+    console.log('⚠️ Frontend: Using legacy getStaticMapUrl - switching to secure image proxy');
     return this.getStaticMapImageUrl(options);
   }
 
@@ -208,7 +274,7 @@ export class BackendMapsService {
     lng: number;
     addressComponents?: any;
   } | null> {
-    console.log('🗺️ Backend geocoding for:', address);
+    console.log('🗺️ Frontend: Backend geocoding request for:', address);
     
     try {
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
@@ -216,11 +282,32 @@ export class BackendMapsService {
       });
 
       if (error) {
+        console.error('❌ Frontend: Geocoding supabase error:', error);
+        console.error('📋 Error details:', {
+          message: error.message,
+          name: error.name,
+          context: error.context,
+          timestamp: new Date().toISOString()
+        });
         throw new Error(`Geocoding error: ${error.message}`);
       }
 
-      if (data?.results?.length > 0) {
+      console.log('📋 Frontend: Geocoding response:', data);
+      
+      if (!data) {
+        console.warn('⚠️ Frontend: No data received from geocoding');
+        return null;
+      }
+
+      if (data.error) {
+        console.error('❌ Frontend: Backend returned error:', data.error);
+        console.error('📋 Debug info:', data.debug);
+        throw new Error(`Backend error: ${data.error}`);
+      }
+
+      if (data.results?.length > 0) {
         const result = data.results[0];
+        console.log('✅ Frontend: Geocoding successful');
         return {
           lat: result.geometry.location.lat,
           lng: result.geometry.location.lng,
@@ -228,9 +315,21 @@ export class BackendMapsService {
         };
       }
 
+      console.warn('⚠️ Frontend: No geocoding results found');
       return null;
     } catch (error) {
-      console.error('❌ Backend geocoding failed:', error);
+      console.error('❌ Frontend: Backend geocoding failed:', error);
+      
+      // Enhanced error information
+      if (error instanceof Error) {
+        if (error.message.includes('403') || error.message.includes('API key')) {
+          console.error('🚨 Frontend: API Key problem detected for geocoding');
+          throw new Error('Google Geocoding API Konfigurationsproblem: Möglicherweise ist die Geocoding API nicht für den API-Schlüssel aktiviert.');
+        } else if (error.message.includes('Network')) {
+          throw new Error('Netzwerkfehler beim Geocoding. Bitte überprüfen Sie Ihre Internetverbindung.');
+        }
+      }
+      
       throw error;
     }
   }

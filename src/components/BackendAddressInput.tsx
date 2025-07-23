@@ -1,10 +1,9 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useDebounce } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, MapPin, CheckCircle2 } from "lucide-react";
+import { Search, Loader2, MapPin, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
 import { backendMapsService } from "@/utils/backendMapsService";
@@ -35,6 +34,8 @@ export const BackendAddressInput = ({
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [lastError, setLastError] = useState<string>('');
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'working' | 'error'>('unknown');
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -49,34 +50,63 @@ export const BackendAddressInput = ({
         return;
       }
 
+      console.log('🔍 Frontend: Starting autocomplete for:', debouncedAddress);
       setSuggestionsLoading(true);
+      setLastError('');
+      
       try {
         const results = await backendMapsService.getAddressSuggestions(debouncedAddress);
         setSuggestions(results);
         setShowSuggestions(true);
         setSelectedIndex(-1);
+        setApiStatus('working');
+        
+        console.log(`✅ Frontend: Autocomplete successful - ${results.length} suggestions`);
       } catch (error) {
-        console.error('Autocomplete error:', error);
+        console.error('❌ Frontend: Autocomplete error:', error);
         setSuggestions([]);
         setShowSuggestions(false);
+        setApiStatus('error');
+        
+        const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+        setLastError(errorMessage);
+        
+        // Show user-friendly error message
+        if (errorMessage.includes('API') || errorMessage.includes('Konfiguration')) {
+          toast({
+            variant: "destructive",
+            title: "API-Konfigurationsproblem",
+            description: "Die Google Maps API ist möglicherweise nicht korrekt konfiguriert. Bitte überprüfen Sie die API-Einstellungen.",
+          });
+        } else if (errorMessage.includes('Netzwerk')) {
+          toast({
+            variant: "destructive",
+            title: "Netzwerkfehler",
+            description: "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+          });
+        }
       } finally {
         setSuggestionsLoading(false);
       }
     };
 
     fetchSuggestions();
-  }, [debouncedAddress]);
+  }, [debouncedAddress, toast]);
 
   // Suggestion-Auswahl verarbeiten
   const handleSuggestionSelect = async (suggestion: AddressSuggestion) => {
+    console.log('📍 Frontend: Suggestion selected:', suggestion.description);
     setAddress(suggestion.description);
     setShowSuggestions(false);
     setSuggestions([]);
     setLoading(true);
+    setLastError('');
 
     try {
+      console.log('🔄 Frontend: Getting place details for:', suggestion.place_id);
       const placeDetails = await backendMapsService.getPlaceDetails(suggestion.place_id);
       
+      console.log('✅ Frontend: Place details received:', placeDetails);
       onLocationChange({ lat: placeDetails.lat, lng: placeDetails.lng });
       
       const nearestInstitute = await calculateNearestInstitute(placeDetails.lat, placeDetails.lng);
@@ -96,16 +126,24 @@ export const BackendAddressInput = ({
       });
       onAddressComponentsChange(components);
       
+      setApiStatus('working');
       toast({
         title: "Adresse gefunden",
         description: "Die Entfernung zum nächsten Fortbildungsinstitut wurde berechnet.",
       });
     } catch (error) {
-      console.error('Address selection error:', error);
+      console.error('❌ Frontend: Address selection error:', error);
+      setApiStatus('error');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      setLastError(errorMessage);
+      
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Fehler beim Verarbeiten der Adresse.",
+        description: errorMessage.includes('API') ? 
+          "API-Konfigurationsproblem beim Verarbeiten der Adresse." : 
+          "Fehler beim Verarbeiten der Adresse.",
       });
     } finally {
       setLoading(false);
@@ -123,11 +161,15 @@ export const BackendAddressInput = ({
       return;
     }
 
+    console.log('🔍 Frontend: Starting manual search for:', address);
     setLoading(true);
+    setLastError('');
+    
     try {
       const result = await backendMapsService.geocodeAddress(address);
       
       if (result) {
+        console.log('✅ Frontend: Manual search successful:', result);
         onLocationChange({ lat: result.lat, lng: result.lng });
         
         const nearestInstitute = await calculateNearestInstitute(result.lat, result.lng);
@@ -147,20 +189,41 @@ export const BackendAddressInput = ({
         });
         onAddressComponentsChange(components);
         
+        setApiStatus('working');
         toast({
           title: "Adresse gefunden",
           description: "Die Entfernung zum nächsten Fortbildungsinstitut wurde berechnet.",
         });
+      } else {
+        throw new Error('Keine Ergebnisse für die eingegebene Adresse gefunden');
       }
     } catch (error) {
-      console.error('Manual search error:', error);
+      console.error('❌ Frontend: Manual search error:', error);
+      setApiStatus('error');
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      setLastError(errorMessage);
+      
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Die Adresse konnte nicht gefunden werden.",
+        description: errorMessage.includes('API') ? 
+          "API-Konfigurationsproblem bei der Adresssuche." : 
+          "Die Adresse konnte nicht gefunden werden.",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Erneut versuchen
+  const handleRetry = () => {
+    setLastError('');
+    setApiStatus('unknown');
+    if (debouncedAddress && debouncedAddress.length >= 3) {
+      // Trigger autocomplete again
+      setAddress(address + ' ');
+      setTimeout(() => setAddress(address), 100);
     }
   };
 
@@ -269,10 +332,43 @@ export const BackendAddressInput = ({
         </Button>
       </div>
       
-      <div className="text-sm text-muted-foreground flex items-center gap-2">
-        <CheckCircle2 className="w-4 h-4 text-green-500" />
-        <span>Backend-Adresssuche aktiv - beginnen Sie mit der Eingabe</span>
+      {/* Status Indicator */}
+      <div className="text-sm flex items-center gap-2">
+        {apiStatus === 'working' && (
+          <>
+            <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <span className="text-green-600">Backend-Adresssuche aktiv - beginnen Sie mit der Eingabe</span>
+          </>
+        )}
+        {apiStatus === 'error' && (
+          <>
+            <AlertCircle className="w-4 h-4 text-red-500" />
+            <span className="text-red-600">API-Problem erkannt</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              className="ml-2 h-6 px-2"
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Erneut versuchen
+            </Button>
+          </>
+        )}
+        {apiStatus === 'unknown' && (
+          <>
+            <CheckCircle2 className="w-4 h-4 text-blue-500" />
+            <span className="text-muted-foreground">Backend-Adresssuche wird geprüft...</span>
+          </>
+        )}
       </div>
+      
+      {/* Error Details */}
+      {lastError && (
+        <div className="text-xs text-red-500 bg-red-50 p-2 rounded border border-red-200">
+          <strong>Fehlerdetails:</strong> {lastError}
+        </div>
+      )}
     </div>
   );
 };
