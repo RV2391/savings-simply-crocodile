@@ -16,20 +16,22 @@ serve(async (req) => {
     console.log(`🔄 Action requested: ${action}`)
     console.log(`📋 Parameters: ${JSON.stringify(params, null, 2)}`)
     
-    // Get API keys - try multiple key sources for better compatibility
-    const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY_NEW') || Deno.env.get('GOOGLE_MAPS_API_KEY')
-    const GOOGLE_MAPS_STATIC_API_KEY = Deno.env.get('GOOGLE_MAPS_STATIC_API_KEY') || GOOGLE_MAPS_API_KEY
+    // Get API keys with fallback support
+    const primaryApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY')
+    const backupApiKey = Deno.env.get('GOOGLE_MAPS_API_KEY_NEW')
+    const staticApiKey = Deno.env.get('GOOGLE_MAPS_STATIC_API_KEY')
     
     console.log(`🔍 Environment check:`)
-    console.log(`  - GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'} (${GOOGLE_MAPS_API_KEY?.substring(0, 20) || 'N/A'}...)`)
-    console.log(`  - GOOGLE_MAPS_STATIC_API_KEY: ${GOOGLE_MAPS_STATIC_API_KEY ? 'Present' : 'Missing'} (${GOOGLE_MAPS_STATIC_API_KEY?.substring(0, 20) || 'N/A'}...)`)
+    console.log(`  - PRIMARY (GOOGLE_MAPS_API_KEY): ${primaryApiKey ? 'Present' : 'Missing'} (${primaryApiKey?.substring(0, 20) || 'N/A'}...)`)
+    console.log(`  - BACKUP (GOOGLE_MAPS_API_KEY_NEW): ${backupApiKey ? 'Present' : 'Missing'} (${backupApiKey?.substring(0, 20) || 'N/A'}...)`)
+    console.log(`  - STATIC (GOOGLE_MAPS_STATIC_API_KEY): ${staticApiKey ? 'Present' : 'Missing'} (${staticApiKey?.substring(0, 20) || 'N/A'}...)`)
     
-    if (!GOOGLE_MAPS_API_KEY && !GOOGLE_MAPS_STATIC_API_KEY) {
-      console.error('❌ No Google Maps API key found in environment variables')
+    if (!primaryApiKey && !backupApiKey && !staticApiKey) {
+      console.error('❌ No Google Maps API keys found in environment variables')
       return new Response(JSON.stringify({ 
-        error: 'API key not configured',
+        error: 'API keys not configured',
         debug: {
-          message: 'No Google Maps API key found in environment variables',
+          message: 'No Google Maps API keys found in environment variables',
           timestamp: new Date().toISOString()
         }
       }), {
@@ -38,11 +40,11 @@ serve(async (req) => {
       })
     }
 
-    // Determine which API key to use
+    // Determine which API key to use (with fallback logic)
     const isStaticMapAction = action === 'static_map' || action === 'static_map_image'
-    const apiKey = isStaticMapAction && GOOGLE_MAPS_STATIC_API_KEY ? GOOGLE_MAPS_STATIC_API_KEY : GOOGLE_MAPS_API_KEY
+    let apiKey = isStaticMapAction && staticApiKey ? staticApiKey : (primaryApiKey || backupApiKey)
     
-    console.log(`🔑 Using ${isStaticMapAction ? 'Static Maps' : 'General'} API key: ${apiKey.substring(0, 20)}...`)
+    console.log(`🔑 Using ${isStaticMapAction ? 'Static Maps' : 'General'} API key: ${apiKey?.substring(0, 20) || 'NONE'}... (${apiKey === primaryApiKey ? 'primary' : apiKey === backupApiKey ? 'backup' : 'static'})`)
     
     // Prepare headers - Remove referrer to avoid restrictions
     const apiHeaders = {
@@ -82,13 +84,45 @@ serve(async (req) => {
             
             // Handle specific error cases
             if (response.status === 403) {
+              // Try backup key if primary failed and backup exists
+              if (apiKey === primaryApiKey && backupApiKey) {
+                console.log('🔄 Primary key failed with 403, trying backup key...')
+                const backupUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${backupApiKey}&types=address&components=country:de|country:at|country:ch`
+                
+                try {
+                  const backupResponse = await fetch(backupUrl, { headers: apiHeaders, method: 'GET' })
+                  if (backupResponse.ok) {
+                    console.log('✅ Backup key successful for autocomplete')
+                    const backupData = await backupResponse.json()
+                    
+                    if (backupData.status === 'OK') {
+                      const suggestions = backupData.predictions?.map((prediction: any) => ({
+                        place_id: prediction.place_id,
+                        description: prediction.description,
+                        main_text: prediction.structured_formatting?.main_text || prediction.description,
+                        secondary_text: prediction.structured_formatting?.secondary_text || ''
+                      })) || []
+                      
+                      return new Response(JSON.stringify({ suggestions }), {
+                        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                      })
+                    }
+                  }
+                  console.error(`❌ Backup key also failed: ${backupResponse.status}`)
+                } catch (backupError) {
+                  console.error('❌ Backup key request failed:', backupError)
+                }
+              }
+              
               return new Response(JSON.stringify({ 
                 error: 'API Key Problem: 403 Forbidden. Check API Key configuration and HTTP-Referrer restrictions.',
                 debug: {
                   status: response.status,
                   statusText: response.statusText,
                   errorBody: errorText,
-                  timestamp: new Date().toISOString()
+                  timestamp: new Date().toISOString(),
+                  keyUsed: apiKey === primaryApiKey ? 'primary' : 'backup',
+                  hasBackupKey: !!backupApiKey
                 }
               }), {
                 status: 403,
@@ -472,8 +506,43 @@ serve(async (req) => {
           
           if (!imageResponse.ok) {
             const errorText = await imageResponse.text()
-            console.error(`❌ Static Maps API error: ${imageResponse.status} ${imageResponse.statusText}`)
+            console.error(`❌ Static Maps API error with ${apiKey === primaryApiKey ? 'primary' : apiKey === backupApiKey ? 'backup' : 'static'} key: ${imageResponse.status} ${imageResponse.statusText}`)
             console.error(`📋 Error response body: ${errorText}`)
+            
+            // Try backup key if primary failed with 403
+            if (imageResponse.status === 403 && apiKey === primaryApiKey && backupApiKey) {
+              console.log('🔄 Primary key failed for static map, trying backup key...')
+              const backupMarkersString = markers.map((marker: any) => {
+                const color = marker.color || 'red'
+                const label = marker.label || ''
+                return `markers=color:${color}|label:${label}|${marker.location}`
+              }).join('&')
+              
+              const backupPathString = path ? `&path=color:0x0000ff|weight:3|enc:${path}` : ''
+              const backupStaticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(center)}&zoom=${zoom}&size=${size}&${backupMarkersString}${backupPathString}&key=${backupApiKey}`
+              
+              try {
+                const backupImageResponse = await fetch(backupStaticMapUrl, { 
+                  headers: { 'User-Agent': 'Lovable-Maps-Service/1.0 (Backend Proxy)' },
+                  method: 'GET'
+                })
+                
+                if (backupImageResponse.ok) {
+                  console.log('✅ Backup key successful for static map')
+                  const backupImageBuffer = await backupImageResponse.arrayBuffer()
+                  return new Response(backupImageBuffer, {
+                    headers: {
+                      ...corsHeaders,
+                      'Content-Type': backupImageResponse.headers.get('Content-Type') || 'image/png',
+                      'Content-Length': backupImageBuffer.byteLength.toString()
+                    }
+                  })
+                }
+                console.error(`❌ Backup key also failed for static map: ${backupImageResponse.status}`)
+              } catch (backupError) {
+                console.error('❌ Backup static map request failed:', backupError)
+              }
+            }
             
             return new Response(JSON.stringify({ 
               error: `Static Maps API Key Problem: ${imageResponse.status} ${imageResponse.statusText}. Check API Key configuration and HTTP-Referrer restrictions.`,
@@ -481,7 +550,9 @@ serve(async (req) => {
                 timestamp: new Date().toISOString(),
                 status: imageResponse.status,
                 statusText: imageResponse.statusText,
-                errorBody: errorText
+                errorBody: errorText,
+                keyUsed: apiKey === primaryApiKey ? 'primary' : apiKey === backupApiKey ? 'backup' : 'static',
+                hasBackupKey: !!backupApiKey
               }
             }), {
               status: imageResponse.status,
