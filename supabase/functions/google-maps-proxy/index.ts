@@ -1,6 +1,7 @@
+
 import { corsHeaders } from '../_shared/cors.ts'
 
-console.log("🚀 Enhanced Google Maps Proxy function started - Version 2.0")
+console.log("🚀 Enhanced Google Maps Proxy function started - Version 2.1 with dual API keys")
 
 Deno.serve(async (req) => {
   console.log(`📨 Request received: ${req.method} ${req.url}`)
@@ -17,11 +18,12 @@ Deno.serve(async (req) => {
     console.log(`🔄 Action requested: ${action}`)
     console.log(`📋 Parameters: ${JSON.stringify(params, null, 2)}`)
     
+    // Get API keys - use specific key for static maps
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
+    const GOOGLE_MAPS_STATIC_API_KEY = Deno.env.get('GOOGLE_MAPS_STATIC_API_KEY')
     
     if (!GOOGLE_MAPS_API_KEY) {
       console.error('❌ CRITICAL: Google Maps API key not found in environment')
-      console.error('💡 Please check Supabase Edge Functions secrets configuration')
       return new Response(
         JSON.stringify({ 
           error: 'Google Maps API key not configured',
@@ -35,8 +37,12 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`🔑 API Key configured: ${GOOGLE_MAPS_API_KEY.substring(0, 20)}...`)
-    console.log(`📏 API Key length: ${GOOGLE_MAPS_API_KEY.length} characters`)
+    // Determine which API key to use based on action
+    const isStaticMapAction = action === 'static_map_image' || action === 'static_map'
+    const apiKey = isStaticMapAction && GOOGLE_MAPS_STATIC_API_KEY ? GOOGLE_MAPS_STATIC_API_KEY : GOOGLE_MAPS_API_KEY
+    
+    console.log(`🔑 Using ${isStaticMapAction ? 'Static Maps' : 'General'} API key: ${apiKey.substring(0, 20)}...`)
+    console.log(`📏 API Key length: ${apiKey.length} characters`)
 
     let response
     
@@ -49,7 +55,7 @@ Deno.serve(async (req) => {
           )
         }
         
-        const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(params.input)}&key=${GOOGLE_MAPS_API_KEY}&types=address&components=country:de|country:at|country:ch&language=de`
+        const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(params.input)}&key=${apiKey}&types=address&components=country:de|country:at|country:ch&language=de`
         console.log('🔍 Places autocomplete request for:', params.input)
         
         try {
@@ -85,7 +91,7 @@ Deno.serve(async (req) => {
           )
         }
         
-        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${params.place_id}&fields=geometry,address_components,formatted_address&key=${GOOGLE_MAPS_API_KEY}&language=de`
+        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${params.place_id}&fields=geometry,address_components,formatted_address&key=${apiKey}&language=de`
         console.log('📍 Place details request for:', params.place_id)
         
         try {
@@ -124,7 +130,7 @@ Deno.serve(async (req) => {
           )
         }
         
-        const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(params.origin)}&destination=${encodeURIComponent(params.destination)}&key=${GOOGLE_MAPS_API_KEY}&language=de&units=metric&mode=driving&alternatives=true`
+        const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(params.origin)}&destination=${encodeURIComponent(params.destination)}&key=${apiKey}&language=de&units=metric&mode=driving&alternatives=true`
         console.log('🗺️ Directions request:', params.origin, 'to', params.destination)
         
         try {
@@ -174,7 +180,7 @@ Deno.serve(async (req) => {
         const zoom = params.zoom || 10
         const maptype = params.maptype || 'roadmap'
         
-        let staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${zoom}&size=${size}&maptype=${maptype}&key=${GOOGLE_MAPS_API_KEY}`
+        let staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${zoom}&size=${size}&maptype=${maptype}&key=${apiKey}`
         
         // Add markers if provided
         if (params.markers && Array.isArray(params.markers)) {
@@ -195,38 +201,27 @@ Deno.serve(async (req) => {
         }
         
         console.log('🗺️ Static map image request for:', params.center)
+        console.log('🔑 Using Static Maps API key for secure request')
         console.log('📏 Final Google Maps URL length:', staticMapUrl.length)
-        console.log('🌐 Making request to Google Maps API...')
-        
-        // Debug: Log the full URL (ohne API key)
-        const debugUrl = staticMapUrl.replace(GOOGLE_MAPS_API_KEY, '[API_KEY_HIDDEN]')
-        console.log('🔍 Debug URL:', debugUrl)
         
         try {
           const imageResponse = await fetch(staticMapUrl)
           
           console.log(`📊 Google Maps API response status: ${imageResponse.status}`)
           console.log(`📊 Google Maps API response statusText: ${imageResponse.statusText}`)
-          console.log(`📊 Google Maps API response headers:`, Object.fromEntries(imageResponse.headers.entries()))
           
           if (!imageResponse.ok) {
             const errorText = await imageResponse.text()
             console.error('❌ Google Maps API error response:', errorText)
-            console.error('🔍 Full error details:', {
-              status: imageResponse.status,
-              statusText: imageResponse.statusText,
-              headers: Object.fromEntries(imageResponse.headers.entries()),
-              body: errorText
-            })
             
-            // Detaillierte Fehleranalyse
             let errorMessage = `Google Maps API returned ${imageResponse.status}: ${imageResponse.statusText}`
             let debugInfo = {
               timestamp: new Date().toISOString(),
               status: imageResponse.status,
               statusText: imageResponse.statusText,
               errorBody: errorText,
-              apiKeyLength: GOOGLE_MAPS_API_KEY.length,
+              usingStaticApiKey: !!GOOGLE_MAPS_STATIC_API_KEY,
+              apiKeyLength: apiKey.length,
               urlLength: staticMapUrl.length,
               requestedCenter: params.center,
               requestedSize: size,
@@ -235,23 +230,9 @@ Deno.serve(async (req) => {
             }
             
             if (imageResponse.status === 403) {
-              console.error('🚨 403 FORBIDDEN - API Key Problem detected!')
-              console.error('💡 Possible causes:')
-              console.error('   - API Key is invalid or expired')
-              console.error('   - Static Maps API is not enabled')
-              console.error('   - API Key has domain/IP restrictions')
-              console.error('   - Billing is not enabled for the Google Cloud Project')
-              console.error('   - API Key lacks permissions for Static Maps API')
-              
-              errorMessage = 'Google Maps API Key Problem: 403 Forbidden. Check API Key configuration, billing, and permissions.'
-              debugInfo.diagnosis = 'API_KEY_AUTHORIZATION_PROBLEM'
-              debugInfo.solutions = [
-                'Check Google Cloud Console for API Key validity',
-                'Verify Static Maps API is enabled',
-                'Check API Key restrictions (domains, IPs)',
-                'Verify billing is enabled',
-                'Check API Key permissions'
-              ]
+              console.error('🚨 403 FORBIDDEN - Static Maps API Key Problem detected!')
+              errorMessage = 'Static Maps API Key Problem: 403 Forbidden. Check API Key configuration and HTTP-Referrer restrictions.'
+              debugInfo.diagnosis = 'STATIC_API_KEY_AUTHORIZATION_PROBLEM'
             } else if (imageResponse.status === 400) {
               console.error('🚨 400 BAD REQUEST - Invalid parameters')
               errorMessage = 'Invalid request parameters. Check the map configuration.'
@@ -280,12 +261,7 @@ Deno.serve(async (req) => {
           
           console.log('✅ Successfully loaded map image from Google Maps API')
           console.log(`📊 Image details: ${imageBuffer.byteLength} bytes, type: ${contentType}`)
-          console.log(`🎯 Success metrics:`)
-          console.log(`   - Response time: ${Date.now()} ms`)
-          console.log(`   - Image size: ${imageBuffer.byteLength} bytes`)
-          console.log(`   - Content type: ${contentType}`)
-          console.log(`   - Markers: ${params.markers?.length || 0}`)
-          console.log(`   - Path included: ${!!params.path}`)
+          console.log(`🔑 Success with ${GOOGLE_MAPS_STATIC_API_KEY ? 'Static Maps' : 'General'} API key`)
           
           return new Response(imageBuffer, {
             headers: {
@@ -294,17 +270,12 @@ Deno.serve(async (req) => {
               'Cache-Control': 'public, max-age=3600',
               'Content-Length': imageBuffer.byteLength.toString(),
               'X-Debug-Status': 'success',
-              'X-Debug-Timestamp': new Date().toISOString()
+              'X-Debug-Timestamp': new Date().toISOString(),
+              'X-Debug-ApiKey': GOOGLE_MAPS_STATIC_API_KEY ? 'static' : 'general'
             }
           })
         } catch (fetchError) {
           console.error('❌ Network error while fetching from Google Maps:', fetchError)
-          console.error('🔍 Network error details:', {
-            name: fetchError.name,
-            message: fetchError.message,
-            stack: fetchError.stack,
-            timestamp: new Date().toISOString()
-          })
           
           return new Response(
             JSON.stringify({ 
@@ -333,7 +304,7 @@ Deno.serve(async (req) => {
         const mapZoom = params.zoom || 10
         const mapMaptype = params.maptype || 'roadmap'
         
-        let mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${mapZoom}&size=${mapSize}&maptype=${mapMaptype}&key=${GOOGLE_MAPS_API_KEY}`
+        let mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${mapZoom}&size=${mapSize}&maptype=${mapMaptype}&key=${apiKey}`
         
         // Add markers if provided
         if (params.markers) {
@@ -351,6 +322,7 @@ Deno.serve(async (req) => {
         }
         
         console.log('🗺️ Static map URL generation for:', params.center)
+        console.log('🔑 Using Static Maps API key for URL generation')
         console.log('✅ Static map URL generated:', mapUrl.substring(0, 100) + '...')
         
         return new Response(JSON.stringify({ url: mapUrl }), {
@@ -364,7 +336,7 @@ Deno.serve(async (req) => {
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
-        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(params.address)}&key=${GOOGLE_MAPS_API_KEY}&region=de&language=de`
+        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(params.address)}&key=${apiKey}&region=de&language=de`
         console.log('🗺️ Geocoding request for:', params.address)
         
         try {
