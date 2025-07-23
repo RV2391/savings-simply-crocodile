@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Loader2, MapPin, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { calculateNearestInstitute } from "@/utils/dentalInstitutes";
-import { backendMapsService } from "@/utils/backendMapsService";
+import { mapProviderManager } from "@/utils/mapProviders/mapProviderManager";
 import type { AddressComponents } from "@/types";
 
 interface BackendAddressInputProps {
@@ -55,7 +55,7 @@ export const BackendAddressInput = ({
       setLastError('');
       
       try {
-        const results = await backendMapsService.getAddressSuggestions(debouncedAddress);
+        const results = await mapProviderManager.getAddressSuggestions(debouncedAddress);
         setSuggestions(results);
         setShowSuggestions(true);
         setSelectedIndex(-1);
@@ -104,7 +104,9 @@ export const BackendAddressInput = ({
 
     try {
       console.log('🔄 Frontend: Getting place details for:', suggestion.place_id);
-      const placeDetails = await backendMapsService.getPlaceDetails(suggestion.place_id);
+      // For OSM, pass the description as query, for Google use place_id
+      const query = mapProviderManager.getCurrentProvider() === 'osm' ? suggestion.description : suggestion.place_id;
+      const placeDetails = await mapProviderManager.getPlaceDetails(query);
       
       console.log('✅ Frontend: Place details received:', placeDetails);
       onLocationChange({ lat: placeDetails.lat, lng: placeDetails.lng });
@@ -166,7 +168,7 @@ export const BackendAddressInput = ({
     setLastError('');
     
     try {
-      const result = await backendMapsService.geocodeAddress(address);
+      const result = await mapProviderManager.geocodeAddress(address);
       
       if (result) {
         console.log('✅ Frontend: Manual search successful:', result);
@@ -337,7 +339,9 @@ export const BackendAddressInput = ({
         {apiStatus === 'working' && (
           <>
             <CheckCircle2 className="w-4 h-4 text-green-500" />
-            <span className="text-green-600">Backend-Adresssuche aktiv - beginnen Sie mit der Eingabe</span>
+            <span className="text-green-600">
+              {mapProviderManager.getProviderDisplayName(mapProviderManager.getCurrentProvider())} aktiv - beginnen Sie mit der Eingabe
+            </span>
           </>
         )}
         {apiStatus === 'error' && (
@@ -358,7 +362,9 @@ export const BackendAddressInput = ({
         {apiStatus === 'unknown' && (
           <>
             <CheckCircle2 className="w-4 h-4 text-blue-500" />
-            <span className="text-muted-foreground">Backend-Adresssuche wird geprüft...</span>
+            <span className="text-muted-foreground">
+              {mapProviderManager.getProviderDisplayName(mapProviderManager.getCurrentProvider())} wird geprüft...
+            </span>
           </>
         )}
       </div>
