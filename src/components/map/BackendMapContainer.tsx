@@ -69,22 +69,32 @@ export const BackendMapContainer = ({
         // Route berechnen wenn gewünscht
         if (showDirections && nearestInstitute) {
           try {
+            console.log('🛣️ Calculating directions...');
             const directions = await backendMapsService.getDirections(
               `${practiceLocation.lat},${practiceLocation.lng}`,
               `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`
             );
             
+            console.log('✅ Directions calculated successfully');
             setDirectionsData(directions);
             polylinePath = directions.polyline;
           } catch (error) {
-            console.warn('Directions failed:', error);
+            console.warn('⚠️ Directions failed, continuing without route:', error);
           }
         }
 
         console.log('📍 Total markers to add:', markers.length);
+        console.log('🛣️ Polyline path length:', polylinePath.length);
 
-        // Use the new secure image proxy method
-        const mapUrl = await backendMapsService.getStaticMapImageUrl({
+        // Cleanup previous blob URL to prevent memory leaks
+        if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
+          console.log('🧹 Cleaning up previous blob URL');
+          URL.revokeObjectURL(mapImageUrl);
+        }
+
+        // Use the secure image proxy method
+        console.log('🔄 Requesting secure static map image...');
+        const imageUrl = await backendMapsService.getStaticMapImageUrl({
           center: `${center.lat},${center.lng}`,
           zoom: 10,
           size: '800x400',
@@ -92,12 +102,13 @@ export const BackendMapContainer = ({
           path: polylinePath
         });
 
-        if (!mapUrl) {
-          throw new Error('No map URL returned from secure image proxy');
+        if (!imageUrl) {
+          throw new Error('No map image URL returned from secure proxy');
         }
 
-        console.log('✅ Secure static map image URL received successfully');
-        setMapImageUrl(mapUrl);
+        console.log('✅ Secure static map image URL received:', imageUrl.substring(0, 50) + '...');
+        setMapImageUrl(imageUrl);
+        
       } catch (error) {
         console.error('❌ Secure map generation failed:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -113,6 +124,7 @@ export const BackendMapContainer = ({
     // Cleanup function to revoke blob URLs and prevent memory leaks
     return () => {
       if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
+        console.log('🧹 Component unmount: Cleaning up blob URL');
         URL.revokeObjectURL(mapImageUrl);
       }
     };
@@ -122,6 +134,7 @@ export const BackendMapContainer = ({
   useEffect(() => {
     return () => {
       if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
+        console.log('🧹 URL change: Cleaning up blob URL');
         URL.revokeObjectURL(mapImageUrl);
       }
     };
@@ -168,8 +181,12 @@ export const BackendMapContainer = ({
           src={mapImageUrl}
           alt="Sichere statische Karte mit Praxis und Instituten"
           className="w-full h-[400px] object-cover"
-          onError={() => {
-            console.error('❌ Secure map image failed to display:', mapImageUrl);
+          onLoad={() => {
+            console.log('✅ Map image loaded successfully');
+          }}
+          onError={(e) => {
+            console.error('❌ Map image failed to display:', mapImageUrl);
+            console.error('Image error event:', e);
             setError('Sicheres Kartenbild konnte nicht angezeigt werden');
             setMapImageUrl('');
           }}

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export class BackendMapsService {
@@ -100,45 +101,40 @@ export class BackendMapsService {
     }>;
     path?: string;
   }): Promise<string> {
-    console.log('🗺️ Backend static map image request for:', options.center, 'with options:', options);
+    console.log('🗺️ Backend static map image request for:', options.center);
+    console.log('📋 Map options:', JSON.stringify(options, null, 2));
     
     try {
-      // Get the Supabase function URL directly
-      const { data: { session } } = await supabase.auth.getSession();
-      const functionUrl = `https://vkarnxgrniqtyeeibgxq.supabase.co/functions/v1/google-maps-proxy`;
+      console.log('🔄 Invoking google-maps-proxy with static_map_image action...');
       
-      // Create a direct fetch request with the image proxy action
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrYXJueGdybmlxdHllZWliZ3hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwODYwNjUsImV4cCI6MjA2ODY2MjA2NX0.ULXL4SIwqXzzRWkxW15MO3OCkVfGlEvJ-NQ0_cnI9y8'}`,
-        },
-        body: JSON.stringify({ 
+      const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
+        body: { 
           action: 'static_map_image', 
           ...options 
-        })
+        }
       });
 
-      if (!response.ok) {
-        console.error('❌ Static map image request failed:', response.status, response.statusText);
-        throw new Error(`Static map image request failed: ${response.status} ${response.statusText}`);
+      if (error) {
+        console.error('❌ Static map image error from function:', error);
+        throw new Error(`Static map image error: ${error.message}`);
       }
 
-      // Check if response is actually an image
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.startsWith('image/')) {
-        const errorText = await response.text();
-        console.error('❌ Response is not an image:', contentType, errorText);
-        throw new Error(`Expected image response, got: ${contentType}`);
+      // Check if we received binary data (ArrayBuffer)
+      if (data instanceof ArrayBuffer) {
+        console.log('✅ Received ArrayBuffer data, size:', data.byteLength, 'bytes');
+        
+        // Create blob from ArrayBuffer
+        const blob = new Blob([data], { type: 'image/png' });
+        const imageUrl = URL.createObjectURL(blob);
+        
+        console.log('✅ Created blob URL:', imageUrl);
+        return imageUrl;
       }
 
-      // Convert the image response to a blob URL
-      const blob = await response.blob();
-      const imageUrl = URL.createObjectURL(blob);
+      // If we get here, the response format is unexpected
+      console.error('❌ Unexpected response format from static_map_image:', typeof data);
+      throw new Error(`Unexpected response format: ${typeof data}`);
       
-      console.log('✅ Static map image blob URL created successfully');
-      return imageUrl;
     } catch (error) {
       console.error('❌ Backend static map image failed:', error);
       
