@@ -108,8 +108,8 @@ export class BackendMapsService {
       console.log('🕒 Request timestamp:', new Date().toISOString());
       
       // Use fetch directly for binary response handling
-      const supabaseUrl = supabase.supabaseUrl;
-      const supabaseKey = supabase.supabaseKey;
+      const supabaseUrl = "https://vkarnxgrniqtyeeibgxq.supabase.co";
+      const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZrYXJueGdybmlxdHllZWliZ3hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwODYwNjUsImV4cCI6MjA2ODY2MjA2NX0.ULXL4SIwqXzzRWkxW15MO3OCkVfGlEvJ-NQ0_cnI9y8";
       
       console.log('🔄 Making direct fetch request for binary image data...');
       
