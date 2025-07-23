@@ -1,7 +1,6 @@
-
 import { corsHeaders } from '../_shared/cors.ts'
 
-console.log("🚀 Enhanced Google Maps Proxy function started - Version 2.1 with dual API keys")
+console.log("🚀 Enhanced Google Maps Proxy function started - Version 2.2 with binary response fix")
 
 Deno.serve(async (req) => {
   console.log(`📨 Request received: ${req.method} ${req.url}`)
@@ -42,7 +41,6 @@ Deno.serve(async (req) => {
     const apiKey = isStaticMapAction && GOOGLE_MAPS_STATIC_API_KEY ? GOOGLE_MAPS_STATIC_API_KEY : GOOGLE_MAPS_API_KEY
     
     console.log(`🔑 Using ${isStaticMapAction ? 'Static Maps' : 'General'} API key: ${apiKey.substring(0, 20)}...`)
-    console.log(`📏 API Key length: ${apiKey.length} characters`)
 
     let response
     
@@ -205,6 +203,7 @@ Deno.serve(async (req) => {
         console.log('📏 Final Google Maps URL length:', staticMapUrl.length)
         
         try {
+          console.log('🔄 Fetching image from Google Maps API...')
           const imageResponse = await fetch(staticMapUrl)
           
           console.log(`📊 Google Maps API response status: ${imageResponse.status}`)
@@ -257,24 +256,22 @@ Deno.serve(async (req) => {
           }
           
           const contentType = imageResponse.headers.get('content-type') || 'image/png'
-          const imageBuffer = await imageResponse.arrayBuffer()
+          const imageArrayBuffer = await imageResponse.arrayBuffer()
           
           console.log('✅ Successfully loaded map image from Google Maps API')
-          console.log(`📊 Image details: ${imageBuffer.byteLength} bytes, type: ${contentType}`)
+          console.log(`📊 Image details: ${imageArrayBuffer.byteLength} bytes, type: ${contentType}`)
           console.log(`🔑 Success with ${GOOGLE_MAPS_STATIC_API_KEY ? 'Static Maps' : 'General'} API key`)
           
-          // Return the image as binary data with proper CORS headers
-          return new Response(imageBuffer, {
+          // Return the image as proper binary data with CORS headers
+          return new Response(imageArrayBuffer, {
             headers: {
               ...corsHeaders,
               'Content-Type': contentType,
               'Cache-Control': 'public, max-age=3600',
-              'Content-Length': imageBuffer.byteLength.toString(),
+              'Content-Length': imageArrayBuffer.byteLength.toString(),
               'X-Debug-Status': 'success',
               'X-Debug-Timestamp': new Date().toISOString(),
-              'X-Debug-ApiKey': GOOGLE_MAPS_STATIC_API_KEY ? 'static' : 'general',
-              // Ensure proper binary response handling
-              'Access-Control-Expose-Headers': 'Content-Type, Content-Length, X-Debug-Status, X-Debug-Timestamp, X-Debug-ApiKey'
+              'X-Debug-ApiKey': GOOGLE_MAPS_STATIC_API_KEY ? 'static' : 'general'
             }
           })
         } catch (fetchError) {

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export class BackendMapsService {
@@ -108,90 +107,53 @@ export class BackendMapsService {
       console.log('🔄 Invoking google-maps-proxy with static_map_image action...');
       console.log('🕒 Request timestamp:', new Date().toISOString());
       
-      // Make sure to request binary response from Supabase
-      const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
-        body: { 
-          action: 'static_map_image', 
-          ...options 
-        },
+      // Use fetch directly for binary response handling
+      const supabaseUrl = supabase.supabaseUrl;
+      const supabaseKey = supabase.supabaseKey;
+      
+      console.log('🔄 Making direct fetch request for binary image data...');
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/google-maps-proxy`, {
+        method: 'POST',
         headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
           'Accept': 'image/png, application/json'
-        }
+        },
+        body: JSON.stringify({
+          action: 'static_map_image',
+          ...options
+        })
       });
 
-      if (error) {
-        console.error('❌ Static map image error from function:', error);
-        console.error('🔍 Full error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
-          context: error.context,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Enhanced error handling with specific error types
-        if (error.message?.includes('403')) {
-          throw new Error('Google Maps API: 403 Forbidden - API Key Problem. Überprüfen Sie die API-Schlüssel-Konfiguration, Billing und Berechtigungen in der Google Cloud Console.');
-        } else if (error.message?.includes('429')) {
-          throw new Error('Google Maps API: 429 Rate-Limit erreicht. Bitte versuchen Sie es später erneut.');
-        } else if (error.message?.includes('400')) {
-          throw new Error('Google Maps API: 400 Ungültige Anfrage-Parameter. Überprüfen Sie die Karten-Konfiguration.');
-        } else if (error.message?.includes('500')) {
-          throw new Error('Google Maps API: 500 Server-Fehler. Möglicherweise ist die API temporär nicht verfügbar.');
-        } else {
-          throw new Error(`Static map image error: ${error.message}`);
-        }
+      console.log(`📊 Direct fetch response status: ${response.status}`);
+      console.log(`📊 Response headers:`, Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Direct fetch error response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
-      // Check if we received binary data (ArrayBuffer)
-      if (data instanceof ArrayBuffer) {
-        console.log('✅ Received ArrayBuffer data, size:', data.byteLength, 'bytes');
-        
-        // Validate that we actually received image data
-        if (data.byteLength === 0) {
-          throw new Error('Empty image data received from Google Maps API');
-        }
-        
-        // Additional validation for minimum image size
-        if (data.byteLength < 1000) {
-          console.warn('⚠️ Received very small image data, might be an error response');
-        }
-        
-        // Create blob from ArrayBuffer
-        const blob = new Blob([data], { type: 'image/png' });
+      const contentType = response.headers.get('content-type') || 'image/png';
+      console.log(`📊 Content-Type: ${contentType}`);
+
+      // Check if it's actually image data
+      if (contentType.startsWith('image/')) {
+        console.log('✅ Received binary image data');
+        const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);
         
         console.log('✅ Created blob URL:', imageUrl);
-        console.log('📊 Image metrics:', {
-          size: data.byteLength,
-          url: imageUrl,
-          timestamp: new Date().toISOString()
-        });
+        console.log('📊 Blob size:', blob.size, 'bytes');
         
         return imageUrl;
+      } else {
+        // It's probably an error response in JSON format
+        const errorData = await response.json();
+        console.error('❌ Error response from backend:', errorData);
+        throw new Error(`Backend error: ${errorData.error || 'Unknown error'}`);
       }
-
-      // If we get here, check if it's an error response
-      if (typeof data === 'object' && data !== null && 'error' in data) {
-        console.error('❌ Error response from backend:', data);
-        console.error('🔍 Debug information:', data.debug);
-        
-        // Check for specific error types from debug info
-        if (data.debug?.diagnosis === 'API_KEY_AUTHORIZATION_PROBLEM') {
-          throw new Error('Google Maps API Key Problem: API-Schlüssel ist ungültig, abgelaufen oder hat keine Berechtigung für die Static Maps API. Überprüfen Sie die Google Cloud Console.');
-        } else if (data.debug?.diagnosis === 'RATE_LIMIT_EXCEEDED') {
-          throw new Error('Google Maps API Rate-Limit erreicht. Bitte versuchen Sie es später erneut.');
-        } else if (data.debug?.diagnosis === 'INVALID_REQUEST_PARAMETERS') {
-          throw new Error('Ungültige Anfrage-Parameter für Google Maps API. Überprüfen Sie die Karten-Konfiguration.');
-        } else {
-          throw new Error(`Backend error: ${data.error}`);
-        }
-      }
-
-      // If we get here, the response format is unexpected
-      console.error('❌ Unexpected response format from static_map_image:', typeof data);
-      console.error('🔍 Response data:', data);
-      throw new Error(`Unexpected response format: ${typeof data}`);
       
     } catch (error) {
       console.error('❌ Backend static map image failed:', error);
