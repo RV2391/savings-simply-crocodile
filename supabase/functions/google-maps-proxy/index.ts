@@ -1,14 +1,13 @@
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
-console.log("🚀 Enhanced Google Maps Proxy function started - Version 2.3 with improved API debugging")
+console.log('🚀 Google Maps Proxy function started')
 
-Deno.serve(async (req) => {
-  console.log(`📨 Request received: ${req.method} ${req.url}`)
-  console.log(`🕒 Timestamp: ${new Date().toISOString()}`)
+serve(async (req) => {
+  console.log(`📥 Incoming request: ${req.method} ${req.url}`)
   
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('✅ Handling CORS preflight request')
     return new Response(null, { headers: corsHeaders })
   }
 
@@ -25,347 +24,369 @@ Deno.serve(async (req) => {
     console.log(`  - GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'} (${GOOGLE_MAPS_API_KEY?.substring(0, 20) || 'N/A'}...)`)
     console.log(`  - GOOGLE_MAPS_STATIC_API_KEY: ${GOOGLE_MAPS_STATIC_API_KEY ? 'Present' : 'Missing'} (${GOOGLE_MAPS_STATIC_API_KEY?.substring(0, 20) || 'N/A'}...)`)
     
-    if (!GOOGLE_MAPS_API_KEY) {
-      console.error('❌ CRITICAL: Google Maps API key not found in environment')
-      return new Response(
-        JSON.stringify({ 
-          error: 'Google Maps API key not configured',
-          debug: 'GOOGLE_MAPS_API_KEY environment variable is missing',
+    if (!GOOGLE_MAPS_API_KEY && !GOOGLE_MAPS_STATIC_API_KEY) {
+      console.error('❌ No Google Maps API key found in environment variables')
+      return new Response(JSON.stringify({ 
+        error: 'API key not configured',
+        debug: {
+          message: 'No Google Maps API key found in environment variables',
           timestamp: new Date().toISOString()
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
-      )
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
-    // Determine which API key to use based on action
-    const isStaticMapAction = action === 'static_map_image' || action === 'static_map'
+    // Determine which API key to use
+    const isStaticMapAction = action === 'static_map' || action === 'static_map_image'
     const apiKey = isStaticMapAction && GOOGLE_MAPS_STATIC_API_KEY ? GOOGLE_MAPS_STATIC_API_KEY : GOOGLE_MAPS_API_KEY
     
     console.log(`🔑 Using ${isStaticMapAction ? 'Static Maps' : 'General'} API key: ${apiKey.substring(0, 20)}...`)
     
-    // Prepare headers with proper referrer for API requests
+    // Prepare headers - Remove referrer to avoid restrictions
     const apiHeaders = {
-      'Referer': 'https://lovable.dev/',
-      'User-Agent': 'Lovable-Maps-Service/1.0'
+      'User-Agent': 'Lovable-Maps-Service/1.0 (Backend Proxy)',
+      'Accept': 'application/json'
     }
 
     let response
     
     switch (action) {
       case 'autocomplete':
-        if (!params.input) {
-          console.error('❌ Autocomplete: Missing input parameter')
-          return new Response(
-            JSON.stringify({ error: 'Input parameter is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+        console.log('🔍 Processing autocomplete request...')
+        const input = params.input
+        
+        if (!input || input.length < 3) {
+          console.log('⚠️ Invalid autocomplete input')
+          return new Response(JSON.stringify({ suggestions: [] }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
         
-        const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(params.input)}&key=${apiKey}&types=address&components=country:de|country:at|country:ch&language=de`
-        console.log('🔍 Places autocomplete request for:', params.input)
-        console.log('🔗 Full autocomplete URL (key redacted):', autocompleteUrl.replace(apiKey, 'API_KEY_REDACTED'))
+        const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}&types=address&components=country:de|country:at|country:ch`
+        console.log(`📍 Autocomplete URL: ${autocompleteUrl.replace(apiKey, 'API_KEY_HIDDEN')}`)
         
         try {
           console.log('🔄 Sending autocomplete request to Google Maps API...')
-          response = await fetch(autocompleteUrl, { headers: apiHeaders })
+          response = await fetch(autocompleteUrl, { 
+            headers: apiHeaders,
+            method: 'GET'
+          })
           console.log(`📊 Autocomplete API response status: ${response.status} ${response.statusText}`)
           
           if (!response.ok) {
             const errorText = await response.text()
-            console.error('❌ Autocomplete API error response:', errorText)
-            console.error('📋 Error details:', {
-              status: response.status,
-              statusText: response.statusText,
-              headers: Object.fromEntries(response.headers.entries())
-            })
+            console.error(`❌ Autocomplete API error: ${response.status} ${response.statusText}`)
+            console.error(`📋 Error response body: ${errorText}`)
             
-            return new Response(
-              JSON.stringify({ 
-                error: `Google Places API error: ${response.status} ${response.statusText}`,
+            // Handle specific error cases
+            if (response.status === 403) {
+              return new Response(JSON.stringify({ 
+                error: 'API Key Problem: 403 Forbidden. Check API Key configuration and HTTP-Referrer restrictions.',
                 debug: {
                   status: response.status,
                   statusText: response.statusText,
-                  body: errorText,
-                  apiEndpoint: 'autocomplete',
+                  errorBody: errorText,
                   timestamp: new Date().toISOString()
                 }
-              }),
-              { 
-                status: response.status, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }), {
+                status: 403,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              })
+            }
+            
+            return new Response(JSON.stringify({ 
+              error: `Google Maps API Error: ${response.status} ${response.statusText}`,
+              debug: {
+                status: response.status,
+                statusText: response.statusText,
+                errorBody: errorText,
+                timestamp: new Date().toISOString()
               }
-            )
+            }), {
+              status: response.status,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
           }
           
           const data = await response.json()
-          console.log(`✅ Autocomplete response received with ${data.predictions?.length || 0} predictions`)
-          console.log('📋 API response status:', data.status)
+          console.log(`📋 Autocomplete response status: ${data.status}`)
           
-          if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-            console.error('❌ Google Places API returned error status:', data.status)
-            console.error('📋 Error message:', data.error_message)
+          if (data.status === 'OK') {
+            const suggestions = data.predictions?.map((prediction: any) => ({
+              place_id: prediction.place_id,
+              description: prediction.description,
+              main_text: prediction.structured_formatting?.main_text || prediction.description,
+              secondary_text: prediction.structured_formatting?.secondary_text || ''
+            })) || []
             
-            return new Response(
-              JSON.stringify({ 
-                error: `Google Places API status: ${data.status}`,
-                debug: {
-                  apiStatus: data.status,
-                  errorMessage: data.error_message,
-                  timestamp: new Date().toISOString()
-                }
-              }),
-              { 
-                status: 400, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-              }
-            )
-          }
-          
-          // Transform to simpler format for frontend
-          const suggestions = data.predictions?.map((pred: any) => ({
-            place_id: pred.place_id,
-            description: pred.description,
-            main_text: pred.structured_formatting?.main_text,
-            secondary_text: pred.structured_formatting?.secondary_text
-          })) || []
-          
-          console.log(`✅ Returning ${suggestions.length} autocomplete suggestions`)
-          return new Response(JSON.stringify({ suggestions }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        } catch (fetchError) {
-          console.error('❌ Autocomplete network error:', fetchError)
-          return new Response(
-            JSON.stringify({ 
-              error: 'Network error during autocomplete request',
+            console.log(`✅ Autocomplete successful: ${suggestions.length} suggestions`)
+            return new Response(JSON.stringify({ suggestions }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          } else {
+            console.error(`❌ Autocomplete API status error: ${data.status}`)
+            console.error(`📋 Error details: ${JSON.stringify(data, null, 2)}`)
+            
+            return new Response(JSON.stringify({ 
+              error: `Google Maps API Status Error: ${data.status}`,
               debug: {
-                message: fetchError.message,
-                name: fetchError.name,
+                googleStatus: data.status,
+                googleError: data.error_message,
                 timestamp: new Date().toISOString()
               }
-            }),
-            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          }
+        } catch (error) {
+          console.error('❌ Autocomplete request failed:', error)
+          return new Response(JSON.stringify({ 
+            error: 'Network error during autocomplete request',
+            debug: {
+              message: error.message,
+              timestamp: new Date().toISOString()
+            }
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
-        break
 
       case 'place_details':
-        if (!params.place_id) {
-          console.error('❌ Place details: Missing place_id parameter')
-          return new Response(
-            JSON.stringify({ error: 'place_id parameter is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+        console.log('📍 Processing place details request...')
+        const placeId = params.place_id
+        
+        if (!placeId) {
+          console.log('⚠️ Missing place_id parameter')
+          return new Response(JSON.stringify({ 
+            error: 'Missing place_id parameter',
+            debug: { timestamp: new Date().toISOString() }
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
         
-        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${params.place_id}&fields=geometry,address_components,formatted_address&key=${apiKey}&language=de`
-        console.log('📍 Place details request for:', params.place_id)
-        console.log('🔗 Full details URL (key redacted):', detailsUrl.replace(apiKey, 'API_KEY_REDACTED'))
+        const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}&fields=geometry,formatted_address,address_components`
+        console.log(`📍 Place details URL: ${detailsUrl.replace(apiKey, 'API_KEY_HIDDEN')}`)
         
         try {
           console.log('🔄 Sending place details request to Google Maps API...')
-          response = await fetch(detailsUrl, { headers: apiHeaders })
+          response = await fetch(detailsUrl, { 
+            headers: apiHeaders,
+            method: 'GET'
+          })
           console.log(`📊 Place details API response status: ${response.status} ${response.statusText}`)
           
           if (!response.ok) {
             const errorText = await response.text()
-            console.error('❌ Place details API error response:', errorText)
-            console.error('📋 Error details:', {
-              status: response.status,
-              statusText: response.statusText,
-              headers: Object.fromEntries(response.headers.entries())
-            })
+            console.error(`❌ Place details API error: ${response.status} ${response.statusText}`)
+            console.error(`📋 Error response body: ${errorText}`)
             
-            return new Response(
-              JSON.stringify({ 
-                error: `Google Places API error: ${response.status} ${response.statusText}`,
+            if (response.status === 403) {
+              return new Response(JSON.stringify({ 
+                error: 'API Key Problem: 403 Forbidden. Check API Key configuration and HTTP-Referrer restrictions.',
                 debug: {
                   status: response.status,
                   statusText: response.statusText,
-                  body: errorText,
-                  apiEndpoint: 'place_details',
+                  errorBody: errorText,
                   timestamp: new Date().toISOString()
                 }
-              }),
-              { 
-                status: response.status, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }), {
+                status: 403,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              })
+            }
+            
+            return new Response(JSON.stringify({ 
+              error: `Google Maps API Error: ${response.status} ${response.statusText}`,
+              debug: {
+                status: response.status,
+                statusText: response.statusText,
+                errorBody: errorText,
+                timestamp: new Date().toISOString()
               }
-            )
+            }), {
+              status: response.status,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
           }
           
           const data = await response.json()
-          console.log('📋 Place details API response status:', data.status)
+          console.log(`📋 Place details response status: ${data.status}`)
           
-          if (data.status !== 'OK') {
-            console.error('❌ Google Places API returned error status:', data.status)
-            console.error('📋 Error message:', data.error_message)
-            
-            return new Response(
-              JSON.stringify({ 
-                error: `Google Places API status: ${data.status}`,
-                debug: {
-                  apiStatus: data.status,
-                  errorMessage: data.error_message,
-                  timestamp: new Date().toISOString()
-                }
-              }),
-              { 
-                status: 400, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-              }
-            )
-          }
-          
-          if (data.result) {
-            const result = {
-              lat: data.result.geometry.location.lat,
-              lng: data.result.geometry.location.lng,
-              formatted_address: data.result.formatted_address,
-              address_components: data.result.address_components
+          if (data.status === 'OK' && data.result) {
+            const result = data.result
+            const placeDetails = {
+              lat: result.geometry.location.lat,
+              lng: result.geometry.location.lng,
+              formatted_address: result.formatted_address,
+              address_components: result.address_components
             }
             
-            console.log('✅ Place details successfully retrieved')
-            return new Response(JSON.stringify(result), {
+            console.log(`✅ Place details successful: ${placeDetails.formatted_address}`)
+            return new Response(JSON.stringify(placeDetails), {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
           } else {
-            console.error('❌ No place details found in response')
-            return new Response(
-              JSON.stringify({ 
-                error: 'No place details found',
-                debug: {
-                  apiStatus: data.status,
-                  timestamp: new Date().toISOString()
-                }
-              }),
-              { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            )
-          }
-        } catch (fetchError) {
-          console.error('❌ Place details network error:', fetchError)
-          return new Response(
-            JSON.stringify({ 
-              error: 'Network error during place details request',
+            console.error(`❌ Place details API status error: ${data.status}`)
+            console.error(`📋 Error details: ${JSON.stringify(data, null, 2)}`)
+            
+            return new Response(JSON.stringify({ 
+              error: `Google Maps API Status Error: ${data.status}`,
               debug: {
-                message: fetchError.message,
-                name: fetchError.name,
+                googleStatus: data.status,
+                googleError: data.error_message,
                 timestamp: new Date().toISOString()
               }
-            }),
-            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          }
+        } catch (error) {
+          console.error('❌ Place details request failed:', error)
+          return new Response(JSON.stringify({ 
+            error: 'Network error during place details request',
+            debug: {
+              message: error.message,
+              timestamp: new Date().toISOString()
+            }
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
-        break
 
       case 'geocode':
-        if (!params.address) {
-          console.error('❌ Geocode: Missing address parameter')
-          return new Response(
-            JSON.stringify({ error: 'Address parameter is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+        console.log('🗺️ Processing geocoding request...')
+        const address = params.address
+        
+        if (!address) {
+          console.log('⚠️ Missing address parameter')
+          return new Response(JSON.stringify({ 
+            error: 'Missing address parameter',
+            debug: { timestamp: new Date().toISOString() }
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
         
-        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(params.address)}&key=${apiKey}&region=de&language=de`
-        console.log('🗺️ Geocoding request for:', params.address)
-        console.log('🔗 Full geocode URL (key redacted):', geocodeUrl.replace(apiKey, 'API_KEY_REDACTED'))
+        const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}&components=country:de|country:at|country:ch`
+        console.log(`📍 Geocoding URL: ${geocodeUrl.replace(apiKey, 'API_KEY_HIDDEN')}`)
         
         try {
           console.log('🔄 Sending geocoding request to Google Maps API...')
-          response = await fetch(geocodeUrl, { headers: apiHeaders })
+          response = await fetch(geocodeUrl, { 
+            headers: apiHeaders,
+            method: 'GET'
+          })
           console.log(`📊 Geocoding API response status: ${response.status} ${response.statusText}`)
           
           if (!response.ok) {
             const errorText = await response.text()
-            console.error('❌ Geocoding API error response:', errorText)
-            console.error('📋 Error details:', {
-              status: response.status,
-              statusText: response.statusText,
-              headers: Object.fromEntries(response.headers.entries())
-            })
+            console.error(`❌ Geocoding API error: ${response.status} ${response.statusText}`)
+            console.error(`📋 Error response body: ${errorText}`)
             
-            return new Response(
-              JSON.stringify({ 
-                error: `Google Geocoding API error: ${response.status} ${response.statusText}`,
+            if (response.status === 403) {
+              return new Response(JSON.stringify({ 
+                error: 'API Key Problem: 403 Forbidden. Check API Key configuration and HTTP-Referrer restrictions.',
                 debug: {
                   status: response.status,
                   statusText: response.statusText,
-                  body: errorText,
-                  apiEndpoint: 'geocode',
+                  errorBody: errorText,
                   timestamp: new Date().toISOString()
                 }
-              }),
-              { 
-                status: response.status, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }), {
+                status: 403,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              })
+            }
+            
+            return new Response(JSON.stringify({ 
+              error: `Google Maps API Error: ${response.status} ${response.statusText}`,
+              debug: {
+                status: response.status,
+                statusText: response.statusText,
+                errorBody: errorText,
+                timestamp: new Date().toISOString()
               }
-            )
+            }), {
+              status: response.status,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
           }
           
           const data = await response.json()
-          console.log('📋 Geocoding API response status:', data.status)
-          console.log(`✅ Geocoding response received with ${data.results?.length || 0} results`)
+          console.log(`📋 Geocoding response status: ${data.status}`)
           
-          if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-            console.error('❌ Google Geocoding API returned error status:', data.status)
-            console.error('📋 Error message:', data.error_message)
+          if (data.status === 'OK') {
+            console.log(`✅ Geocoding successful: ${data.results.length} results`)
+            return new Response(JSON.stringify({ results: data.results }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          } else {
+            console.error(`❌ Geocoding API status error: ${data.status}`)
+            console.error(`📋 Error details: ${JSON.stringify(data, null, 2)}`)
             
-            return new Response(
-              JSON.stringify({ 
-                error: `Google Geocoding API status: ${data.status}`,
-                debug: {
-                  apiStatus: data.status,
-                  errorMessage: data.error_message,
-                  timestamp: new Date().toISOString()
-                }
-              }),
-              { 
-                status: 400, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-              }
-            )
-          }
-          
-          return new Response(JSON.stringify(data), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        } catch (fetchError) {
-          console.error('❌ Geocoding network error:', fetchError)
-          return new Response(
-            JSON.stringify({ 
-              error: 'Network error during geocoding request',
+            return new Response(JSON.stringify({ 
+              error: `Google Maps API Status Error: ${data.status}`,
               debug: {
-                message: fetchError.message,
-                name: fetchError.name,
+                googleStatus: data.status,
+                googleError: data.error_message,
                 timestamp: new Date().toISOString()
               }
-            }),
-            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          }
+        } catch (error) {
+          console.error('❌ Geocoding request failed:', error)
+          return new Response(JSON.stringify({ 
+            error: 'Network error during geocoding request',
+            debug: {
+              message: error.message,
+              timestamp: new Date().toISOString()
+            }
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
-        break
 
       case 'directions':
-        if (!params.origin || !params.destination) {
-          return new Response(
-            JSON.stringify({ error: 'Origin and destination parameters are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+        console.log('🗺️ Processing directions request...')
+        const { origin, destination } = params
+        
+        if (!origin || !destination) {
+          console.log('⚠️ Missing origin or destination parameters')
+          return new Response(JSON.stringify({ 
+            error: 'Missing origin or destination parameters',
+            debug: { timestamp: new Date().toISOString() }
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
         
-        const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(params.origin)}&destination=${encodeURIComponent(params.destination)}&key=${apiKey}&language=de&units=metric&mode=driving&alternatives=true`
+        const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&key=${apiKey}&mode=driving`
+        console.log(`📍 Directions URL: ${directionsUrl.replace(apiKey, 'API_KEY_HIDDEN')}`)
         console.log('🗺️ Directions request:', params.origin, 'to', params.destination)
         
         try {
-          response = await fetch(directionsUrl, { headers: apiHeaders })
+          response = await fetch(directionsUrl, { 
+            headers: apiHeaders,
+            method: 'GET'
+          })
           const data = await response.json()
           console.log(`✅ Directions response status: ${response.status}`)
           
-          if (data.routes && data.routes.length > 0) {
+          if (data.status === 'OK' && data.routes.length > 0) {
             const route = data.routes[0]
             const leg = route.legs[0]
             
@@ -374,221 +395,165 @@ Deno.serve(async (req) => {
               distance_value: leg.distance.value,
               duration: leg.duration.text,
               duration_value: leg.duration.value,
-              start_address: leg.start_address,
-              end_address: leg.end_address,
-              polyline: route.overview_polyline.points
+              polyline: route.overview_polyline?.points || ''
             }
             
+            console.log(`✅ Directions successful: ${result.distance}, ${result.duration}`)
             return new Response(JSON.stringify(result), {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
           } else {
-            throw new Error('No route found')
+            console.error(`❌ Directions API status error: ${data.status}`)
+            return new Response(JSON.stringify({ 
+              error: `Directions API Status Error: ${data.status}`,
+              debug: {
+                googleStatus: data.status,
+                googleError: data.error_message,
+                timestamp: new Date().toISOString()
+              }
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
           }
-        } catch (fetchError) {
-          console.error('❌ Directions fetch error:', fetchError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to fetch directions' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+        } catch (error) {
+          console.error('❌ Directions request failed:', error)
+          return new Response(JSON.stringify({ 
+            error: 'Network error during directions request',
+            debug: {
+              message: error.message,
+              timestamp: new Date().toISOString()
+            }
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
         }
-        break
 
       case 'static_map_image':
-        if (!params.center) {
-          console.error('❌ Missing center parameter')
-          return new Response(
-            JSON.stringify({ error: 'Center parameter is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
+        console.log('🗺️ Processing static map image request...')
+        const { center, zoom = 10, size = '800x400', markers = [], path = '' } = params
         
-        const size = params.size || '600x400'
-        const zoom = params.zoom || 10
-        const maptype = params.maptype || 'roadmap'
-        
-        let staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${zoom}&size=${size}&maptype=${maptype}&key=${apiKey}`
-        
-        // Add markers if provided
-        if (params.markers && Array.isArray(params.markers)) {
-          console.log(`📍 Adding ${params.markers.length} markers to map`)
-          params.markers.forEach((marker: any, index: number) => {
-            const color = marker.color || 'red'
-            const label = marker.label || ''
-            const location = marker.location
-            console.log(`  📌 Marker ${index + 1}: ${color} ${label} at ${location}`)
-            staticMapUrl += `&markers=color:${color}|label:${label}|${encodeURIComponent(location)}`
+        if (!center) {
+          console.log('⚠️ Missing center parameter for static map')
+          return new Response(JSON.stringify({ 
+            error: 'Missing center parameter for static map',
+            debug: { timestamp: new Date().toISOString() }
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           })
         }
         
-        // Add path if provided
-        if (params.path) {
-          console.log(`🛣️ Adding path to map: ${params.path.substring(0, 50)}...`)
-          staticMapUrl += `&path=color:0x0000ff|weight:3|enc:${params.path}`
-        }
+        // Build markers string
+        const markersString = markers.map((marker: any) => {
+          const color = marker.color || 'red'
+          const label = marker.label || ''
+          return `markers=color:${color}|label:${label}|${marker.location}`
+        }).join('&')
         
-        console.log('🗺️ Static map image request for:', params.center)
-        console.log('🔑 Using Static Maps API key for secure request')
-        console.log('📏 Final Google Maps URL length:', staticMapUrl.length)
+        // Build path string
+        const pathString = path ? `&path=color:0x0000ff|weight:3|enc:${path}` : ''
+        
+        const staticMapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(center)}&zoom=${zoom}&size=${size}&${markersString}${pathString}&key=${apiKey}`
+        console.log(`📍 Static Map URL: ${staticMapUrl.replace(apiKey, 'API_KEY_HIDDEN')}`)
         
         try {
           console.log('🔄 Fetching image from Google Maps API...')
-          const imageResponse = await fetch(staticMapUrl, { headers: apiHeaders })
+          const imageResponse = await fetch(staticMapUrl, { 
+            headers: {
+              'User-Agent': 'Lovable-Maps-Service/1.0 (Backend Proxy)'
+            },
+            method: 'GET'
+          })
           
           console.log(`📊 Google Maps API response status: ${imageResponse.status}`)
           console.log(`📊 Google Maps API response statusText: ${imageResponse.statusText}`)
           
           if (!imageResponse.ok) {
             const errorText = await imageResponse.text()
-            console.error('❌ Google Maps API error response:', errorText)
+            console.error(`❌ Static Maps API error: ${imageResponse.status} ${imageResponse.statusText}`)
+            console.error(`📋 Error response body: ${errorText}`)
             
-            let errorMessage = `Google Maps API returned ${imageResponse.status}: ${imageResponse.statusText}`
-            let debugInfo = {
-              timestamp: new Date().toISOString(),
-              status: imageResponse.status,
-              statusText: imageResponse.statusText,
-              errorBody: errorText,
-              usingStaticApiKey: !!GOOGLE_MAPS_STATIC_API_KEY,
-              apiKeyLength: apiKey.length,
-              urlLength: staticMapUrl.length,
-              requestedCenter: params.center,
-              requestedSize: size,
-              requestedZoom: zoom,
-              markerCount: params.markers?.length || 0
-            }
-            
-            if (imageResponse.status === 403) {
-              console.error('🚨 403 FORBIDDEN - Static Maps API Key Problem detected!')
-              errorMessage = 'Static Maps API Key Problem: 403 Forbidden. Check API Key configuration and HTTP-Referrer restrictions.'
-              debugInfo.diagnosis = 'STATIC_API_KEY_AUTHORIZATION_PROBLEM'
-            } else if (imageResponse.status === 400) {
-              console.error('🚨 400 BAD REQUEST - Invalid parameters')
-              errorMessage = 'Invalid request parameters. Check the map configuration.'
-              debugInfo.diagnosis = 'INVALID_REQUEST_PARAMETERS'
-            } else if (imageResponse.status === 429) {
-              console.error('🚨 429 RATE LIMITED - Too many requests')
-              errorMessage = 'Rate limit exceeded. Try again later.'
-              debugInfo.diagnosis = 'RATE_LIMIT_EXCEEDED'
-            }
-            
-            return new Response(
-              JSON.stringify({ 
-                error: errorMessage,
-                debug: debugInfo,
-                timestamp: new Date().toISOString()
-              }),
-              { 
-                status: imageResponse.status, 
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            return new Response(JSON.stringify({ 
+              error: `Static Maps API Key Problem: ${imageResponse.status} ${imageResponse.statusText}. Check API Key configuration and HTTP-Referrer restrictions.`,
+              debug: {
+                timestamp: new Date().toISOString(),
+                status: imageResponse.status,
+                statusText: imageResponse.statusText,
+                errorBody: errorText
               }
-            )
+            }), {
+              status: imageResponse.status,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
           }
           
-          const contentType = imageResponse.headers.get('content-type') || 'image/png'
-          const imageArrayBuffer = await imageResponse.arrayBuffer()
+          const contentType = imageResponse.headers.get('Content-Type') || 'image/png'
+          console.log(`📊 Image content type: ${contentType}`)
           
-          console.log('✅ Successfully loaded map image from Google Maps API')
-          console.log(`📊 Image details: ${imageArrayBuffer.byteLength} bytes, type: ${contentType}`)
-          console.log(`🔑 Success with ${GOOGLE_MAPS_STATIC_API_KEY ? 'Static Maps' : 'General'} API key`)
-          
-          // Return the image as proper binary data with CORS headers
-          return new Response(imageArrayBuffer, {
-            headers: {
-              ...corsHeaders,
-              'Content-Type': contentType,
-              'Cache-Control': 'public, max-age=3600',
-              'Content-Length': imageArrayBuffer.byteLength.toString(),
-              'X-Debug-Status': 'success',
-              'X-Debug-Timestamp': new Date().toISOString(),
-              'X-Debug-ApiKey': GOOGLE_MAPS_STATIC_API_KEY ? 'static' : 'general'
-            }
-          })
-        } catch (fetchError) {
-          console.error('❌ Network error while fetching from Google Maps:', fetchError)
-          
-          return new Response(
-            JSON.stringify({ 
-              error: 'Network error while loading map image',
-              debug: {
-                message: fetchError.message,
-                name: fetchError.name,
-                type: 'network_error',
-                timestamp: new Date().toISOString()
+          if (contentType.startsWith('image/')) {
+            console.log('✅ Static map image retrieved successfully')
+            const imageBuffer = await imageResponse.arrayBuffer()
+            
+            return new Response(imageBuffer, {
+              headers: {
+                ...corsHeaders,
+                'Content-Type': contentType,
+                'Content-Length': imageBuffer.byteLength.toString()
               }
-            }),
-            { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-        break
-
-      case 'static_map':
-        if (!params.center) {
-          return new Response(
-            JSON.stringify({ error: 'Center parameter is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-        
-        const mapSize = params.size || '600x400'
-        const mapZoom = params.zoom || 10
-        const mapMaptype = params.maptype || 'roadmap'
-        
-        let mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(params.center)}&zoom=${mapZoom}&size=${mapSize}&maptype=${mapMaptype}&key=${apiKey}`
-        
-        // Add markers if provided
-        if (params.markers) {
-          params.markers.forEach((marker: any) => {
-            const color = marker.color || 'red'
-            const label = marker.label || ''
-            const location = marker.location
-            mapUrl += `&markers=color:${color}|label:${label}|${encodeURIComponent(location)}`
+            })
+          } else {
+            console.error('❌ Response is not an image')
+            const errorText = await imageResponse.text()
+            
+            return new Response(JSON.stringify({ 
+              error: 'Static Maps API returned non-image content',
+              debug: {
+                timestamp: new Date().toISOString(),
+                contentType: contentType,
+                responseBody: errorText
+              }
+            }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          }
+        } catch (error) {
+          console.error('❌ Static map request failed:', error)
+          return new Response(JSON.stringify({ 
+            error: 'Network error during static map request',
+            debug: {
+              message: error.message,
+              timestamp: new Date().toISOString()
+            }
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           })
         }
-        
-        // Add path if provided
-        if (params.path) {
-          mapUrl += `&path=color:0x0000ff|weight:3|enc:${params.path}`
-        }
-        
-        console.log('🗺️ Static map URL generation for:', params.center)
-        console.log('🔑 Using Static Maps API key for URL generation')
-        console.log('✅ Static map URL generated:', mapUrl.substring(0, 100) + '...')
-        
-        return new Response(JSON.stringify({ url: mapUrl }), {
+
+      default:
+        console.log(`⚠️ Unknown action: ${action}`)
+        return new Response(JSON.stringify({ 
+          error: `Unknown action: ${action}`,
+          debug: { timestamp: new Date().toISOString() }
+        }), {
+          status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
-        
-      default:
-        console.error(`❌ Invalid action: ${action}`)
-        return new Response(
-          JSON.stringify({ error: 'Invalid action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
     }
-
   } catch (error) {
-    console.error('❌ Error in Google Maps proxy:', error)
-    console.error('🔍 Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    })
-    
-    return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error', 
-        debug: {
-          message: error.message,
-          name: error.name,
-          type: 'internal_error',
-          timestamp: new Date().toISOString()
-        }
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    console.error('❌ General error in google-maps-proxy:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      debug: {
+        message: error.message,
+        timestamp: new Date().toISOString()
       }
-    )
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
   }
 })

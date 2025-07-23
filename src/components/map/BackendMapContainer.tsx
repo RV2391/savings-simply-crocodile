@@ -31,7 +31,7 @@ export const BackendMapContainer = ({
   const [useFallback, setUseFallback] = useState(false);
   const [apiStatus, setApiStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
 
-  const MAX_RETRIES = 2;
+  const MAX_RETRIES = 1; // Reduce retries to fail faster
 
   const generateStaticMap = async (isRetry = false) => {
     if (!isRetry) {
@@ -40,8 +40,7 @@ export const BackendMapContainer = ({
       setApiStatus('checking');
     }
     
-    console.log('🗺️ Generating secure static map for center:', center);
-    console.log('🔍 API Status check - Retry count:', retryCount);
+    console.log('🗺️ Attempting Google Maps static map generation...');
     
     try {
       const markers = [
@@ -52,7 +51,7 @@ export const BackendMapContainer = ({
         }
       ];
 
-      // Nächstes Institut hervorheben
+      // Add nearest institute marker
       if (nearestInstitute) {
         markers.push({
           location: `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`,
@@ -61,10 +60,10 @@ export const BackendMapContainer = ({
         });
       }
 
-      // Weitere Institute hinzufügen (maximal 5 für Performance)
+      // Add other institutes (limited to 3 for simplicity)
       const nearbyInstitutes = institutes
         .filter(inst => inst !== nearestInstitute)
-        .slice(0, 5);
+        .slice(0, 3);
       
       nearbyInstitutes.forEach((institute, index) => {
         markers.push({
@@ -76,16 +75,14 @@ export const BackendMapContainer = ({
 
       let polylinePath = '';
       
-      // Route berechnen wenn gewünscht
+      // Try to get directions if needed
       if (showDirections && nearestInstitute) {
         try {
-          console.log('🛣️ Calculating directions...');
           const directions = await backendMapsService.getDirections(
             `${practiceLocation.lat},${practiceLocation.lng}`,
             `${nearestInstitute.coordinates.lat},${nearestInstitute.coordinates.lng}`
           );
           
-          console.log('✅ Directions calculated successfully');
           setDirectionsData(directions);
           polylinePath = directions.polyline;
         } catch (error) {
@@ -93,17 +90,12 @@ export const BackendMapContainer = ({
         }
       }
 
-      console.log('📍 Total markers to add:', markers.length);
-      console.log('🛣️ Polyline path length:', polylinePath.length);
-
-      // Cleanup previous blob URL to prevent memory leaks
+      // Cleanup previous blob URL
       if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
-        console.log('🧹 Cleaning up previous blob URL');
         URL.revokeObjectURL(mapImageUrl);
       }
 
-      // Use the secure image proxy method
-      console.log('🔄 Requesting secure static map image...');
+      // Try to get static map image
       const imageUrl = await backendMapsService.getStaticMapImageUrl({
         center: `${center.lat},${center.lng}`,
         zoom: 10,
@@ -113,38 +105,38 @@ export const BackendMapContainer = ({
       });
 
       if (!imageUrl) {
-        throw new Error('Keine Karten-URL vom sicheren Proxy erhalten');
+        throw new Error('No image URL received from backend');
       }
 
-      console.log('✅ Secure static map image URL received');
       setMapImageUrl(imageUrl);
       setRetryCount(0);
       setApiStatus('available');
       
     } catch (error) {
-      console.error('❌ Secure map generation failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      console.error('❌ Google Maps generation failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      // Spezifische Behandlung für 403 Fehler
-      if (errorMessage.includes('403') || errorMessage.includes('Zugriff verweigert') || 
-          errorMessage.includes('not authorized') || errorMessage.includes('API key')) {
-        console.log('🔄 API Key Problem erkannt - Wechsel zu Fallback-Karte');
+      // Check for 403 errors (API key restrictions)
+      if (errorMessage.includes('403') || errorMessage.includes('Forbidden') || 
+          errorMessage.includes('API Key Problem')) {
+        console.log('🔄 API Key problem detected - switching to fallback immediately');
         setApiStatus('unavailable');
         setUseFallback(true);
+        setError('Google Maps nicht verfügbar - API-Konfigurationsproblem');
         setLoading(false);
         return;
       }
       
-      // Enhanced error handling with retry logic
-      if (retryCount < MAX_RETRIES && !errorMessage.includes('API-Schlüssel')) {
+      // Retry logic for other errors
+      if (retryCount < MAX_RETRIES) {
         console.log(`🔄 Retrying map generation (${retryCount + 1}/${MAX_RETRIES})...`);
         setRetryCount(prev => prev + 1);
-        setTimeout(() => generateStaticMap(true), 1000 * (retryCount + 1)); // Exponential backoff
+        setTimeout(() => generateStaticMap(true), 1000);
         return;
       }
       
-      // Nach allen Versuchen zu Fallback wechseln
-      console.log('🔄 Alle Versuche fehlgeschlagen - Wechsel zu Fallback-Karte');
+      // After all retries failed, switch to fallback
+      console.log('🔄 All retries failed - switching to fallback');
       setApiStatus('unavailable');
       setUseFallback(true);
       setError(`Google Maps nicht verfügbar: ${errorMessage}`);
@@ -155,31 +147,21 @@ export const BackendMapContainer = ({
   };
 
   useEffect(() => {
-    // Reset fallback state when dependencies change
+    // Reset states when dependencies change
     setUseFallback(false);
     setApiStatus('checking');
+    setRetryCount(0);
     generateStaticMap();
 
-    // Cleanup function to revoke blob URLs and prevent memory leaks
+    // Cleanup function
     return () => {
       if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
-        console.log('🧹 Component unmount: Cleaning up blob URL');
         URL.revokeObjectURL(mapImageUrl);
       }
     };
   }, [center, practiceLocation, nearestInstitute, institutes, showDirections]);
 
-  // Cleanup blob URL when component unmounts or URL changes
-  useEffect(() => {
-    return () => {
-      if (mapImageUrl && mapImageUrl.startsWith('blob:')) {
-        console.log('🧹 URL change: Cleaning up blob URL');
-        URL.revokeObjectURL(mapImageUrl);
-      }
-    };
-  }, [mapImageUrl]);
-
-  // Fallback zu OpenStreetMap bei API-Problemen
+  // Use fallback immediately if API is unavailable
   if (useFallback || apiStatus === 'unavailable') {
     return (
       <div className="space-y-2">
@@ -205,9 +187,8 @@ export const BackendMapContainer = ({
         <div className="text-center p-6">
           <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            {apiStatus === 'checking' ? 'Google Maps API wird geprüft...' : 'Sichere Karte wird generiert...'}
+            Google Maps wird geladen...
           </p>
-          <p className="text-xs text-muted-foreground mt-1">Backend-Image-Proxy wird verwendet...</p>
           {retryCount > 0 && (
             <p className="text-xs text-yellow-600 mt-2">
               Wiederholung {retryCount}/{MAX_RETRIES}...
@@ -261,9 +242,7 @@ export const BackendMapContainer = ({
             console.log('✅ Google Maps image loaded successfully');
           }}
           onError={(e) => {
-            console.error('❌ Google Maps image failed to display:', mapImageUrl);
-            console.error('Image error event:', e);
-            setError('Google Maps Bild konnte nicht angezeigt werden');
+            console.error('❌ Google Maps image failed to display');
             setUseFallback(true);
           }}
         />
@@ -271,7 +250,7 @@ export const BackendMapContainer = ({
         <div className="flex items-center justify-center h-[400px] bg-muted">
           <div className="text-center p-6">
             <MapPin className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Sichere Karte konnte nicht geladen werden</p>
+            <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
           </div>
         </div>
       )}
@@ -283,7 +262,7 @@ export const BackendMapContainer = ({
         </div>
       )}
 
-      {/* Route-Informationen Overlay */}
+      {/* Route Information Overlay */}
       {directionsData && (
         <Card className="absolute top-4 left-4 p-4 bg-black/90 backdrop-blur-sm border-none shadow-lg">
           <div className="space-y-2 text-white">
@@ -305,7 +284,7 @@ export const BackendMapContainer = ({
         </Card>
       )}
 
-      {/* Legende */}
+      {/* Legend */}
       <Card className="absolute bottom-4 right-4 p-3 bg-black/90 backdrop-blur-sm border-none shadow-lg">
         <div className="space-y-2 text-white text-xs">
           <div className="flex items-center gap-2">

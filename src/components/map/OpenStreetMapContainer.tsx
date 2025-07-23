@@ -24,54 +24,43 @@ export const OpenStreetMapContainer = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
 
-  const generateOpenStreetMap = async () => {
+  const generateSimpleMap = async () => {
     setLoading(true);
     setError('');
     
-    console.log('🗺️ Generating OpenStreetMap fallback for center:', center);
+    console.log('🗺️ Generating simple fallback map for center:', center);
     
     try {
-      // OpenStreetMap Static API verwenden
+      // Create a simple static map using OpenStreetMap tiles
       const zoom = 10;
-      const width = 800;
-      const height = 400;
+      const tileSize = 256;
+      const mapWidth = 800;
+      const mapHeight = 400;
       
-      // Markers für die Karte erstellen
-      const markers = [];
+      // Calculate tile coordinates
+      const lat = center.lat;
+      const lng = center.lng;
       
-      // Praxis-Marker
-      markers.push(`pin-s-hospital+00ff00(${practiceLocation.lng},${practiceLocation.lat})`);
+      // Simple tile-based map URL (using OpenStreetMap tiles)
+      const tileX = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
+      const tileY = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
       
-      // Nächstes Institut hervorheben
-      if (nearestInstitute) {
-        markers.push(`pin-s-college+ff0000(${nearestInstitute.coordinates.lng},${nearestInstitute.coordinates.lat})`);
-      }
+      // Use OpenStreetMap tile server
+      const osmTileUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
       
-      // Weitere Institute hinzufügen (maximal 5)
-      const nearbyInstitutes = institutes
-        .filter(inst => inst !== nearestInstitute)
-        .slice(0, 5);
-      
-      nearbyInstitutes.forEach((institute) => {
-        markers.push(`pin-s-college+0000ff(${institute.coordinates.lng},${institute.coordinates.lat})`);
-      });
-      
-      // MapBox Static API als Alternative (free tier)
-      const mapboxUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${markers.join(',')}/${center.lng},${center.lat},${zoom}/${width}x${height}@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA`;
-      
-      console.log('🌍 Using MapBox free tier for map rendering');
-      setMapImageUrl(mapboxUrl);
+      console.log('🌍 Using OpenStreetMap tile:', osmTileUrl);
+      setMapImageUrl(osmTileUrl);
       
     } catch (error) {
-      console.error('❌ OpenStreetMap generation failed:', error);
-      setError('Fallback-Karte konnte nicht geladen werden');
+      console.error('❌ Simple map generation failed:', error);
+      setError('Karte konnte nicht geladen werden');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    generateOpenStreetMap();
+    generateSimpleMap();
   }, [center, practiceLocation, nearestInstitute, institutes]);
 
   if (loading) {
@@ -79,8 +68,7 @@ export const OpenStreetMapContainer = ({
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
           <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Fallback-Karte wird geladen...</p>
-          <p className="text-xs text-muted-foreground mt-1">OpenStreetMap wird verwendet...</p>
+          <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
         </div>
       </div>
     );
@@ -91,7 +79,7 @@ export const OpenStreetMapContainer = ({
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
           <AlertCircle className="w-16 h-16 mx-auto mb-3 text-orange-500" />
-          <p className="text-sm text-muted-foreground mb-2">Fallback-Karte konnte nicht geladen werden</p>
+          <p className="text-sm text-muted-foreground mb-2">Karte konnte nicht geladen werden</p>
           <p className="text-xs text-red-400">{error}</p>
         </div>
       </div>
@@ -100,29 +88,46 @@ export const OpenStreetMapContainer = ({
 
   return (
     <div className="relative w-full rounded-lg overflow-hidden border">
-      {mapImageUrl ? (
-        <img 
-          src={mapImageUrl}
-          alt="OpenStreetMap Fallback mit Praxis und Instituten"
-          className="w-full h-[400px] object-cover"
-          onLoad={() => {
-            console.log('✅ OpenStreetMap image loaded successfully');
-          }}
-          onError={(e) => {
-            console.error('❌ OpenStreetMap image failed to display');
-            setError('Fallback-Kartenbild konnte nicht angezeigt werden');
-          }}
-        />
-      ) : (
-        <div className="flex items-center justify-center h-[400px] bg-muted">
+      <div className="relative h-[400px] bg-gray-100 flex items-center justify-center">
+        {mapImageUrl ? (
+          <img 
+            src={mapImageUrl}
+            alt="Karte mit Praxis und Instituten"
+            className="w-full h-full object-cover"
+            onLoad={() => {
+              console.log('✅ Fallback map image loaded successfully');
+            }}
+            onError={(e) => {
+              console.error('❌ Fallback map image failed to display');
+              setError('Kartenbild konnte nicht angezeigt werden');
+            }}
+          />
+        ) : (
           <div className="text-center p-6">
             <MapPin className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Fallback-Karte konnte nicht geladen werden</p>
+            <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
+          </div>
+        )}
+        
+        {/* Standort-Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative">
+            {/* Praxis-Marker */}
+            <div className="absolute -top-6 -left-3 w-6 h-6 bg-green-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+              <span className="text-xs font-bold text-white">P</span>
+            </div>
+            
+            {/* Nächstes Institut-Marker */}
+            {nearestInstitute && (
+              <div className="absolute -top-6 left-8 w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                <span className="text-xs font-bold text-white">I</span>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Entfernungsinfo wenn verfügbar */}
+      {/* Informations-Overlay */}
       {nearestInstitute && (
         <Card className="absolute top-4 left-4 p-4 bg-black/90 backdrop-blur-sm border-none shadow-lg">
           <div className="space-y-2 text-white">
@@ -133,7 +138,7 @@ export const OpenStreetMapContainer = ({
             <div className="text-sm">
               <p className="font-medium">{nearestInstitute.name}</p>
               <p className="text-xs text-gray-300 mt-1">
-                Entfernung wird berechnet...
+                {nearestInstitute.address}, {nearestInstitute.city}
               </p>
             </div>
           </div>
@@ -151,12 +156,8 @@ export const OpenStreetMapContainer = ({
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
             <span>Nächstes Institut</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span>Weitere Institute</span>
-          </div>
           <div className="text-xs text-gray-300 mt-2 border-t border-gray-600 pt-2">
-            Fallback-Karte (OpenStreetMap)
+            Vereinfachte Karte (Fallback)
           </div>
         </div>
       </Card>
