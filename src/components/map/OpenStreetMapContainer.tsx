@@ -1,7 +1,7 @@
-
 import { useEffect, useState } from 'react';
 import { Card } from '../ui/card';
-import { Loader2, Navigation, MapPin, AlertCircle } from 'lucide-react';
+import { Loader2, Navigation, MapPin, AlertCircle, X } from 'lucide-react';
+import { Button } from '../ui/button';
 import type { DentalInstitute } from '@/utils/dentalInstitutes';
 
 interface OpenStreetMapContainerProps {
@@ -23,36 +23,50 @@ export const OpenStreetMapContainer = ({
   const [mapImageUrl, setMapImageUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showInfo, setShowInfo] = useState(true);
+  const [showLegend, setShowLegend] = useState(true);
 
-  const generateSimpleMap = async () => {
+  const generateMap = async () => {
     setLoading(true);
     setError('');
     
-    console.log('🗺️ Generating simple fallback map for center:', center);
+    console.log('🗺️ Generating OpenStreetMap for center:', center);
     
     try {
-      // Create a simple static map using OpenStreetMap tiles
+      // Use CartoDB tiles for better map quality
       const zoom = 10;
-      const tileSize = 256;
       const mapWidth = 800;
       const mapHeight = 400;
       
-      // Calculate tile coordinates
       const lat = center.lat;
       const lng = center.lng;
       
-      // Simple tile-based map URL (using OpenStreetMap tiles)
+      // Calculate tile coordinates for higher quality
       const tileX = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
       const tileY = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
       
-      // Use OpenStreetMap tile server
-      const osmTileUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
+      // Use CartoDB for better styling (fallback to OSM if needed)
+      const tileUrls = [
+        `https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/${zoom}/${tileX}/${tileY}.png`,
+        `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`
+      ];
       
-      console.log('🌍 Using OpenStreetMap tile:', osmTileUrl);
-      setMapImageUrl(osmTileUrl);
+      // Try first tile service, fallback to second
+      let mapUrl = tileUrls[0];
+      try {
+        const response = await fetch(mapUrl);
+        if (!response.ok) {
+          mapUrl = tileUrls[1];
+        }
+      } catch {
+        mapUrl = tileUrls[1];
+      }
+      
+      console.log('🌍 Using map tile:', mapUrl);
+      setMapImageUrl(mapUrl);
       
     } catch (error) {
-      console.error('❌ Simple map generation failed:', error);
+      console.error('❌ Map generation failed:', error);
       setError('Karte konnte nicht geladen werden');
     } finally {
       setLoading(false);
@@ -60,7 +74,7 @@ export const OpenStreetMapContainer = ({
   };
 
   useEffect(() => {
-    generateSimpleMap();
+    generateMap();
   }, [center, practiceLocation, nearestInstitute, institutes]);
 
   if (loading) {
@@ -78,9 +92,17 @@ export const OpenStreetMapContainer = ({
     return (
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
-          <AlertCircle className="w-16 h-16 mx-auto mb-3 text-orange-500" />
+          <AlertCircle className="w-16 h-16 mx-auto mb-3 text-destructive" />
           <p className="text-sm text-muted-foreground mb-2">Karte konnte nicht geladen werden</p>
-          <p className="text-xs text-red-400">{error}</p>
+          <p className="text-xs text-destructive">{error}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={generateMap} 
+            className="mt-3"
+          >
+            Erneut versuchen
+          </Button>
         </div>
       </div>
     );
@@ -88,17 +110,17 @@ export const OpenStreetMapContainer = ({
 
   return (
     <div className="relative w-full rounded-lg overflow-hidden border">
-      <div className="relative h-[400px] bg-gray-100 flex items-center justify-center">
+      <div className="relative h-[400px] bg-muted flex items-center justify-center">
         {mapImageUrl ? (
           <img 
             src={mapImageUrl}
             alt="Karte mit Praxis und Instituten"
             className="w-full h-full object-cover"
             onLoad={() => {
-              console.log('✅ Fallback map image loaded successfully');
+              console.log('✅ Map image loaded successfully');
             }}
             onError={(e) => {
-              console.error('❌ Fallback map image failed to display');
+              console.error('❌ Map image failed to display');
               setError('Kartenbild konnte nicht angezeigt werden');
             }}
           />
@@ -109,35 +131,45 @@ export const OpenStreetMapContainer = ({
           </div>
         )}
         
-        {/* Standort-Overlay */}
+        {/* Practice and Institute Markers */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative">
-            {/* Praxis-Marker */}
-            <div className="absolute -top-6 -left-3 w-6 h-6 bg-green-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-              <span className="text-xs font-bold text-white">P</span>
+            {/* Practice Marker */}
+            <div className="absolute -top-8 -left-4 w-8 h-8 bg-green-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
+              <span className="text-sm font-bold text-white">P</span>
             </div>
             
-            {/* Nächstes Institut-Marker */}
+            {/* Nearest Institute Marker */}
             {nearestInstitute && (
-              <div className="absolute -top-6 left-8 w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-                <span className="text-xs font-bold text-white">I</span>
+              <div className="absolute -top-8 left-6 w-8 h-8 bg-blue-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
+                <span className="text-sm font-bold text-white">I</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Informations-Overlay */}
-      {nearestInstitute && (
-        <Card className="absolute top-4 left-4 p-4 bg-black/90 backdrop-blur-sm border-none shadow-lg">
-          <div className="space-y-2 text-white">
-            <div className="flex items-center gap-2">
-              <Navigation className="w-4 h-4" />
-              <span className="font-medium">Nächstes Institut</span>
+      {/* Information Overlay - Closable */}
+      {nearestInstitute && showInfo && (
+        <Card className="absolute top-4 left-4 p-4 bg-background/95 backdrop-blur-sm border shadow-lg max-w-xs">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Navigation className="w-4 h-4 text-primary" />
+                <span className="font-medium text-sm">Nächstes Institut</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowInfo(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
             </div>
             <div className="text-sm">
               <p className="font-medium">{nearestInstitute.name}</p>
-              <p className="text-xs text-gray-300 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {nearestInstitute.address}, {nearestInstitute.city}
               </p>
             </div>
@@ -145,22 +177,59 @@ export const OpenStreetMapContainer = ({
         </Card>
       )}
 
-      {/* Legende */}
-      <Card className="absolute bottom-4 right-4 p-3 bg-black/90 backdrop-blur-sm border-none shadow-lg">
-        <div className="space-y-2 text-white text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Ihre Praxis</span>
+      {/* Legend - Closable */}
+      {showLegend && (
+        <Card className="absolute bottom-4 right-4 p-3 bg-background/95 backdrop-blur-sm border shadow-lg">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium">Legende</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLegend(false)}
+                className="h-5 w-5 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full border border-white"></div>
+                <span>Ihre Praxis</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full border border-white"></div>
+                <span>Nächstes Institut</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span>Nächstes Institut</span>
-          </div>
-          <div className="text-xs text-gray-300 mt-2 border-t border-gray-600 pt-2">
-            Vereinfachte Karte (Fallback)
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
+
+      {/* Restore Info Button */}
+      {!showInfo && nearestInstitute && (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setShowInfo(true)}
+          className="absolute top-4 left-4"
+        >
+          <Navigation className="w-4 h-4 mr-1" />
+          Info
+        </Button>
+      )}
+
+      {/* Restore Legend Button */}
+      {!showLegend && (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setShowLegend(true)}
+          className="absolute bottom-4 right-4"
+        >
+          Legende
+        </Button>
+      )}
     </div>
   );
 };

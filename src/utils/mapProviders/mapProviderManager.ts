@@ -1,7 +1,6 @@
-import { backendMapsService } from '@/utils/backendMapsService';
 import { openStreetMapService } from './openStreetMapService';
 
-export type MapProvider = 'google' | 'osm';
+export type MapProvider = 'osm';
 
 export interface AddressServiceResponse {
   suggestions?: any[];
@@ -12,12 +11,11 @@ export interface AddressServiceResponse {
 
 export class MapProviderManager {
   private static instance: MapProviderManager;
-  private currentProvider: MapProvider = 'google';
+  private currentProvider: MapProvider = 'osm';
   private providerStatus = new Map<MapProvider, 'available' | 'unavailable' | 'unknown'>();
 
   private constructor() {
-    // Initialize provider status
-    this.providerStatus.set('google', 'unknown');
+    // Initialize provider status - only OSM now
     this.providerStatus.set('osm', 'available');
   }
 
@@ -44,11 +42,6 @@ export class MapProviderManager {
   public markProviderAsUnavailable(provider: MapProvider): void {
     console.log(`❌ Marking provider ${provider} as unavailable`);
     this.providerStatus.set(provider, 'unavailable');
-    
-    // Auto-switch to next available provider
-    if (provider === this.currentProvider) {
-      this.switchToNextAvailableProvider();
-    }
   }
 
   public markProviderAsAvailable(provider: MapProvider): void {
@@ -56,159 +49,54 @@ export class MapProviderManager {
     this.providerStatus.set(provider, 'available');
   }
 
-  private switchToNextAvailableProvider(): void {
-    const providers: MapProvider[] = ['google', 'osm'];
-    
-    for (const provider of providers) {
-      if (provider !== this.currentProvider && this.getProviderStatus(provider) !== 'unavailable') {
-        console.log(`🔄 Auto-switching to provider: ${provider}`);
-        this.setProvider(provider);
-        return;
-      }
-    }
-    
-    console.warn('⚠️ No available providers found, staying with current');
-  }
-
-  // Address suggestions with fallback
+  // Address suggestions using OpenStreetMap
   public async getAddressSuggestions(input: string): Promise<any[]> {
-    const maxRetries = 2;
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const provider = this.currentProvider;
-        console.log(`🔍 Getting address suggestions with provider: ${provider} (attempt ${attempt + 1})`);
-
-        let result: any[];
-
-        switch (provider) {
-          case 'google':
-            result = await backendMapsService.getAddressSuggestions(input);
-            break;
-          case 'osm':
-            result = await openStreetMapService.getAddressSuggestions(input);
-            break;
-          default:
-            throw new Error(`Unknown provider: ${provider}`);
-        }
-
-        this.markProviderAsAvailable(provider);
-        return result;
-
-      } catch (error) {
-        console.error(`❌ Provider ${this.currentProvider} failed:`, error);
-        lastError = error instanceof Error ? error : new Error(String(error));
-        
-        // Mark current provider as unavailable and switch
-        this.markProviderAsUnavailable(this.currentProvider);
-        
-        // If we still have attempts left, continue with the new provider
-        if (attempt < maxRetries - 1) {
-          console.log(`🔄 Retrying with new provider: ${this.currentProvider}`);
-          continue;
-        }
-      }
+    try {
+      console.log(`🔍 Getting address suggestions with OpenStreetMap`);
+      const result = await openStreetMapService.getAddressSuggestions(input);
+      this.markProviderAsAvailable('osm');
+      return result;
+    } catch (error) {
+      console.error(`❌ OpenStreetMap provider failed:`, error);
+      this.markProviderAsUnavailable('osm');
+      throw error instanceof Error ? error : new Error('Adressdienst ist nicht verfügbar');
     }
-
-    // All providers failed
-    console.error('❌ All address suggestion providers failed');
-    throw lastError || new Error('Alle Adressdienste sind nicht verfügbar');
   }
 
-  // Place details with fallback
+  // Place details using OpenStreetMap
   public async getPlaceDetails(placeId: string): Promise<any> {
-    const maxRetries = 2;
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const provider = this.currentProvider;
-        console.log(`📍 Getting place details with provider: ${provider} (attempt ${attempt + 1})`);
-
-        let result: any;
-
-        switch (provider) {
-          case 'google':
-            result = await backendMapsService.getPlaceDetails(placeId);
-            break;
-          case 'osm':
-            // For OSM, we treat placeId as the query string
-            result = await openStreetMapService.getPlaceDetails(placeId);
-            break;
-          default:
-            throw new Error(`Unknown provider: ${provider}`);
-        }
-
-        this.markProviderAsAvailable(provider);
-        return result;
-
-      } catch (error) {
-        console.error(`❌ Provider ${this.currentProvider} failed:`, error);
-        lastError = error instanceof Error ? error : new Error(String(error));
-        
-        this.markProviderAsUnavailable(this.currentProvider);
-        
-        if (attempt < maxRetries - 1) {
-          console.log(`🔄 Retrying with new provider: ${this.currentProvider}`);
-          continue;
-        }
-      }
+    try {
+      console.log(`📍 Getting place details with OpenStreetMap`);
+      const result = await openStreetMapService.getPlaceDetails(placeId);
+      this.markProviderAsAvailable('osm');
+      return result;
+    } catch (error) {
+      console.error(`❌ OpenStreetMap provider failed:`, error);
+      this.markProviderAsUnavailable('osm');
+      throw error instanceof Error ? error : new Error('Ortsdienst ist nicht verfügbar');
     }
-
-    throw lastError || new Error('Alle Ortsdienste sind nicht verfügbar');
   }
 
-  // Geocoding with fallback
+  // Geocoding using OpenStreetMap
   public async geocodeAddress(address: string): Promise<{ lat: number; lng: number; addressComponents?: any } | null> {
-    const maxRetries = 2;
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const provider = this.currentProvider;
-        console.log(`🗺️ Geocoding with provider: ${provider} (attempt ${attempt + 1})`);
-
-        let result: any;
-
-        switch (provider) {
-          case 'google':
-            result = await backendMapsService.geocodeAddress(address);
-            break;
-          case 'osm':
-            result = await openStreetMapService.geocodeAddress(address);
-            break;
-          default:
-            throw new Error(`Unknown provider: ${provider}`);
-        }
-
-        if (result) {
-          this.markProviderAsAvailable(provider);
-        }
-        return result;
-
-      } catch (error) {
-        console.error(`❌ Provider ${this.currentProvider} failed:`, error);
-        lastError = error instanceof Error ? error : new Error(String(error));
-        
-        this.markProviderAsUnavailable(this.currentProvider);
-        
-        if (attempt < maxRetries - 1) {
-          console.log(`🔄 Retrying with new provider: ${this.currentProvider}`);
-          continue;
-        }
+    try {
+      console.log(`🗺️ Geocoding with OpenStreetMap`);
+      const result = await openStreetMapService.geocodeAddress(address);
+      if (result) {
+        this.markProviderAsAvailable('osm');
       }
+      return result;
+    } catch (error) {
+      console.error(`❌ OpenStreetMap provider failed:`, error);
+      this.markProviderAsUnavailable('osm');
+      console.warn('⚠️ Geocoding failed, returning null');
+      return null;
     }
-
-    console.warn('⚠️ All geocoding providers failed, returning null');
-    return null;
   }
 
   // Get provider display name
   public getProviderDisplayName(provider: MapProvider): string {
     switch (provider) {
-      case 'google':
-        return 'Google Maps';
       case 'osm':
         return 'OpenStreetMap';
       default:
@@ -218,7 +106,7 @@ export class MapProviderManager {
 
   // Get all providers with status
   public getAllProvidersStatus(): Array<{ provider: MapProvider; status: string; name: string; current: boolean }> {
-    const providers: MapProvider[] = ['google', 'osm'];
+    const providers: MapProvider[] = ['osm'];
     
     return providers.map(provider => ({
       provider,
