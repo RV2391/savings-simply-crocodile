@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Card } from '../ui/card';
 import { Loader2, Navigation, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
 import { backendMapsService } from '@/utils/backendMapsService';
+import { OpenStreetMapContainer } from './OpenStreetMapContainer';
 import type { DentalInstitute } from '@/utils/dentalInstitutes';
 
 interface BackendMapContainerProps {
@@ -27,6 +28,8 @@ export const BackendMapContainer = ({
   const [error, setError] = useState<string>('');
   const [directionsData, setDirectionsData] = useState<any>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [useFallback, setUseFallback] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
 
   const MAX_RETRIES = 2;
 
@@ -34,9 +37,11 @@ export const BackendMapContainer = ({
     if (!isRetry) {
       setLoading(true);
       setError('');
+      setApiStatus('checking');
     }
     
     console.log('🗺️ Generating secure static map for center:', center);
+    console.log('🔍 API Status check - Retry count:', retryCount);
     
     try {
       const markers = [
@@ -113,11 +118,22 @@ export const BackendMapContainer = ({
 
       console.log('✅ Secure static map image URL received');
       setMapImageUrl(imageUrl);
-      setRetryCount(0); // Reset retry count on success
+      setRetryCount(0);
+      setApiStatus('available');
       
     } catch (error) {
       console.error('❌ Secure map generation failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      
+      // Spezifische Behandlung für 403 Fehler
+      if (errorMessage.includes('403') || errorMessage.includes('Zugriff verweigert') || 
+          errorMessage.includes('not authorized') || errorMessage.includes('API key')) {
+        console.log('🔄 API Key Problem erkannt - Wechsel zu Fallback-Karte');
+        setApiStatus('unavailable');
+        setUseFallback(true);
+        setLoading(false);
+        return;
+      }
       
       // Enhanced error handling with retry logic
       if (retryCount < MAX_RETRIES && !errorMessage.includes('API-Schlüssel')) {
@@ -127,7 +143,11 @@ export const BackendMapContainer = ({
         return;
       }
       
-      setError(`Karte konnte nicht geladen werden: ${errorMessage}`);
+      // Nach allen Versuchen zu Fallback wechseln
+      console.log('🔄 Alle Versuche fehlgeschlagen - Wechsel zu Fallback-Karte');
+      setApiStatus('unavailable');
+      setUseFallback(true);
+      setError(`Google Maps nicht verfügbar: ${errorMessage}`);
       setMapImageUrl('');
     } finally {
       setLoading(false);
@@ -135,6 +155,9 @@ export const BackendMapContainer = ({
   };
 
   useEffect(() => {
+    // Reset fallback state when dependencies change
+    setUseFallback(false);
+    setApiStatus('checking');
     generateStaticMap();
 
     // Cleanup function to revoke blob URLs and prevent memory leaks
@@ -156,12 +179,34 @@ export const BackendMapContainer = ({
     };
   }, [mapImageUrl]);
 
+  // Fallback zu OpenStreetMap bei API-Problemen
+  if (useFallback || apiStatus === 'unavailable') {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 p-2 rounded">
+          <AlertCircle className="w-4 h-4" />
+          <span>Google Maps nicht verfügbar - Fallback-Karte wird verwendet</span>
+        </div>
+        <OpenStreetMapContainer
+          center={center}
+          practiceLocation={practiceLocation}
+          nearestInstitute={nearestInstitute}
+          institutes={institutes}
+          onPracticeLocationChange={onPracticeLocationChange}
+          showDirections={showDirections}
+        />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
           <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Sichere Karte wird generiert...</p>
+          <p className="text-sm text-muted-foreground">
+            {apiStatus === 'checking' ? 'Google Maps API wird geprüft...' : 'Sichere Karte wird generiert...'}
+          </p>
           <p className="text-xs text-muted-foreground mt-1">Backend-Image-Proxy wird verwendet...</p>
           {retryCount > 0 && (
             <p className="text-xs text-yellow-600 mt-2">
@@ -173,14 +218,14 @@ export const BackendMapContainer = ({
     );
   }
 
-  if (error) {
+  if (error && !useFallback) {
     return (
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6 max-w-md">
           <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center mb-3">
             <AlertCircle className="w-8 h-8 text-red-500" />
           </div>
-          <p className="text-sm text-muted-foreground mb-2">Sichere Karte konnte nicht geladen werden</p>
+          <p className="text-sm text-muted-foreground mb-2">Google Maps konnte nicht geladen werden</p>
           <p className="text-xs text-red-400 mb-4">{error}</p>
           <div className="space-y-2">
             <button 
@@ -194,10 +239,10 @@ export const BackendMapContainer = ({
               Erneut versuchen
             </button>
             <button 
-              onClick={() => window.location.reload()}
-              className="px-3 py-1 bg-muted text-muted-foreground rounded text-xs hover:bg-muted/80"
+              onClick={() => setUseFallback(true)}
+              className="px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600"
             >
-              Seite neu laden
+              Fallback-Karte verwenden
             </button>
           </div>
         </div>
@@ -210,16 +255,16 @@ export const BackendMapContainer = ({
       {mapImageUrl ? (
         <img 
           src={mapImageUrl}
-          alt="Sichere statische Karte mit Praxis und Instituten"
+          alt="Google Maps mit Praxis und Instituten"
           className="w-full h-[400px] object-cover"
           onLoad={() => {
-            console.log('✅ Map image loaded successfully');
+            console.log('✅ Google Maps image loaded successfully');
           }}
           onError={(e) => {
-            console.error('❌ Map image failed to display:', mapImageUrl);
+            console.error('❌ Google Maps image failed to display:', mapImageUrl);
             console.error('Image error event:', e);
-            setError('Sicheres Kartenbild konnte nicht angezeigt werden');
-            setMapImageUrl('');
+            setError('Google Maps Bild konnte nicht angezeigt werden');
+            setUseFallback(true);
           }}
         />
       ) : (
@@ -228,6 +273,13 @@ export const BackendMapContainer = ({
             <MapPin className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Sichere Karte konnte nicht geladen werden</p>
           </div>
+        </div>
+      )}
+
+      {/* API Status Indicator */}
+      {apiStatus === 'available' && (
+        <div className="absolute top-4 right-4 bg-green-500/20 text-green-700 px-2 py-1 rounded text-xs">
+          Google Maps aktiv
         </div>
       )}
 

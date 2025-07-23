@@ -106,6 +106,7 @@ export class BackendMapsService {
     
     try {
       console.log('🔄 Invoking google-maps-proxy with static_map_image action...');
+      console.log('🕒 Request timestamp:', new Date().toISOString());
       
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
         body: { 
@@ -116,14 +117,23 @@ export class BackendMapsService {
 
       if (error) {
         console.error('❌ Static map image error from function:', error);
+        console.error('🔍 Full error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          context: error.context,
+          timestamp: new Date().toISOString()
+        });
         
         // Enhanced error handling with specific error types
         if (error.message?.includes('403')) {
-          throw new Error('Google Maps API: Zugriff verweigert. Bitte überprüfen Sie die API-Schlüssel-Konfiguration in Google Cloud Console.');
+          throw new Error('Google Maps API: 403 Forbidden - API Key Problem. Überprüfen Sie die API-Schlüssel-Konfiguration, Billing und Berechtigungen in der Google Cloud Console.');
         } else if (error.message?.includes('429')) {
-          throw new Error('Google Maps API: Rate-Limit erreicht. Bitte versuchen Sie es später erneut.');
+          throw new Error('Google Maps API: 429 Rate-Limit erreicht. Bitte versuchen Sie es später erneut.');
         } else if (error.message?.includes('400')) {
-          throw new Error('Google Maps API: Ungültige Anfrage-Parameter.');
+          throw new Error('Google Maps API: 400 Ungültige Anfrage-Parameter. Überprüfen Sie die Karten-Konfiguration.');
+        } else if (error.message?.includes('500')) {
+          throw new Error('Google Maps API: 500 Server-Fehler. Möglicherweise ist die API temporär nicht verfügbar.');
         } else {
           throw new Error(`Static map image error: ${error.message}`);
         }
@@ -138,40 +148,74 @@ export class BackendMapsService {
           throw new Error('Empty image data received from Google Maps API');
         }
         
+        // Additional validation for minimum image size
+        if (data.byteLength < 1000) {
+          console.warn('⚠️ Received very small image data, might be an error response');
+        }
+        
         // Create blob from ArrayBuffer
         const blob = new Blob([data], { type: 'image/png' });
         const imageUrl = URL.createObjectURL(blob);
         
         console.log('✅ Created blob URL:', imageUrl);
+        console.log('📊 Image metrics:', {
+          size: data.byteLength,
+          url: imageUrl,
+          timestamp: new Date().toISOString()
+        });
+        
         return imageUrl;
       }
 
       // If we get here, check if it's an error response
       if (typeof data === 'object' && data !== null && 'error' in data) {
         console.error('❌ Error response from backend:', data);
-        throw new Error(`Backend error: ${data.error}`);
+        console.error('🔍 Debug information:', data.debug);
+        
+        // Check for specific error types from debug info
+        if (data.debug?.diagnosis === 'API_KEY_AUTHORIZATION_PROBLEM') {
+          throw new Error('Google Maps API Key Problem: API-Schlüssel ist ungültig, abgelaufen oder hat keine Berechtigung für die Static Maps API. Überprüfen Sie die Google Cloud Console.');
+        } else if (data.debug?.diagnosis === 'RATE_LIMIT_EXCEEDED') {
+          throw new Error('Google Maps API Rate-Limit erreicht. Bitte versuchen Sie es später erneut.');
+        } else if (data.debug?.diagnosis === 'INVALID_REQUEST_PARAMETERS') {
+          throw new Error('Ungültige Anfrage-Parameter für Google Maps API. Überprüfen Sie die Karten-Konfiguration.');
+        } else {
+          throw new Error(`Backend error: ${data.error}`);
+        }
       }
 
       // If we get here, the response format is unexpected
       console.error('❌ Unexpected response format from static_map_image:', typeof data);
+      console.error('🔍 Response data:', data);
       throw new Error(`Unexpected response format: ${typeof data}`);
       
     } catch (error) {
       console.error('❌ Backend static map image failed:', error);
+      console.error('🔍 Full error context:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        options: options
+      });
       
       // Enhanced error information with user-friendly messages
       if (error instanceof Error) {
-        if (error.message.includes('403') || error.message.includes('Zugriff verweigert')) {
-          throw new Error('Kartendienst nicht verfügbar: API-Schlüssel-Problem. Bitte kontaktieren Sie den Administrator.');
+        if (error.message.includes('403') || error.message.includes('Forbidden') || error.message.includes('not authorized')) {
+          throw new Error('Google Maps API nicht verfügbar: API-Schlüssel-Problem. Die API-Berechtigung ist fehlgeschlagen. Bitte überprüfen Sie die Google Cloud Console Konfiguration.');
         } else if (error.message.includes('429') || error.message.includes('Rate-Limit')) {
-          throw new Error('Kartendienst vorübergehend nicht verfügbar: Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
-        } else if (error.message.includes('Network')) {
+          throw new Error('Google Maps API vorübergehend nicht verfügbar: Zu viele Anfragen. Bitte versuchen Sie es später erneut.');
+        } else if (error.message.includes('400') || error.message.includes('Bad Request')) {
+          throw new Error('Google Maps API Konfigurationsfehler: Ungültige Parameter. Bitte überprüfen Sie die Karten-Einstellungen.');
+        } else if (error.message.includes('500') || error.message.includes('Internal Server Error')) {
+          throw new Error('Google Maps API Server-Fehler: Der Service ist temporär nicht verfügbar. Bitte versuchen Sie es später erneut.');
+        } else if (error.message.includes('Network') || error.message.includes('network')) {
           throw new Error('Netzwerkfehler beim Laden der Karte. Bitte überprüfen Sie Ihre Internetverbindung.');
         } else {
-          throw new Error(`Kartenfehler: ${error.message}`);
+          throw new Error(`Google Maps Fehler: ${error.message}`);
         }
       } else {
-        throw new Error(`Unbekannter Kartenfehler: ${String(error)}`);
+        throw new Error(`Unbekannter Google Maps Fehler: ${String(error)}`);
       }
     }
   }
