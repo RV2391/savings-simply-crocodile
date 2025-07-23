@@ -34,6 +34,11 @@ export const BackendMapContainer = ({
   const MAX_RETRIES = 1; // Reduce retries to fail faster
 
   const generateStaticMap = async (isRetry = false) => {
+    // Don't try if already using fallback
+    if (useFallback || apiStatus === 'unavailable') {
+      return;
+    }
+
     if (!isRetry) {
       setLoading(true);
       setError('');
@@ -111,23 +116,27 @@ export const BackendMapContainer = ({
       setMapImageUrl(imageUrl);
       setRetryCount(0);
       setApiStatus('available');
+      setLoading(false);
       
     } catch (error) {
       console.error('❌ Google Maps generation failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      // Check for 403 errors (API key restrictions) - immediately switch to fallback
-      if (errorMessage.includes('403') || errorMessage.includes('Forbidden') || 
-          errorMessage.includes('API Key Problem')) {
+      // Immediately switch to fallback on any API key related error
+      if (errorMessage.includes('403') || 
+          errorMessage.includes('Forbidden') || 
+          errorMessage.includes('API Key Problem') ||
+          errorMessage.includes('HTTP 403')) {
         console.log('🔄 API Key problem detected - switching to OpenStreetMap immediately');
         setApiStatus('unavailable');
         setUseFallback(true);
-        setError('Google Maps nicht verfügbar - OpenStreetMap wird verwendet');
+        setError('');
         setLoading(false);
+        setRetryCount(0);
         return;
       }
       
-      // For other errors, still try fallback after retries
+      // For other errors, try fallback after limited retries
       if (retryCount < MAX_RETRIES) {
         console.log(`🔄 Retrying map generation (${retryCount + 1}/${MAX_RETRIES})...`);
         setRetryCount(prev => prev + 1);
@@ -139,9 +148,7 @@ export const BackendMapContainer = ({
       console.log('🔄 All retries failed - switching to OpenStreetMap');
       setApiStatus('unavailable');
       setUseFallback(true);
-      setError(`Google Maps nicht verfügbar: ${errorMessage}`);
-      setMapImageUrl('');
-    } finally {
+      setError('');
       setLoading(false);
     }
   };
