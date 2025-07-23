@@ -17,9 +17,9 @@ Deno.serve(async (req) => {
     console.log(`🔄 Action requested: ${action}`)
     console.log(`📋 Parameters: ${JSON.stringify(params, null, 2)}`)
     
-    // Get API keys - use specific key for static maps
-    const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
-    const GOOGLE_MAPS_STATIC_API_KEY = Deno.env.get('GOOGLE_MAPS_STATIC_API_KEY')
+    // Get API keys - try multiple key sources for better compatibility
+    const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY_NEW') || Deno.env.get('GOOGLE_MAPS_API_KEY')
+    const GOOGLE_MAPS_STATIC_API_KEY = Deno.env.get('GOOGLE_MAPS_STATIC_API_KEY') || GOOGLE_MAPS_API_KEY
     
     console.log(`🔍 Environment check:`)
     console.log(`  - GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing'} (${GOOGLE_MAPS_API_KEY?.substring(0, 20) || 'N/A'}...)`)
@@ -45,6 +45,12 @@ Deno.serve(async (req) => {
     const apiKey = isStaticMapAction && GOOGLE_MAPS_STATIC_API_KEY ? GOOGLE_MAPS_STATIC_API_KEY : GOOGLE_MAPS_API_KEY
     
     console.log(`🔑 Using ${isStaticMapAction ? 'Static Maps' : 'General'} API key: ${apiKey.substring(0, 20)}...`)
+    
+    // Prepare headers with proper referrer for API requests
+    const apiHeaders = {
+      'Referer': 'https://lovable.dev/',
+      'User-Agent': 'Lovable-Maps-Service/1.0'
+    }
 
     let response
     
@@ -64,7 +70,7 @@ Deno.serve(async (req) => {
         
         try {
           console.log('🔄 Sending autocomplete request to Google Maps API...')
-          response = await fetch(autocompleteUrl)
+          response = await fetch(autocompleteUrl, { headers: apiHeaders })
           console.log(`📊 Autocomplete API response status: ${response.status} ${response.statusText}`)
           
           if (!response.ok) {
@@ -161,7 +167,7 @@ Deno.serve(async (req) => {
         
         try {
           console.log('🔄 Sending place details request to Google Maps API...')
-          response = await fetch(detailsUrl)
+          response = await fetch(detailsUrl, { headers: apiHeaders })
           console.log(`📊 Place details API response status: ${response.status} ${response.statusText}`)
           
           if (!response.ok) {
@@ -270,7 +276,7 @@ Deno.serve(async (req) => {
         
         try {
           console.log('🔄 Sending geocoding request to Google Maps API...')
-          response = await fetch(geocodeUrl)
+          response = await fetch(geocodeUrl, { headers: apiHeaders })
           console.log(`📊 Geocoding API response status: ${response.status} ${response.statusText}`)
           
           if (!response.ok) {
@@ -355,7 +361,7 @@ Deno.serve(async (req) => {
         console.log('🗺️ Directions request:', params.origin, 'to', params.destination)
         
         try {
-          response = await fetch(directionsUrl)
+          response = await fetch(directionsUrl, { headers: apiHeaders })
           const data = await response.json()
           console.log(`✅ Directions response status: ${response.status}`)
           
@@ -427,7 +433,7 @@ Deno.serve(async (req) => {
         
         try {
           console.log('🔄 Fetching image from Google Maps API...')
-          const imageResponse = await fetch(staticMapUrl)
+          const imageResponse = await fetch(staticMapUrl, { headers: apiHeaders })
           
           console.log(`📊 Google Maps API response status: ${imageResponse.status}`)
           console.log(`📊 Google Maps API response statusText: ${imageResponse.statusText}`)
