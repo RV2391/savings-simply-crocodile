@@ -263,6 +263,7 @@ Deno.serve(async (req) => {
           console.log(`📊 Image details: ${imageBuffer.byteLength} bytes, type: ${contentType}`)
           console.log(`🔑 Success with ${GOOGLE_MAPS_STATIC_API_KEY ? 'Static Maps' : 'General'} API key`)
           
+          // Return the image as binary data with proper CORS headers
           return new Response(imageBuffer, {
             headers: {
               ...corsHeaders,
@@ -271,7 +272,9 @@ Deno.serve(async (req) => {
               'Content-Length': imageBuffer.byteLength.toString(),
               'X-Debug-Status': 'success',
               'X-Debug-Timestamp': new Date().toISOString(),
-              'X-Debug-ApiKey': GOOGLE_MAPS_STATIC_API_KEY ? 'static' : 'general'
+              'X-Debug-ApiKey': GOOGLE_MAPS_STATIC_API_KEY ? 'static' : 'general',
+              // Ensure proper binary response handling
+              'Access-Control-Expose-Headers': 'Content-Type, Content-Length, X-Debug-Status, X-Debug-Timestamp, X-Debug-ApiKey'
             }
           })
         } catch (fetchError) {

@@ -108,10 +108,14 @@ export class BackendMapsService {
       console.log('🔄 Invoking google-maps-proxy with static_map_image action...');
       console.log('🕒 Request timestamp:', new Date().toISOString());
       
+      // Make sure to request binary response from Supabase
       const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
         body: { 
           action: 'static_map_image', 
           ...options 
+        },
+        headers: {
+          'Accept': 'image/png, application/json'
         }
       });
 
