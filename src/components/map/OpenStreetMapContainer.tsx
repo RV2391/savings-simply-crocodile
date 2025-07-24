@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import type { DentalInstitute } from '@/utils/dentalInstitutes';
 import { StaticMapService } from './StaticMapService';
 import { MapCache } from './MapCache';
+import { cspDetection } from '@/utils/cspDetection';
 
 interface OpenStreetMapContainerProps {
   center: { lat: number; lng: number };
@@ -33,6 +34,20 @@ export const OpenStreetMapContainer = ({
     setError('');
     
     console.log('🗺️ Generating optimized OpenStreetMap for center:', center);
+    
+    // Check CSP capabilities before proceeding
+    try {
+      const capabilities = await cspDetection.detectCapabilities();
+      if (cspDetection.isBackendOnlyModeRequired()) {
+        console.warn('🛡️ CSP restrictions detected, falling back to backend-only map');
+        throw new Error('CSP restrictions prevent map loading. Using fallback mode.');
+      }
+    } catch (cspError) {
+      console.error('❌ CSP check failed:', cspError);
+      setError('Karte nicht verfügbar aufgrund von Plattform-Beschränkungen');
+      setLoading(false);
+      return;
+    }
     
     try {
       // Prepare markers for the map
