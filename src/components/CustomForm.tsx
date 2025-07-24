@@ -156,7 +156,7 @@ export const CustomForm = ({
 
       toast({
         title: "Erfolgreich gesendet",
-        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in 5-10 Minuten eine individuell erstellte E-Mail mit Ihrer persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
+        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in ca. 30 Sekunden eine individuell erstellte E-Mail mit Ihrer persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
       });
 
       // Reset form
@@ -205,7 +205,7 @@ export const CustomForm = ({
               <div className="ml-3">
                 <p className="text-sm text-blue-700">
                   <strong>Ihre E-Mail wird individuell erstellt...</strong><br />
-                  Dies dauert ca. 5-10 Minuten. Sie erhalten eine Benachrichtigung, sobald Ihre persönliche Analyse bereit ist.
+                  Dies dauert ca. 30 Sekunden. Sie erhalten eine Benachrichtigung, sobald Ihre persönliche Analyse bereit ist.
                 </p>
               </div>
             </div>
