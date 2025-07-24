@@ -30,6 +30,7 @@ const Index = () => {
                   <li>Reisekosten zum nächstgelegenen Fortbildungsinstitut</li>
                 </ul>
               </li>
+              <li>Optional: Gib deine E-Mail-Adresse und Praxisname ein, um eine detaillierte Aufschlüsselung der Zeitersparnis-Analyse per E-Mail zu erhalten. Die E-Mail enthält alle Berechnungsgrundlagen, Stundensätze und Quellen.</li>
             </ol>
           </div>
         </div>
