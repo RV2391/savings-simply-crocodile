@@ -1,6 +1,7 @@
 
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
 import { OpenStreetMapContainer } from "./map/OpenStreetMapContainer";
+import { MapErrorBoundary } from "./map/MapErrorBoundary";
 
 interface PracticeMapProps {
   institutes: DentalInstitute[];
@@ -20,15 +21,17 @@ export const PracticeMap = ({
 }: PracticeMapProps) => {
   return (
     <div className="space-y-3">
-      {/* OpenStreetMap Container */}
-      <OpenStreetMapContainer
-        center={practiceLocation}
-        practiceLocation={practiceLocation}
-        nearestInstitute={nearestInstitute}
-        institutes={institutes}
-        onPracticeLocationChange={onPracticeLocationChange}
-        showDirections={!!nearestInstitute}
-      />
+      {/* OpenStreetMap Container with Error Boundary */}
+      <MapErrorBoundary>
+        <OpenStreetMapContainer
+          center={practiceLocation}
+          practiceLocation={practiceLocation}
+          nearestInstitute={nearestInstitute}
+          institutes={institutes}
+          onPracticeLocationChange={onPracticeLocationChange}
+          showDirections={!!nearestInstitute}
+        />
+      </MapErrorBoundary>
     </div>
   );
 };

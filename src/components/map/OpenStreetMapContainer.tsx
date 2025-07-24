@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card } from '../ui/card';
 import { Loader2, Navigation, MapPin, AlertCircle, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import type { DentalInstitute } from '@/utils/dentalInstitutes';
+import { StaticMapService } from './StaticMapService';
+import { MapCache } from './MapCache';
 
 interface OpenStreetMapContainerProps {
   center: { lat: number; lng: number };
@@ -26,63 +28,71 @@ export const OpenStreetMapContainer = ({
   const [showInfo, setShowInfo] = useState(true);
   const [showLegend, setShowLegend] = useState(true);
 
-  const generateMap = async () => {
+  const generateMap = useCallback(async () => {
     setLoading(true);
     setError('');
     
-    console.log('🗺️ Generating OpenStreetMap for center:', center);
+    console.log('🗺️ Generating optimized OpenStreetMap for center:', center);
     
     try {
-      // Use CartoDB tiles for better map quality
-      const zoom = 10;
-      const mapWidth = 800;
-      const mapHeight = 400;
-      
-      const lat = center.lat;
-      const lng = center.lng;
-      
-      // Calculate tile coordinates for higher quality
-      const tileX = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
-      const tileY = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
-      
-      // Use CartoDB for better styling (fallback to OSM if needed)
-      const tileUrls = [
-        `https://cartodb-basemaps-c.global.ssl.fastly.net/light_all/${zoom}/${tileX}/${tileY}.png`,
-        `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`
+      // Prepare markers for the map
+      const markers = [
+        {
+          lat: practiceLocation.lat,
+          lng: practiceLocation.lng,
+          color: 'green',
+          label: 'P'
+        }
       ];
       
-      // Try first tile service, fallback to second
-      let mapUrl = tileUrls[0];
-      try {
-        const response = await fetch(mapUrl);
-        if (!response.ok) {
-          mapUrl = tileUrls[1];
-        }
-      } catch {
-        mapUrl = tileUrls[1];
+      // Add nearest institute marker if available
+      if (nearestInstitute) {
+        markers.push({
+          lat: nearestInstitute.coordinates.lat,
+          lng: nearestInstitute.coordinates.lng,
+          color: 'blue',
+          label: 'I'
+        });
       }
       
-      console.log('🌍 Using map tile:', mapUrl);
+      // Generate optimized static map
+      const mapUrl = await StaticMapService.generateStaticMapUrl(
+        center,
+        markers,
+        800, // width
+        400  // height
+      );
+      
+      console.log('🌍 Generated optimized map:', mapUrl);
+      
+      // Preload the image for faster display
+      await StaticMapService.preloadMapTile(mapUrl);
+      
       setMapImageUrl(mapUrl);
       
     } catch (error) {
       console.error('❌ Map generation failed:', error);
-      setError('Karte konnte nicht geladen werden');
+      setError('Karte konnte nicht geladen werden. Bitte versuchen Sie es erneut.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [center, practiceLocation, nearestInstitute]);
 
   useEffect(() => {
-    generateMap();
-  }, [center, practiceLocation, nearestInstitute, institutes]);
+    // Debounce map generation to avoid rapid API calls
+    const timer = setTimeout(() => {
+      generateMap();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [generateMap]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg border">
         <div className="text-center p-6">
-          <Loader2 className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
+          <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Optimierte Karte wird geladen...</p>
         </div>
       </div>
     );
@@ -116,8 +126,10 @@ export const OpenStreetMapContainer = ({
             src={mapImageUrl}
             alt="Karte mit Praxis und Instituten"
             className="w-full h-full object-cover"
+            loading="eager"
+            decoding="async"
             onLoad={() => {
-              console.log('✅ Map image loaded successfully');
+              console.log('✅ Optimized map loaded successfully');
             }}
             onError={(e) => {
               console.error('❌ Map image failed to display');
@@ -127,23 +139,28 @@ export const OpenStreetMapContainer = ({
         ) : (
           <div className="text-center p-6">
             <MapPin className="w-16 h-16 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Karte wird geladen...</p>
+            <p className="text-sm text-muted-foreground">Karte wird vorbereitet...</p>
           </div>
         )}
         
-        {/* Practice and Institute Markers */}
+        {/* Enhanced Practice and Institute Markers */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative">
-            {/* Practice Marker */}
-            <div className="absolute -top-8 -left-4 w-8 h-8 bg-green-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
+            {/* Practice Marker - Enhanced visibility */}
+            <div className="absolute -top-8 -left-4 w-8 h-8 bg-green-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center animate-pulse">
               <span className="text-sm font-bold text-white">P</span>
             </div>
             
-            {/* Nearest Institute Marker */}
+            {/* Nearest Institute Marker - Enhanced visibility */}
             {nearestInstitute && (
-              <div className="absolute -top-8 left-6 w-8 h-8 bg-blue-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
+              <div className="absolute -top-8 left-6 w-8 h-8 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
                 <span className="text-sm font-bold text-white">I</span>
               </div>
+            )}
+            
+            {/* Connection line between markers */}
+            {nearestInstitute && (
+              <div className="absolute -top-4 left-1 w-5 h-0.5 bg-gray-400 opacity-70"></div>
             )}
           </div>
         </div>
