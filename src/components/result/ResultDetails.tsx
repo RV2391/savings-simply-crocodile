@@ -115,11 +115,11 @@ export const ResultDetails = ({
           </div>
 
           <div className="mt-4 text-center">
-            <p className="text-sm text-gray-400 mb-2">
-              Erhalte deine persönliche 5-Jahres-CME-Strategie
+            <p className="text-sm text-gray-300 mb-2 font-medium">
+              📊 Detaillierte Zeitersparnis-Aufschlüsselung per E-Mail
             </p>
-            <p className="text-xs text-gray-500">
-              Inkl. Planung, Zeitmanagement und Kostenoptimierung
+            <p className="text-xs text-gray-400">
+              Erhalte eine komplette Übersicht deiner Zeitersparnis mit Berechnungsgrundlagen und Datenquellen
             </p>
           </div>
         </div>
