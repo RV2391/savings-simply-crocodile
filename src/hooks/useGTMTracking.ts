@@ -56,9 +56,9 @@ export const useGTMTracking = () => {
       calculator_team_size: teamSize,
       calculator_dentists_count: dentistsCount,
       calculator_location_provided: hasLocation,
-      savings_amount: savings,
-      time_savings_hours: timeSavingsHours ? Math.round(timeSavingsHours * 10) / 10 : undefined,
-      time_savings_value: timeSavingsValue ? Math.round(timeSavingsValue) : undefined
+      savings_amount: Math.round(savings),
+      time_savings_hours: timeSavingsHours && !isNaN(timeSavingsHours) ? Math.round(timeSavingsHours * 10) / 10 : 0,
+      time_savings_value: timeSavingsValue && !isNaN(timeSavingsValue) ? Math.round(timeSavingsValue) : 0
     });
   }, [trackCalculatorInteraction]);
 

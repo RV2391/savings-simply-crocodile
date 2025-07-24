@@ -47,7 +47,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
 
             <div className="mt-6 space-y-4 border-t border-gray-700 pt-4">
               <div className="text-sm text-gray-400">
-                <h4 className="mb-2 font-medium text-white">So setzt sich Ihr Einsparpotenzial zusammen:</h4>
+                <h4 className="mb-2 font-medium text-white">So setzt sich dein Einsparpotenzial zusammen:</h4>
                 <ul className="list-disc pl-4 space-y-2">
                   <li>
                     <strong>Fortbildungskosten:</strong> Durch die digitale Bereitstellung der Fortbildungen entfallen die üblichen Kosten von 1.200€ pro Zahnarzt und 280€ pro Assistenzkraft pro Jahr.
@@ -58,10 +58,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                     </li>
                   )}
                   <li>
-                    <strong>Zeitersparnis:</strong> Keine Anreisezeiten bedeuten mehr Zeit für Ihre Patienten und ein effizienteres Praxismanagement.
+                    <strong>Zeitersparnis:</strong> Keine Anreisezeiten bedeuten mehr Zeit für deine Patienten und ein effizienteres Praxismanagement.
                   </li>
                   <li>
-                    <strong>Flexibilität:</strong> Ihre Mitarbeiter können die Fortbildungen flexibel absolvieren, ohne dass der Praxisbetrieb beeinträchtigt wird.
+                    <strong>Flexibilität:</strong> Deine Mitarbeiter können die Fortbildungen flexibel absolvieren, ohne dass der Praxisbetrieb beeinträchtigt wird.
                   </li>
                 </ul>
               </div>

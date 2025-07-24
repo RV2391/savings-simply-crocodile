@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { ResultCard } from "./ResultCard";
 import { TimeSavingsCard } from "./TimeSavingsCard";
+import { LoadingSkeleton } from "./LoadingSkeleton";
 import { CostLegend } from "./CostLegend";
 import { TimeSavingsLegend } from "./TimeSavingsLegend";
 import { calculateResults, type CalculationInputs } from "@/utils/calculations";
@@ -57,6 +58,7 @@ export const CostCalculator = () => {
   });
   const [results, setResults] = useState<ExtendedResults>(defaultResults);
   const [addressComponents, setAddressComponents] = useState<AddressComponents>({});
+  const [isCalculating, setIsCalculating] = useState(false);
   const { toast } = useToast();
 
   // GTM Tracking
@@ -70,28 +72,40 @@ export const CostCalculator = () => {
 
   useEffect(() => {
     const updateResults = async () => {
-      const newResults = await calculateResults(inputs) as ExtendedResults;
-      setResults(newResults);
-      sessionStorage.setItem('calculatorData', JSON.stringify({
-        ...inputs,
-        location: inputs.practiceLat && inputs.practiceLng ? 
-          `${inputs.practiceLat},${inputs.practiceLng}` : ''
-      }));
+      setIsCalculating(true);
+      try {
+        const newResults = await calculateResults(inputs) as ExtendedResults;
+        setResults(newResults);
+        sessionStorage.setItem('calculatorData', JSON.stringify({
+          ...inputs,
+          location: inputs.practiceLat && inputs.practiceLng ? 
+            `${inputs.practiceLat},${inputs.practiceLng}` : ''
+        }));
 
-      // Track calculation completed when results are available
-      if (newResults.savings > 0) {
-        trackCalculationCompleted(
-          newResults.savings,
-          inputs.teamSize,
-          inputs.dentists,
-          !!(inputs.practiceLat && inputs.practiceLng),
-          newResults.extendedTimeSavings?.totalHoursPerYear,
-          newResults.extendedTimeSavings?.totalMonetaryValue
-        );
+        // Track calculation completed when results are available
+        if (newResults.savings > 0) {
+          trackCalculationCompleted(
+            newResults.savings,
+            inputs.teamSize,
+            inputs.dentists,
+            !!(inputs.practiceLat && inputs.practiceLng),
+            newResults.extendedTimeSavings?.totalHoursPerYear,
+            newResults.extendedTimeSavings?.totalMonetaryValue
+          );
+        }
+      } catch (error) {
+        console.error('Calculation error:', error);
+        toast({
+          title: "Berechnungsfehler",
+          description: "Die Berechnung konnte nicht durchgeführt werden. Bitte versuche es erneut.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCalculating(false);
       }
     };
     updateResults();
-  }, [inputs, trackCalculationCompleted]);
+  }, [inputs, trackCalculationCompleted, toast]);
 
   const handleSelectChange = (field: keyof CalculationInputs) => (value: string) => {
     const numericValue = parseInt(value, 10);
@@ -227,13 +241,19 @@ export const CostCalculator = () => {
         </motion.div>
 
         <div className="flex flex-col items-start justify-center space-y-6">
-          <ResultCard 
-            results={results}
-            calculatorData={calculatorData}
-            addressComponents={addressComponents}
-          />
-          {results.extendedTimeSavings && (
-            <TimeSavingsCard timeSavings={results.extendedTimeSavings} />
+          {isCalculating ? (
+            <LoadingSkeleton />
+          ) : (
+            <>
+              <ResultCard 
+                results={results}
+                calculatorData={calculatorData}
+                addressComponents={addressComponents}
+              />
+              {results.extendedTimeSavings && (
+                <TimeSavingsCard timeSavings={results.extendedTimeSavings} />
+              )}
+            </>
           )}
         </div>
       </div>

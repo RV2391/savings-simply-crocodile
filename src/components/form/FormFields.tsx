@@ -32,7 +32,7 @@ export const FormFields = ({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="ihre@email.de"
+            placeholder="deine@email.de"
             required
             className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
             disabled={isSubmitting}
