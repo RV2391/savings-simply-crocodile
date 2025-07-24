@@ -77,13 +77,6 @@ export const germanInstitutes = [
     plzRange: { start: 19000, end: 19999 },
   },
   {
-    name: "Zahnärztekammer Nordrhein",
-    address: "Hammfelddamm 11",
-    city: "41460 Neuss",
-    coordinates: { lat: 51.1874, lng: 6.6613 },
-    plzRange: { start: 40000, end: 48999 },
-  },
-  {
     name: "Landeszahnärztekammer Rheinland-Pfalz",
     address: "Langenbeckstr. 2",
     city: "55131 Mainz",
@@ -102,7 +95,7 @@ export const germanInstitutes = [
     address: "Schützenhöhe 11",
     city: "01099 Dresden",
     coordinates: { lat: 51.0559, lng: 13.7385 },
-    plzRange: { start: 1000, end: 1999 }, // Fixed: Removed leading zeros
+    plzRange: { start: 1000, end: 1999 },
   },
   {
     name: "Zahnärztekammer Sachsen-Anhalt",
@@ -124,40 +117,5 @@ export const germanInstitutes = [
     city: "99092 Erfurt",
     coordinates: { lat: 50.9775, lng: 11.0299 },
     plzRange: { start: 99000, end: 99999 },
-  },
-  {
-    name: "Zahnärztekammer Westfalen-Lippe",
-    address: "Auf der Horst 29",
-    city: "48147 Münster",
-    coordinates: { lat: 51.9602, lng: 7.6254 },
-    plzRange: { start: 32000, end: 33999 }, // NRW PLZ range for this region
-  },
-  {
-    name: "Philipp-Pfaff-Institut",
-    address: "Aßmannshauser Str. 4-6",
-    city: "14197 Berlin",
-    coordinates: { lat: 52.4721, lng: 13.2846 },
-    plzRange: { start: 10000, end: 14999 },
-  },
-  {
-    name: "Zahnärztliche Akademie Karlsruhe",
-    address: "Lorenzstr. 7",
-    city: "76135 Karlsruhe",
-    coordinates: { lat: 49.0069, lng: 8.3739 },
-    plzRange: { start: 76000, end: 76999 },
-  },
-  {
-    name: "DÜRR DENTAL Academy",
-    address: "Höpfigheimer Str. 17",
-    city: "74321 Bietigheim-Bissingen",
-    coordinates: { lat: 48.9613, lng: 9.1329 },
-    plzRange: { start: 74000, end: 74999 },
-  },
-  {
-    name: "ZFZ Stuttgart",
-    address: "Herdweg 50",
-    city: "70174 Stuttgart",
-    coordinates: { lat: 48.7858, lng: 9.1751 },
-    plzRange: { start: 70000, end: 70999 },
   },
 ];

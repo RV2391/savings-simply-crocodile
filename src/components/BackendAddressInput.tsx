@@ -289,7 +289,7 @@ export const BackendAddressInput = ({
             }}
             placeholder="Adresse eingeben..."
             disabled={loading}
-            className="w-full pr-8"
+            className="w-full pr-8 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
           />
           
           {suggestionsLoading && (
