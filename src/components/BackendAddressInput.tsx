@@ -300,22 +300,22 @@ export const BackendAddressInput = ({
           {showSuggestions && suggestions.length > 0 && (
             <div
               ref={suggestionsRef}
-              className="absolute top-full left-0 right-0 z-50 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+              className="absolute top-full left-0 right-0 z-50 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
             >
               {suggestions.map((suggestion, index) => (
                 <div
                   key={suggestion.place_id}
-                  className={`flex items-center gap-2 p-3 cursor-pointer hover:bg-muted transition-colors ${
-                    index === selectedIndex ? 'bg-muted' : ''
+                  className={`flex items-center gap-2 p-3 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors ${
+                    index === selectedIndex ? 'bg-accent text-accent-foreground' : 'text-popover-foreground'
                   }`}
                   onClick={() => handleSuggestionSelect(suggestion)}
                 >
-                  <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <MapPin className="w-4 h-4 flex-shrink-0 opacity-70" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">
                       {suggestion.main_text}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs opacity-70 truncate">
                       {suggestion.secondary_text}
                     </div>
                   </div>
