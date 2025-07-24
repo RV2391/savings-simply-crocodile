@@ -23,7 +23,7 @@ export const BackendOnlyMap = ({ practiceLocation, nearestInstitute }: BackendOn
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">Standort-Information</h3>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p><strong>Ihre Praxis:</strong> {practiceLocation.lat.toFixed(4)}°, {practiceLocation.lng.toFixed(4)}°</p>
+              <p><strong>Deine Praxis:</strong> {practiceLocation.lat.toFixed(4)}°, {practiceLocation.lng.toFixed(4)}°</p>
               {nearestInstitute && (
                 <>
                   <p><strong>Nächstes Institut:</strong> {nearestInstitute.name}</p>

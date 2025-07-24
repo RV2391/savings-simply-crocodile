@@ -72,7 +72,7 @@ export const OpenStreetMapContainer = ({
       
     } catch (error) {
       console.error('❌ Map generation failed:', error);
-      setError('Karte konnte nicht geladen werden. Bitte versuchen Sie es erneut.');
+      setError('Karte konnte nicht geladen werden. Bitte versuche es erneut.');
     } finally {
       setLoading(false);
     }
@@ -212,7 +212,7 @@ export const OpenStreetMapContainer = ({
             <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full border border-white"></div>
-                <span>Ihre Praxis</span>
+                <span>Deine Praxis</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full border border-white"></div>

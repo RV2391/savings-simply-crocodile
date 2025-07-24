@@ -76,13 +76,13 @@ export const BackendAddressInput = ({
           toast({
             variant: "destructive",
             title: "API-Konfigurationsproblem",
-            description: "Die Google Maps API ist möglicherweise nicht korrekt konfiguriert. Bitte überprüfen Sie die API-Einstellungen.",
+            description: "Die Google Maps API ist möglicherweise nicht korrekt konfiguriert. Bitte überprüfe die API-Einstellungen.",
           });
         } else if (errorMessage.includes('Netzwerk')) {
           toast({
             variant: "destructive",
             title: "Netzwerkfehler",
-            description: "Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+            description: "Bitte überprüfe deine Internetverbindung und versuche es erneut.",
           });
         }
       } finally {
@@ -158,7 +158,7 @@ export const BackendAddressInput = ({
       toast({
         variant: "destructive",
         title: "Ungültige Eingabe",
-        description: "Bitte geben Sie eine vollständige Adresse ein.",
+        description: "Bitte gib eine vollständige Adresse ein.",
       });
       return;
     }
@@ -340,7 +340,7 @@ export const BackendAddressInput = ({
           <>
             <CheckCircle2 className="w-4 h-4 text-green-500" />
             <span className="text-green-600">
-              {mapProviderManager.getProviderDisplayName(mapProviderManager.getCurrentProvider())} aktiv - beginnen Sie mit der Eingabe
+              {mapProviderManager.getProviderDisplayName(mapProviderManager.getCurrentProvider())} aktiv - beginne mit der Eingabe
             </span>
           </>
         )}

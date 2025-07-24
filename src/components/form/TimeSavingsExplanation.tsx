@@ -7,7 +7,7 @@ interface TimeSavingsExplanationProps {
 
 export const formatTimeSavingsExplanation = ({ timeSavings }: TimeSavingsExplanationProps): string => {
   return `
-    DETAILLIERTE ZEITERSPARNIS-ANALYSE FÜR IHRE PRAXIS
+    DETAILLIERTE ZEITERSPARNIS-ANALYSE FÜR DEINE PRAXIS
     
     Berechnungsgrundlagen (basierend auf Branchendaten 2024/2025):
     

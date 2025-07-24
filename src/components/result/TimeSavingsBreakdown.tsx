@@ -133,8 +133,8 @@ export const TimeSavingsBreakdown: React.FC<TimeSavingsBreakdownProps> = ({
               <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-600">
                 <h5 className="font-medium text-primary mb-2">Flexibilitätsgewinn</h5>
                 <p className="text-sm text-gray-400">
-                  Mit Crocodile können Ihre Mitarbeiter flexibel lernen, ohne den Praxisbetrieb zu unterbrechen. 
-                  Dies führt zu einer kontinuierlichen Patientenversorgung und optimiert Ihre Praxisauslastung.
+                  Mit Crocodile können deine Mitarbeiter flexibel lernen, ohne den Praxisbetrieb zu unterbrechen. 
+                  Dies führt zu einer kontinuierlichen Patientenversorgung und optimiert deine Praxisauslastung.
                 </p>
               </div>
             </div>

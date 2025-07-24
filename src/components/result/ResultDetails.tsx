@@ -116,7 +116,7 @@ export const ResultDetails = ({
 
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-400 mb-2">
-              Erhalten Sie Ihre persönliche 5-Jahres-CME-Strategie
+              Erhalte deine persönliche 5-Jahres-CME-Strategie
             </p>
             <p className="text-xs text-gray-500">
               Inkl. Planung, Zeitmanagement und Kostenoptimierung

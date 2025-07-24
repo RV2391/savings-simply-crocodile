@@ -46,7 +46,7 @@ export const FormFields = ({
             type="text"
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Ihre Praxis"
+            placeholder="Deine Praxis"
             required
             className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
             disabled={isSubmitting}
@@ -65,7 +65,7 @@ export const FormFields = ({
         <Label htmlFor="consent" className="text-base leading-relaxed text-gray-300">
           Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*
           <br /><br />
-          Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
+          Du kannst diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, findest du in unserer{" "}
           <a 
             href="https://www.crocodile.de/datenschutz" 
             target="_blank" 

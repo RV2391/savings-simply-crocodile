@@ -58,7 +58,7 @@ export const FormFields = ({
         <Label htmlFor="consent" className="text-sm leading-relaxed">
           Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*
           <br /><br />
-          Sie können diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, finden Sie in unserer{" "}
+          Du kannst diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, findest du in unserer{" "}
           <a 
             href="https://www.crocodile.com/datenschutz" 
             target="_blank" 

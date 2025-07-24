@@ -157,11 +157,11 @@ export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
           <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
             <h4 className="text-sm font-medium text-emerald-800 mb-2">Klingt hoch?</h4>
             <p className="text-xs text-emerald-700 mb-2">
-              Lassen Sie sich die detaillierte Aufschlüsselung per Mail zukommen. 
+              Lass dir die detaillierte Aufschlüsselung per Mail zukommen. 
               Unsere Berechnung basiert auf aktuellen Branchendaten und konservativen Annahmen.
             </p>
             <p className="text-xs text-emerald-600">
-              Nach der Anmeldung erhalten Sie eine E-Mail mit allen Berechnungsgrundlagen, 
+              Nach der Anmeldung erhältst du eine E-Mail mit allen Berechnungsgrundlagen, 
               Stundensätzen und Quellen unserer Zeitersparnis-Analyse.
             </p>
           </div>

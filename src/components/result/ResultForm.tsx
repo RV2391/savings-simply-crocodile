@@ -22,7 +22,7 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Bitte füllen Sie alle Pflichtfelder aus und stimmen Sie den Bedingungen zu.",
+        description: "Bitte fülle alle Pflichtfelder aus und stimme den Bedingungen zu.",
       });
       return;
     }
@@ -33,11 +33,11 @@ export const ResultForm = ({ onSubmit }: ResultFormProps) => {
       await onSubmit(email, practiceName);
     } catch (error) {
       console.error('Form submission error:', error);
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
-      });
+        toast({
+          variant: "destructive",
+          title: "Fehler",
+          description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.",
+        });
     } finally {
       setIsSubmitting(false);
     }

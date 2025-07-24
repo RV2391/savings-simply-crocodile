@@ -33,7 +33,7 @@ export const CustomForm = ({
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Bitte füllen Sie alle Pflichtfelder aus und stimmen Sie den Bedingungen zu.",
+        description: "Bitte fülle alle Pflichtfelder aus und stimme den Bedingungen zu.",
       });
       return;
     }
@@ -156,7 +156,7 @@ export const CustomForm = ({
 
       toast({
         title: "Erfolgreich gesendet",
-        description: "Ihre Daten wurden erfolgreich übermittelt. Sie erhalten in ca. 30 Sekunden eine individuell erstellte E-Mail mit Ihrer persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
+        description: "Deine Daten wurden erfolgreich übermittelt. Du erhältst in ca. 30 Sekunden eine individuell erstellte E-Mail mit deiner persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
       });
 
       // Reset form
@@ -165,11 +165,11 @@ export const CustomForm = ({
       setConsent(false);
     } catch (error) {
       console.error("Form submission error:", error);
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
-      });
+        toast({
+          variant: "destructive",
+          title: "Fehler",
+          description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.",
+        });
     } finally {
       setIsSubmitting(false);
     }
@@ -178,8 +178,8 @@ export const CustomForm = ({
   return (
     <div className="w-full bg-[#2a2a2a] p-8 rounded-2xl shadow-lg mt-8">
       <FormHeader 
-        title="Ihre persönliche Zeitersparnis-Analyse" 
-        description="Erhalten Sie eine detaillierte Analyse Ihrer potentiellen Zeitersparnis durch digitale Fortbildungen."
+        title="Deine persönliche Zeitersparnis-Analyse" 
+        description="Erhalte eine detaillierte Analyse deiner potentiellen Zeitersparnis durch digitale Fortbildungen."
       />
       
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -204,8 +204,8 @@ export const CustomForm = ({
               </div>
               <div className="ml-3">
                 <p className="text-sm text-blue-700">
-                  <strong>Ihre E-Mail wird individuell erstellt...</strong><br />
-                  Dies dauert ca. 30 Sekunden. Sie erhalten eine Benachrichtigung, sobald Ihre persönliche Analyse bereit ist.
+                  <strong>Deine E-Mail wird individuell erstellt...</strong><br />
+                  Dies dauert ca. 30 Sekunden. Du erhältst eine Benachrichtigung, sobald deine persönliche Analyse bereit ist.
                 </p>
               </div>
             </div>

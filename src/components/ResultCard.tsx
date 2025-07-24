@@ -29,7 +29,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
       <Card className="w-full">
         <div className="p-6">
           <div className="space-y-4">
-            <h3 className="text-2xl font-semibold text-white">Ihre Ersparnis</h3>
+            <h3 className="text-2xl font-semibold text-white">Deine Ersparnis</h3>
             
             <ResultSummary 
               savings={results.savings}
