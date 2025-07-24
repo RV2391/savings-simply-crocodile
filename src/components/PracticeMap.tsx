@@ -2,7 +2,6 @@
 import type { DentalInstitute } from "@/utils/dentalInstitutes";
 import { OpenStreetMapContainer } from "./map/OpenStreetMapContainer";
 import { MapErrorBoundary } from "./map/MapErrorBoundary";
-import { BackendOnlyMap } from "./map/BackendOnlyMap";
 
 interface PracticeMapProps {
   institutes: DentalInstitute[];
@@ -22,15 +21,8 @@ export const PracticeMap = ({
 }: PracticeMapProps) => {
   return (
     <div className="space-y-3">
-      {/* OpenStreetMap Container with Error Boundary and CSP fallback */}
-      <MapErrorBoundary 
-        fallback={
-          <BackendOnlyMap 
-            practiceLocation={practiceLocation}
-            nearestInstitute={nearestInstitute}
-          />
-        }
-      >
+      {/* OpenStreetMap Container with Error Boundary */}
+      <MapErrorBoundary>
         <OpenStreetMapContainer
           center={practiceLocation}
           practiceLocation={practiceLocation}
