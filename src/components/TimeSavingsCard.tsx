@@ -153,6 +153,20 @@ export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
           )}
 
           {/* Zusätzliche Vorteile */}
+          {/* Transparenz-Hinweis */}
+          <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+            <h4 className="text-sm font-medium text-emerald-800 mb-2">Klingt hoch?</h4>
+            <p className="text-xs text-emerald-700 mb-2">
+              Lassen Sie sich die detaillierte Aufschlüsselung per Mail zukommen. 
+              Unsere Berechnung basiert auf aktuellen Branchendaten und konservativen Annahmen.
+            </p>
+            <p className="text-xs text-emerald-600">
+              Nach der Anmeldung erhalten Sie eine E-Mail mit allen Berechnungsgrundlagen, 
+              Stundensätzen und Quellen unserer Zeitersparnis-Analyse.
+            </p>
+          </div>
+
+          {/* Weitere Zeitvorteile */}
           <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
             <h4 className="text-sm font-medium text-emerald-800 mb-2">Weitere Zeitvorteile:</h4>
             <ul className="text-xs text-emerald-700 space-y-1">

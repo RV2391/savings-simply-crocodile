@@ -82,6 +82,17 @@ export const CustomForm = ({
         time_savings_hours: Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0,
         time_savings_value: Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0,
         time_savings_explanation: timeSavingsExplanation,
+        time_savings_breakdown: {
+          dentist_hours_per_year: Math.round(Number(results.timeSavings?.dentistHours)) || 0,
+          assistant_hours_per_year: Math.round(Number(results.timeSavings?.assistantHours)) || 0,
+          travel_hours_saved: Math.round(Number(results.timeSavings?.travelHours)) || 0,
+          practice_impact_factor: 0.6,
+          weekend_training_rate: 0.5,
+          dentist_hourly_cost: 91, // 65€ + 40% Nebenkosten
+          assistant_hourly_cost: 22.40, // 16€ + 40% Nebenkosten
+          practice_revenue_per_hour: 250,
+          data_sources: "VMF Tarifvertrag 2025, ZWP-Online Praxismanagement-Studie 2023, BZÄK Statistiken"
+        },
         address: {
           street: addressComponents.street || '',
           city: addressComponents.city || '',

@@ -300,13 +300,13 @@ export const BackendAddressInput = ({
           {showSuggestions && suggestions.length > 0 && (
             <div
               ref={suggestionsRef}
-              className="absolute top-full left-0 right-0 z-50 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+              className="absolute top-full left-0 right-0 z-50 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
             >
               {suggestions.map((suggestion, index) => (
                 <div
                   key={suggestion.place_id}
-                  className={`flex items-center gap-2 p-3 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors ${
-                    index === selectedIndex ? 'bg-accent text-accent-foreground' : 'text-popover-foreground'
+                  className={`flex items-center gap-2 p-3 cursor-pointer hover:bg-muted transition-colors ${
+                    index === selectedIndex ? 'bg-muted text-foreground' : 'text-foreground'
                   }`}
                   onClick={() => handleSuggestionSelect(suggestion)}
                 >

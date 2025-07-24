@@ -3,8 +3,8 @@
 // Sources: BZÄK, KZBV, Destatis, ZFA-Tarifverträge
 
 export const TIME_SAVINGS_CONSTANTS = {
-  // Durchschnittlicher Praxisumsatz pro Stunde (Quelle: BZÄK Statistiken 2023)
-  AVERAGE_PRACTICE_REVENUE_PER_HOUR: 300,
+  // Durchschnittlicher Praxisumsatz pro Stunde (Quelle: ZWP-Online Praxismanagement-Studie 2023)
+  AVERAGE_PRACTICE_REVENUE_PER_HOUR: 250,
   
   // Praxisschließungszeiten für verschiedene Fortbildungsformate
   PRACTICE_CLOSURE_HOURS: {
@@ -16,7 +16,7 @@ export const TIME_SAVINGS_CONSTANTS = {
   
   // Praxisausfall-Faktoren (konservative Schätzung)
   PRACTICE_IMPACT_FACTOR: 0.6,           // 60% der Fortbildungen führen zu echtem Praxisausfall
-  WEEKEND_TRAINING_RATE: 0.4,            // 40% der Fortbildungen finden am Wochenende statt
+  WEEKEND_TRAINING_RATE: 0.5,            // 50% der Fortbildungen finden am Wochenende statt
   
   // Organisationskosten (Quelle: Praxismanagement-Studien)
   RESCHEDULING_COST_PER_APPOINTMENT: 25,  // Kosten pro verschobenem Termin
@@ -32,10 +32,10 @@ export const TIME_SAVINGS_CONSTANTS = {
   // Opportunitätskosten-Faktoren
   OPPORTUNITY_COST_MULTIPLIER: 1.2,       // 20% zusätzliche Opportunitätskosten
   
-  // Stundensätze für Personalkosten (Quelle: ZFA-Tarifverträge, BZÄK)
+  // Stundensätze für Personalkosten (Quelle: VMF Tarifverträge 2025, ZWP-Online Praxismanagement)
   HOURLY_RATES: {
-    DENTIST_GROSS_INCOME: 70,              // Brutto-Stundenlohn Zahnarzt
-    ZFA_GROSS_INCOME: 16,                  // Brutto-Stundenlohn ZFA
+    DENTIST_GROSS_INCOME: 65,              // Angestellter Zahnarzt Brutto-Stundenlohn (konservativ)
+    ZFA_GROSS_INCOME: 16,                  // ZFA Brutto-Stundenlohn nach VMF Tarifvertrag 2025
     PRACTICE_OVERHEAD_FACTOR: 1.4          // Faktor für Praxisnebenkosten
   },
   
@@ -49,11 +49,14 @@ export const TIME_SAVINGS_CONSTANTS = {
 
 // Quellen für die verwendeten Daten
 export const DATA_SOURCES = {
-  PRACTICE_REVENUE: "BZÄK Statistisches Jahrbuch 2023, durchschnittliche Praxisumsätze",
-  HOURLY_RATES: "Bundeszahnärztekammer (BZÄK) und ZFA-Tarifverträge 2023",
-  ORGANIZATIONAL_COSTS: "Praxismanagement-Studien der Kassenzahnärztlichen Vereinigungen",
-  PATIENT_BEHAVIOR: "Branchenanalysen zur Patientenbindung in Zahnarztpraxen",
+  PRACTICE_REVENUE: "ZWP-Online Praxismanagement-Studie 2023 - Stundensätze in der Zahnarztpraxis (https://www.zwp-online.info/zwpnews/wirtschaft-und-recht/praxismanagement/stundensatze-in-der-zahnarztpraxis)",
+  HOURLY_RATES: "Verband medizinischer Fachberufe e.V. (VMF) - Vergütungstarifvertrag ZFA 2025 (https://www.vmf-online.de/zfa/zfa-tarife)",
+  ZFA_SALARIES: "ZFA-Mal-Anders Gehaltsrechner 2025 basierend auf AAZ Tarifvertrag (https://www.zfa-mal-anders.de/karriere/zfa/gehalt)",
+  ORGANIZATIONAL_COSTS: "Praxismanagement-Studien der Kassenzahnärztlichen Vereinigungen und ZWP-Online",
+  PATIENT_BEHAVIOR: "Branchenanalysen zur Patientenbindung in Zahnarztpraxen (ZWP-Online, Dental-Wirtschaft)",
   OPPORTUNITY_COSTS: "Betriebswirtschaftliche Kennzahlen der Dentalbranche",
   CME_DATA: "Konservative Schätzungen basierend auf Branchenumfragen und BZÄK-Richtlinien",
-  PRACTICE_IMPACT: "Realistische Bewertung basierend auf Wochenend-/Abendfortbildungen"
+  PRACTICE_IMPACT: "Realistische Bewertung basierend auf Wochenend-/Abendfortbildungen (50% Weekend-Rate)",
+  STATISTICS_SOURCE: "Bundeszahnärztekammer (BZÄK) - Daten und Zahlen (https://www.bzaek.de/ueber-uns/daten-und-zahlen/nachgezaehlt.html)",
+  COST_STRUCTURE: "Statistisches Bundesamt - Kostenstruktur Zahnarztpraxen 2019"
 };
