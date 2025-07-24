@@ -26,7 +26,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <Card className="w-full">
+      <Card className="w-full bg-[#2a2a2a] border-gray-700">
         <div className="p-6">
           <div className="space-y-4">
             <h3 className="text-2xl font-semibold text-white">Deine Ersparnis</h3>
