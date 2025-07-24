@@ -70,28 +70,13 @@ export class MapCache {
       this.cleanupOldEntries();
     }
 
-    try {
-      // Optionally cache the blob for offline access
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-
-      this.cache.set(key, {
-        url: blobUrl,
-        timestamp: Date.now(),
-        blob
-      });
-
-      console.log('💾 Cached map for key:', key);
-    } catch (error) {
-      // Fallback to URL-only caching if blob fails
-      this.cache.set(key, {
-        url,
-        timestamp: Date.now()
-      });
-      
-      console.warn('⚠️ Blob caching failed, using URL cache:', error);
-    }
+    // Use direct URL caching only (CSP-compatible)
+    this.cache.set(key, {
+      url,
+      timestamp: Date.now()
+    });
+    
+    console.log('💾 Cached map URL for key:', key);
   }
 
   private cleanupOldEntries(): void {
@@ -104,13 +89,7 @@ export class MapCache {
     const toRemove = Math.floor(entries.length * 0.25);
     
     for (let i = 0; i < toRemove; i++) {
-      const [key, entry] = entries[i];
-      
-      // Clean up blob URLs to prevent memory leaks
-      if (entry.blob && entry.url.startsWith('blob:')) {
-        URL.revokeObjectURL(entry.url);
-      }
-      
+      const [key] = entries[i];
       this.cache.delete(key);
     }
     
@@ -118,29 +97,14 @@ export class MapCache {
   }
 
   clear(): void {
-    // Clean up all blob URLs
-    for (const entry of this.cache.values()) {
-      if (entry.blob && entry.url.startsWith('blob:')) {
-        URL.revokeObjectURL(entry.url);
-      }
-    }
-    
     this.cache.clear();
     console.log('🗑️ Cleared all map cache');
   }
 
-  getStats(): { size: number; totalSize: number } {
-    let totalSize = 0;
-    
-    for (const entry of this.cache.values()) {
-      if (entry.blob) {
-        totalSize += entry.blob.size;
-      }
-    }
-    
+  getStats(): { size: number; totalEntries: number } {
     return {
       size: this.cache.size,
-      totalSize
+      totalEntries: this.cache.size
     };
   }
 }
