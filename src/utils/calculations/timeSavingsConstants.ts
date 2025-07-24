@@ -39,11 +39,13 @@ export const TIME_SAVINGS_CONSTANTS = {
     PRACTICE_OVERHEAD_FACTOR: 1.4          // Faktor für Praxisnebenkosten
   },
   
-  // CME-Anforderungen (realistischere Werte)
+  // CME-Anforderungen (basierend auf § 95d SGB V)
   CME_REQUIREMENTS: {
-    AVERAGE_SESSION_DURATION_HOURS: 5,     // Durchschnittliche Dauer einer Präsenzfortbildung
-    AVERAGE_CME_POINTS_PER_SESSION: 5,     // Durchschnittliche CME-Punkte pro Session
-    MAX_CME_POINTS_PER_DAY: 8              // Maximum CME-Punkte pro Tag
+    TOTAL_POINTS_PER_5_YEARS: 125,           // 125 CME-Punkte in 5 Jahren (§ 95d SGB V)
+    AVERAGE_SESSION_DURATION_HOURS: 5,       // Durchschnittliche Dauer einer Präsenzfortbildung
+    AVERAGE_CME_POINTS_PER_SESSION: 5,       // Durchschnittliche CME-Punkte pro Session
+    MAX_CME_POINTS_PER_DAY: 8,               // Maximum CME-Punkte pro Tag
+    ANNUAL_CME_REQUIREMENT: 25               // 125 Punkte ÷ 5 Jahre = 25 Punkte pro Jahr
   }
 };
 
@@ -55,8 +57,10 @@ export const DATA_SOURCES = {
   ORGANIZATIONAL_COSTS: "Praxismanagement-Studien der Kassenzahnärztlichen Vereinigungen und ZWP-Online",
   PATIENT_BEHAVIOR: "Branchenanalysen zur Patientenbindung in Zahnarztpraxen (ZWP-Online, Dental-Wirtschaft)",
   OPPORTUNITY_COSTS: "Betriebswirtschaftliche Kennzahlen der Dentalbranche",
-  CME_DATA: "Konservative Schätzungen basierend auf Branchenumfragen und BZÄK-Richtlinien",
+  CME_REQUIREMENTS: "§ 95d SGB V - Vertragszahnärzte müssen 125 CME-Punkte in 5 Jahren sammeln (https://www.zm-online.de/cme/cme-uebersicht, https://www.kzvlb.de/berufsausuebung/fortbildungspflicht)",
   PRACTICE_IMPACT: "Realistische Bewertung basierend auf Wochenend-/Abendfortbildungen (50% Weekend-Rate)",
   STATISTICS_SOURCE: "Bundeszahnärztekammer (BZÄK) - Daten und Zahlen (https://www.bzaek.de/ueber-uns/daten-und-zahlen/nachgezaehlt.html)",
-  COST_STRUCTURE: "Statistisches Bundesamt - Kostenstruktur Zahnarztpraxen 2019"
+  COST_STRUCTURE: "Statistisches Bundesamt - Kostenstruktur Zahnarztpraxen 2019",
+  LEGAL_BASIS: "Sozialgesetzbuch (SGB V) § 95d - Fachliche Fortbildungspflicht für Vertragsärzte",
+  KZV_SOURCES: "Kassenzahnärztliche Vereinigung - Fortbildungspflicht nach § 95d SGB V"
 };
