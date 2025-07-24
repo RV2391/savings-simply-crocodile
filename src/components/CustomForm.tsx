@@ -156,7 +156,7 @@ export const CustomForm = ({
 
       toast({
         title: "Erfolgreich gesendet",
-        description: "Deine Daten wurden erfolgreich übermittelt. Du erhältst in ca. 30 Sekunden eine individuell erstellte E-Mail mit deiner persönlichen Zeitersparnis-Analyse und 5-Jahres-CME-Strategie.",
+        description: "Deine Daten wurden erfolgreich übermittelt. Du erhältst in ca. 30 Sekunden eine E-Mail mit deiner detaillierten Zeitersparnis-Aufschlüsselung.",
       });
 
       // Reset form
@@ -178,8 +178,8 @@ export const CustomForm = ({
   return (
     <div className="w-full bg-[#2a2a2a] p-8 rounded-2xl shadow-lg mt-8">
       <FormHeader 
-        title="Deine persönliche Zeitersparnis-Analyse" 
-        description="Erhalte eine detaillierte Analyse deiner potentiellen Zeitersparnis durch digitale Fortbildungen."
+        title="Deine persönliche Zeitersparnis-Analyse anfordern" 
+        description="Erhalte eine detaillierte Aufschlüsselung deiner Zeitersparnis und Kostenoptimierung per E-Mail - basierend auf deinen Eingaben und aktuellen Marktdaten."
       />
       
       <form onSubmit={handleSubmit} className="space-y-6">

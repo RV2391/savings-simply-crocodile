@@ -46,7 +46,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
             />
 
             <div className="mt-6 space-y-4 border-t border-gray-700 pt-4">
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-gray-300">
                 <h4 className="mb-2 font-medium text-white">So setzt sich dein Einsparpotenzial zusammen:</h4>
                 <ul className="list-disc pl-4 space-y-2">
                   <li>
@@ -65,7 +65,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                   </li>
                 </ul>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-400">
                 * Die Berechnung basiert auf durchschnittlichen Fortbildungskosten in Deutschland. Die tatsächlichen Kosten können je nach Region und gewählten Fortbildungsanbietern variieren.
               </p>
             </div>
