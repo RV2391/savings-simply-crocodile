@@ -1,5 +1,4 @@
 import { MapCache } from './MapCache';
-import { supabase } from '@/integrations/supabase/client';
 
 interface MapTile {
   x: number;
@@ -25,16 +24,9 @@ export class StaticMapService {
   private static readonly TILE_SIZE = 256;
   private static readonly MAX_ZOOM = 18;
   private static cache = MapCache.getInstance();
-  
-  // High-performance tile providers with HTTPS and good availability
-  private static readonly TILE_PROVIDERS = [
-    'https://cartodb-basemaps-c.global.ssl.fastly.net/light_all',
-    'https://tile.openstreetmap.org',
-    'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all'
-  ];
 
   /**
-   * Generate an optimized static map URL with proper bounds and multiple markers
+   * Generate a placeholder map URL (CSP-compatible offline solution)
    */
   static async generateStaticMapUrl(
     center: { lat: number; lng: number },
@@ -43,46 +35,18 @@ export class StaticMapService {
     height: number = 400,
     zoom?: number
   ): Promise<string> {
-    // Check cache first
-    const cachedUrl = await this.cache.get(center, markers, width, height, zoom);
-    if (cachedUrl) {
-      return cachedUrl;
-    }
-
-    // Calculate optimal zoom if not provided
-    const optimalZoom = zoom || this.calculateOptimalZoom(markers, width, height);
+    console.log('🗺️ Static map generation disabled (CSP-compatible mode)');
     
-    try {
-      console.log('🗺️ Generating static map via backend');
-      
-      const { data, error } = await supabase.functions.invoke('maps-api', {
-        body: { 
-          action: 'static-map',
-          params: { center, markers, width, height, zoom: optimalZoom }
-        }
-      });
-
-      if (error) {
-        throw new Error(`Backend error: ${error.message}`);
-      }
-
-      const finalUrl = data.url;
-      console.log(`✅ Generated static map URL via backend: ${finalUrl}`);
-      
-      // Cache the result
-      await this.cache.set(center, markers, width, height, finalUrl, zoom);
-      
-      return finalUrl;
-    } catch (error) {
-      console.error('❌ Backend map generation failed:', error);
-      
-      // Fallback to direct tile URL
-      const tile = this.latLngToTile(center.lat, center.lng, optimalZoom);
-      const fallbackUrl = `${this.TILE_PROVIDERS[0]}/${optimalZoom}/${tile.x}/${tile.y}.png`;
-      console.log('⚠️ Using fallback direct tile URL');
-      
-      return fallbackUrl;
-    }
+    // Return a placeholder since external map tiles are blocked by CSP
+    // We'll use the BackendOnlyMap component instead
+    return `data:image/svg+xml;base64,${btoa(`
+      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${width}" height="${height}" fill="#f0f0f0"/>
+        <text x="${width/2}" y="${height/2}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16" fill="#666">
+          Karte nicht verfügbar (CSP-Modus)
+        </text>
+      </svg>
+    `)}`;
   }
 
   /**

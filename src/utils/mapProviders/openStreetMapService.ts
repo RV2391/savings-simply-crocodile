@@ -1,5 +1,5 @@
 import type { AddressComponents } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
+import { searchAddresses, staticAddressToGeocodingResult, type StaticAddress } from '@/data/staticAddresses';
 
 export interface OSMSuggestion {
   place_id: string;
@@ -46,97 +46,91 @@ export class OpenStreetMapService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  // Nominatim address search for autocomplete via backend
+  // Offline address search using static database
   public async getAddressSuggestions(input: string): Promise<OSMSuggestion[]> {
-    if (!input || input.length < 3) return [];
+    if (!input || input.length < 2) return [];
 
     const cacheKey = this.getCacheKey('autocomplete', input);
     const cached = this.getCachedResult(cacheKey);
     if (cached) return cached;
 
-    console.log('🌍 OSM: Searching for address suggestions via backend:', input);
+    console.log('🌍 OSM: Searching offline addresses for:', input);
 
     try {
-      const { data, error } = await supabase.functions.invoke('maps-api', {
-        body: { 
-          action: 'address-suggestions',
-          params: { input }
-        }
-      });
-
-      if (error) {
-        throw new Error(`Backend error: ${error.message}`);
-      }
+      const results = searchAddresses(input, 5);
       
-      const suggestions: OSMSuggestion[] = data.map((item: any, index: number) => ({
-        place_id: item.place_id || `osm_${index}`,
-        description: item.display_name,
-        main_text: item.name || this.extractMainAddress(item.display_name),
-        secondary_text: this.extractSecondaryAddress(item.display_name)
+      const suggestions: OSMSuggestion[] = results.map((address: StaticAddress, index: number) => ({
+        place_id: `static_${index}_${address.city}_${address.postcode}`,
+        description: `${address.city}, ${address.postcode} ${address.state ? address.state + ', ' : ''}${address.country}`,
+        main_text: address.city,
+        secondary_text: `${address.postcode} ${address.state ? address.state + ', ' : ''}${address.country}`
       }));
 
       this.setCachedResult(cacheKey, suggestions);
-      console.log(`✅ OSM: Found ${suggestions.length} suggestions via backend`);
+      console.log(`✅ OSM: Found ${suggestions.length} offline suggestions`);
       
       return suggestions;
     } catch (error) {
-      console.error('❌ OSM: Address suggestions failed:', error);
-      throw new Error('OpenStreetMap Adresssuche nicht verfügbar');
+      console.error('❌ OSM: Offline address search failed:', error);
+      return [];
     }
   }
 
-  // Nominatim geocoding for place details via backend
+  // Offline place details using static database
   public async getPlaceDetails(query: string): Promise<OSMPlaceDetails> {
     const cacheKey = this.getCacheKey('details', query);
     const cached = this.getCachedResult(cacheKey);
     if (cached) return cached;
 
-    console.log('🌍 OSM: Getting place details via backend for:', query);
+    console.log('🌍 OSM: Getting offline place details for:', query);
 
     try {
-      const { data, error } = await supabase.functions.invoke('maps-api', {
-        body: { 
-          action: 'place-details',
-          params: { query }
-        }
-      });
-
-      if (error) {
-        throw new Error(`Backend error: ${error.message}`);
-      }
+      // Extract location data from static query format
+      const results = searchAddresses(query, 1);
       
-      if (!data) {
+      if (results.length === 0) {
         throw new Error('Keine Ergebnisse gefunden');
       }
 
+      const address = results[0];
       const placeDetails: OSMPlaceDetails = {
-        lat: parseFloat(data.lat),
-        lng: parseFloat(data.lon),
-        formatted_address: data.display_name,
-        address_components: this.parseAddressComponents(data.address)
+        lat: address.coordinates.lat,
+        lng: address.coordinates.lng,
+        formatted_address: `${address.city}, ${address.postcode} ${address.state ? address.state + ', ' : ''}${address.country}`,
+        address_components: [
+          { long_name: address.city, types: ['locality'] },
+          { long_name: address.postcode, types: ['postal_code'] },
+          { long_name: address.state || '', types: ['administrative_area_level_1'] },
+          { long_name: address.country, types: ['country'] }
+        ]
       };
 
       this.setCachedResult(cacheKey, placeDetails);
-      console.log('✅ OSM: Place details retrieved via backend');
+      console.log('✅ OSM: Offline place details retrieved');
       
       return placeDetails;
     } catch (error) {
-      console.error('❌ OSM: Place details failed:', error);
-      throw new Error('OpenStreetMap Ortsdetails nicht verfügbar');
+      console.error('❌ OSM: Offline place details failed:', error);
+      throw new Error('Adresse nicht in der Offline-Datenbank gefunden');
     }
   }
 
-  // Geocode address
+  // Offline geocoding using static database
   public async geocodeAddress(address: string): Promise<{ lat: number; lng: number; addressComponents?: any } | null> {
     try {
-      const details = await this.getPlaceDetails(address);
-      return {
-        lat: details.lat,
-        lng: details.lng,
-        addressComponents: details.address_components
-      };
+      const results = searchAddresses(address, 1);
+      
+      if (results.length === 0) {
+        console.log('❌ OSM: No offline results found for:', address);
+        return null;
+      }
+
+      const result = staticAddressToGeocodingResult(results[0]);
+      console.log('✅ OSM: Offline geocoding successful for:', address);
+      
+      return result;
     } catch (error) {
-      console.error('❌ OSM: Geocoding failed:', error);
+      console.error('❌ OSM: Offline geocoding failed:', error);
       return null;
     }
   }
