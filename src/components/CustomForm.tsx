@@ -7,6 +7,7 @@ import { FormHeader } from "./form/FormHeader";
 import { FormFields } from "./form/FormFields";
 import { formatTimeSavingsExplanation } from "./form/TimeSavingsExplanation";
 import { useGTMTracking } from "@/hooks/useGTMTracking";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CustomFormProps {
   calculatorData: CalculatorData;
@@ -107,22 +108,18 @@ export const CustomForm = ({
         consent: consentData
       };
 
-      // Make.com Webhook aufrufen
-      console.log("Sending data to Make.com webhook:", webhookData);
+      // Send to secure Supabase Edge Function
+      console.log("Sending data to secure webhook:", webhookData);
       
-      const webhookResponse = await fetch('https://hook.eu2.make.com/14ebulh267s1rzskv00n7ho0q98sdxmj', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookData)
+      const { data, error } = await supabase.functions.invoke('secure-webhook', {
+        body: webhookData
       });
 
-      if (!webhookResponse.ok) {
-        throw new Error(`Webhook request failed with status ${webhookResponse.status}`);
+      if (error) {
+        throw new Error(`Secure webhook failed: ${error.message}`);
       }
 
-      console.log("Webhook sent successfully");
+      console.log("Secure webhook sent successfully:", data);
 
       // GTM Event für Lead-Tracking über Taggrs
       trackEvent({

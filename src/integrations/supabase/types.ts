@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      form_submissions: {
+        Row: {
+          company_name: string
+          consent_data: Json
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          submission_data: Json
+          user_agent: string | null
+        }
+        Insert: {
+          company_name: string
+          consent_data: Json
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          submission_data: Json
+          user_agent?: string | null
+        }
+        Update: {
+          company_name?: string
+          consent_data?: Json
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          submission_data?: Json
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

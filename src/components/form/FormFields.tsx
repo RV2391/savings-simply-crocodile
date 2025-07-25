@@ -63,9 +63,9 @@ export const FormFields = ({
           className="mt-1.5 border-gray-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
         />
         <Label htmlFor="consent" className="text-base leading-relaxed text-gray-300">
-          Ja, ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten und stimme der Zusendung der angeforderten Inhalte zu.*
+          Ich bin damit einverstanden, dass meine Daten (einschließlich E-Mail, Firmenname, Praxisdaten und IP-Adresse) zur Erstellung einer personalisierten Zeitersparnis-Analyse verarbeitet werden. Die Daten werden ausschließlich für diesen Zweck genutzt, DSGVO-konform gespeichert und nicht an Dritte weitergegeben.*
           <br /><br />
-          Du kannst diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, findest du in unserer{" "}
+          Ich möchte regelmäßig Neuigkeiten und Informationen zu Angeboten erhalten. Du kannst diese Benachrichtigungen jederzeit abbestellen. Weitere Informationen zum Abbestellen und zu unseren Datenschutzverfahren, findest du in unserer{" "}
           <a 
             href="https://www.crocodile.de/datenschutz" 
             target="_blank" 
