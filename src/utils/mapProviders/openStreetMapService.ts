@@ -55,9 +55,11 @@ export class OpenStreetMapService {
     if (cached) return cached;
 
     console.log('🌍 OSM: Searching offline addresses for:', input);
+    console.log('📊 Total addresses in database:', searchAddresses('', 1000).length);
 
     try {
       const results = searchAddresses(input, 5);
+      console.log('🔍 Raw search results:', results);
       
       const suggestions: OSMSuggestion[] = results.map((address: StaticAddress, index: number) => ({
         place_id: `static_${index}_${address.city}_${address.postcode}`,
@@ -67,7 +69,7 @@ export class OpenStreetMapService {
       }));
 
       this.setCachedResult(cacheKey, suggestions);
-      console.log(`✅ OSM: Found ${suggestions.length} offline suggestions`);
+      console.log(`✅ OSM: Found ${suggestions.length} offline suggestions:`, suggestions);
       
       return suggestions;
     } catch (error) {
@@ -120,18 +122,21 @@ export class OpenStreetMapService {
   // Offline geocoding using static database
   public async geocodeAddress(address: string): Promise<{ lat: number; lng: number; addressComponents?: any } | null> {
     try {
+      console.log('🌍 OSM: Starting geocode for:', address);
       const results = searchAddresses(address, 1);
+      console.log('🔍 Geocode search results:', results);
       
       if (results.length === 0) {
         console.log('❌ OSM: No offline results found for:', address);
         // Log available cities for debugging
-        const availableCities = searchAddresses('', 10).slice(0, 5).map(a => a.city);
-        console.log('🏙️ Available cities:', availableCities.join(', '));
+        const availableCities = searchAddresses('', 20).slice(0, 10).map(a => a.city);
+        console.log('🏙️ Sample available cities:', availableCities.join(', '));
+        console.log('🔍 Testing Paderborn search:', searchAddresses('Paderborn', 1));
         return null;
       }
 
       const result = staticAddressToGeocodingResult(results[0]);
-      console.log('✅ OSM: Offline geocoding successful for:', address);
+      console.log('✅ OSM: Offline geocoding successful for:', address, result);
       
       return result;
     } catch (error) {
