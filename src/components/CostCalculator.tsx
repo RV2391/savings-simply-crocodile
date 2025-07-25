@@ -16,8 +16,8 @@ import { CostLegend } from "./CostLegend";
 import { TimeSavingsLegend } from "./TimeSavingsLegend";
 import { calculateResults, type CalculationInputs } from "@/utils/calculations";
 import { Results } from "@/types";
-import { PracticeMap } from "./PracticeMap";
 import { AddressInput } from "./AddressInput";
+import { LocationInfo } from "./LocationInfo";
 import { dentalInstitutes } from "@/utils/dentalInstitutes";
 import { AddressComponents } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -220,19 +220,16 @@ export const CostCalculator = () => {
                 onAddressComponentsChange={handleAddressComponentsChange}
               />
               
-              {/* Karte immer anzeigen - auch ohne Praxis-Adresse */}
-              <div className="mt-4">
-                <PracticeMap
-                  institutes={dentalInstitutes}
-                  practiceLocation={
-                    inputs.practiceLat && inputs.practiceLng 
-                      ? { lat: inputs.practiceLat, lng: inputs.practiceLng }
-                      : { lat: 51.1657, lng: 10.4515 } // Deutschland Zentrum
-                  }
-                  nearestInstitute={nearestInstitute}
-                  onPracticeLocationChange={handleLocationChange}
-                />
-              </div>
+              {/* Standort-Information ohne Karte */}
+              {inputs.practiceLat && inputs.practiceLng && (
+                <div className="mt-4">
+                  <LocationInfo
+                    practiceLocation={{ lat: inputs.practiceLat, lng: inputs.practiceLng }}
+                    nearestInstitute={nearestInstitute}
+                    distance={results.nearestInstitute?.distance}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
