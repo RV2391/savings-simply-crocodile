@@ -1,4 +1,5 @@
 import { MapCache } from './MapCache';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MapTile {
   x: number;
@@ -51,49 +52,37 @@ export class StaticMapService {
     // Calculate optimal zoom if not provided
     const optimalZoom = zoom || this.calculateOptimalZoom(markers, width, height);
     
-    // Get the best tile for the center point
-    const tile = this.latLngToTile(center.lat, center.lng, optimalZoom);
-    
-    let finalUrl = '';
-    
-    // Try providers in order for best availability
-    for (const provider of this.TILE_PROVIDERS) {
-      try {
-        const tileUrl = `${provider}/${optimalZoom}/${tile.x}/${tile.y}.png`;
-        
-        // Quick availability check with timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
-        
-        const response = await fetch(tileUrl, { 
-          method: 'HEAD',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (response.ok) {
-          console.log(`✅ Using tile provider: ${provider}`);
-          finalUrl = tileUrl;
-          break;
+    try {
+      console.log('🗺️ Generating static map via backend');
+      
+      const { data, error } = await supabase.functions.invoke('maps-api', {
+        body: { 
+          action: 'static-map',
+          params: { center, markers, width, height, zoom: optimalZoom }
         }
-      } catch (error) {
-        console.warn(`❌ Provider failed: ${provider}`, error);
-        continue;
+      });
+
+      if (error) {
+        throw new Error(`Backend error: ${error.message}`);
       }
+
+      const finalUrl = data.url;
+      console.log(`✅ Generated static map URL via backend: ${finalUrl}`);
+      
+      // Cache the result
+      await this.cache.set(center, markers, width, height, finalUrl, zoom);
+      
+      return finalUrl;
+    } catch (error) {
+      console.error('❌ Backend map generation failed:', error);
+      
+      // Fallback to direct tile URL
+      const tile = this.latLngToTile(center.lat, center.lng, optimalZoom);
+      const fallbackUrl = `${this.TILE_PROVIDERS[0]}/${optimalZoom}/${tile.x}/${tile.y}.png`;
+      console.log('⚠️ Using fallback direct tile URL');
+      
+      return fallbackUrl;
     }
-    
-    // Fallback to first provider if all checks fail
-    if (!finalUrl) {
-      const fallbackTile = this.TILE_PROVIDERS[0];
-      finalUrl = `${fallbackTile}/${optimalZoom}/${tile.x}/${tile.y}.png`;
-      console.log('⚠️ Using fallback provider');
-    }
-    
-    // Cache the result
-    await this.cache.set(center, markers, width, height, finalUrl, zoom);
-    
-    return finalUrl;
   }
 
   /**

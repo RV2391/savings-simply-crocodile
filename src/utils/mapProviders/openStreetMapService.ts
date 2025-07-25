@@ -1,4 +1,5 @@
 import type { AddressComponents } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface OSMSuggestion {
   place_id: string;
@@ -45,7 +46,7 @@ export class OpenStreetMapService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  // Nominatim address search for autocomplete
+  // Nominatim address search for autocomplete via backend
   public async getAddressSuggestions(input: string): Promise<OSMSuggestion[]> {
     if (!input || input.length < 3) return [];
 
@@ -53,23 +54,19 @@ export class OpenStreetMapService {
     const cached = this.getCachedResult(cacheKey);
     if (cached) return cached;
 
-    console.log('🌍 OSM: Searching for address suggestions:', input);
+    console.log('🌍 OSM: Searching for address suggestions via backend:', input);
 
     try {
-      const encodedInput = encodeURIComponent(input);
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodedInput}&format=json&addressdetails=1&limit=5&countrycodes=de,at,ch`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'LovableApp/1.0 (contact@example.com)'
+      const { data, error } = await supabase.functions.invoke('maps-api', {
+        body: { 
+          action: 'address-suggestions',
+          params: { input }
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Nominatim API error: ${response.status}`);
+      if (error) {
+        throw new Error(`Backend error: ${error.message}`);
       }
-
-      const data = await response.json();
       
       const suggestions: OSMSuggestion[] = data.map((item: any, index: number) => ({
         place_id: item.place_id || `osm_${index}`,
@@ -79,7 +76,7 @@ export class OpenStreetMapService {
       }));
 
       this.setCachedResult(cacheKey, suggestions);
-      console.log(`✅ OSM: Found ${suggestions.length} suggestions`);
+      console.log(`✅ OSM: Found ${suggestions.length} suggestions via backend`);
       
       return suggestions;
     } catch (error) {
@@ -88,44 +85,39 @@ export class OpenStreetMapService {
     }
   }
 
-  // Nominatim geocoding for place details
+  // Nominatim geocoding for place details via backend
   public async getPlaceDetails(query: string): Promise<OSMPlaceDetails> {
     const cacheKey = this.getCacheKey('details', query);
     const cached = this.getCachedResult(cacheKey);
     if (cached) return cached;
 
-    console.log('🌍 OSM: Getting place details for:', query);
+    console.log('🌍 OSM: Getting place details via backend for:', query);
 
     try {
-      const encodedQuery = encodeURIComponent(query);
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodedQuery}&format=json&addressdetails=1&limit=1`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'LovableApp/1.0 (contact@example.com)'
+      const { data, error } = await supabase.functions.invoke('maps-api', {
+        body: { 
+          action: 'place-details',
+          params: { query }
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Nominatim API error: ${response.status}`);
+      if (error) {
+        throw new Error(`Backend error: ${error.message}`);
       }
-
-      const data = await response.json();
       
-      if (!data.length) {
+      if (!data) {
         throw new Error('Keine Ergebnisse gefunden');
       }
 
-      const result = data[0];
       const placeDetails: OSMPlaceDetails = {
-        lat: parseFloat(result.lat),
-        lng: parseFloat(result.lon),
-        formatted_address: result.display_name,
-        address_components: this.parseAddressComponents(result.address)
+        lat: parseFloat(data.lat),
+        lng: parseFloat(data.lon),
+        formatted_address: data.display_name,
+        address_components: this.parseAddressComponents(data.address)
       };
 
       this.setCachedResult(cacheKey, placeDetails);
-      console.log('✅ OSM: Place details retrieved');
+      console.log('✅ OSM: Place details retrieved via backend');
       
       return placeDetails;
     } catch (error) {

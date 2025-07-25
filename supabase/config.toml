@@ -23,5 +23,8 @@ pop3_port = 54326
 [functions.secure-webhook]
 verify_jwt = false
 
+[functions.maps-api]
+verify_jwt = false
+
 [auth]
 enabled = true
