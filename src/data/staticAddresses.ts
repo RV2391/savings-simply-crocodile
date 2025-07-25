@@ -21,7 +21,7 @@ export const staticAddresses: StaticAddress[] = [
     country: "Deutschland",
     postcode: "10115",
     coordinates: { lat: 52.5200, lng: 13.4050 },
-    searchTerms: ["berlin", "hauptstadt", "spree"]
+    searchTerms: ["berlin", "hauptstadt", "spree", "10115", "10xxx"]
   },
   {
     city: "Hamburg",
@@ -29,7 +29,7 @@ export const staticAddresses: StaticAddress[] = [
     country: "Deutschland", 
     postcode: "20095",
     coordinates: { lat: 53.5488, lng: 9.9872 },
-    searchTerms: ["hamburg", "hansestadt", "elbe"]
+    searchTerms: ["hamburg", "hansestadt", "elbe", "20095", "20xxx"]
   },
   {
     city: "München",
@@ -37,7 +37,7 @@ export const staticAddresses: StaticAddress[] = [
     country: "Deutschland",
     postcode: "80331", 
     coordinates: { lat: 48.1351, lng: 11.5820 },
-    searchTerms: ["münchen", "munich", "bayern", "bavaria"]
+    searchTerms: ["münchen", "munich", "bayern", "bavaria", "80331", "80xxx"]
   },
   {
     city: "Köln",
@@ -45,7 +45,316 @@ export const staticAddresses: StaticAddress[] = [
     country: "Deutschland",
     postcode: "50667",
     coordinates: { lat: 50.9375, lng: 6.9603 },
-    searchTerms: ["köln", "cologne", "dom", "rhein"]
+    searchTerms: ["köln", "cologne", "dom", "rhein", "50667", "50xxx"]
+  },
+  // Paderborn and NRW cities - MISSING CITIES ADDED
+  {
+    city: "Paderborn",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "33100",
+    coordinates: { lat: 51.7189, lng: 8.7575 },
+    searchTerms: ["paderborn", "33100", "33xxx", "technologiepark", "universität", "nrw"]
+  },
+  {
+    city: "Düsseldorf",
+    state: "Nordrhein-Westfalen", 
+    country: "Deutschland",
+    postcode: "40210",
+    coordinates: { lat: 51.2277, lng: 6.7735 },
+    searchTerms: ["düsseldorf", "40210", "40xxx", "rhein", "nrw"]
+  },
+  {
+    city: "Dortmund",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland", 
+    postcode: "44135",
+    coordinates: { lat: 51.5136, lng: 7.4653 },
+    searchTerms: ["dortmund", "44135", "44xxx", "ruhrgebiet", "bvb", "nrw"]
+  },
+  {
+    city: "Essen",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "45127",
+    coordinates: { lat: 51.4566, lng: 7.0119 },
+    searchTerms: ["essen", "45127", "45xxx", "ruhrgebiet", "zollverein", "nrw"]
+  },
+  {
+    city: "Bielefeld",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "33602",
+    coordinates: { lat: 52.0302, lng: 8.5325 },
+    searchTerms: ["bielefeld", "33602", "33xxx", "owl", "ostwestfalen", "nrw"]
+  },
+  {
+    city: "Bochum",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "44787",
+    coordinates: { lat: 51.4818, lng: 7.2162 },
+    searchTerms: ["bochum", "44787", "44xxx", "ruhr", "rub", "nrw"]
+  },
+  {
+    city: "Wuppertal",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "42103",
+    coordinates: { lat: 51.2562, lng: 7.1508 },
+    searchTerms: ["wuppertal", "42103", "42xxx", "schwebebahn", "bergisches land", "nrw"]
+  },
+  {
+    city: "Bonn",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "53111",
+    coordinates: { lat: 50.7374, lng: 7.0982 },
+    searchTerms: ["bonn", "53111", "53xxx", "rhein", "bundesstadt", "nrw"]
+  },
+  {
+    city: "Münster",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "48143",
+    coordinates: { lat: 51.9607, lng: 7.6261 },
+    searchTerms: ["münster", "48143", "48xxx", "westfalen", "universität", "nrw"]
+  },
+  {
+    city: "Aachen",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "52062",
+    coordinates: { lat: 50.7753, lng: 6.0839 },
+    searchTerms: ["aachen", "52062", "52xxx", "rwth", "karlspreis", "nrw"]
+  },
+  {
+    city: "Mönchengladbach",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "41061",
+    coordinates: { lat: 51.1805, lng: 6.4428 },
+    searchTerms: ["mönchengladbach", "41061", "41xxx", "gladbach", "nrw"]
+  },
+  {
+    city: "Gelsenkirchen",
+    state: "Nordrhein-Westfalen",
+    country: "Deutschland",
+    postcode: "45879",
+    coordinates: { lat: 51.5177, lng: 7.0857 },
+    searchTerms: ["gelsenkirchen", "45879", "45xxx", "schalke", "ruhrgebiet", "nrw"]
+  },
+  // Bavaria cities
+  {
+    city: "Nürnberg",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "90402",
+    coordinates: { lat: 49.4521, lng: 11.0767 },
+    searchTerms: ["nürnberg", "nuremberg", "90402", "90xxx", "franken", "bayern"]
+  },
+  {
+    city: "Augsburg",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "86150",
+    coordinates: { lat: 48.3705, lng: 10.8978 },
+    searchTerms: ["augsburg", "86150", "86xxx", "fugger", "bayern"]
+  },
+  {
+    city: "Würzburg",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "97070",
+    coordinates: { lat: 49.7913, lng: 9.9534 },
+    searchTerms: ["würzburg", "97070", "97xxx", "main", "franken", "bayern"]
+  },
+  {
+    city: "Regensburg",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "93047",
+    coordinates: { lat: 49.0134, lng: 12.1016 },
+    searchTerms: ["regensburg", "93047", "93xxx", "donau", "weltkulturerbe", "bayern"]
+  },
+  {
+    city: "Ingolstadt",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "85049",
+    coordinates: { lat: 48.7665, lng: 11.4257 },
+    searchTerms: ["ingolstadt", "85049", "85xxx", "audi", "donau", "bayern"]
+  },
+  {
+    city: "Erlangen",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "91054",
+    coordinates: { lat: 49.5897, lng: 11.0044 },
+    searchTerms: ["erlangen", "91054", "91xxx", "universität", "siemens", "bayern"]
+  },
+  // Lower Saxony cities
+  {
+    city: "Hannover",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "30159",
+    coordinates: { lat: 52.3759, lng: 9.7320 },
+    searchTerms: ["hannover", "30159", "30xxx", "messe", "niedersachsen"]
+  },
+  {
+    city: "Braunschweig",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "38100",
+    coordinates: { lat: 52.2689, lng: 10.5268 },
+    searchTerms: ["braunschweig", "38100", "38xxx", "löwe", "niedersachsen"]
+  },
+  {
+    city: "Oldenburg",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "26122",
+    coordinates: { lat: 53.1435, lng: 8.2146 },
+    searchTerms: ["oldenburg", "26122", "26xxx", "oldb", "niedersachsen"]
+  },
+  {
+    city: "Osnabrück",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "49074",
+    coordinates: { lat: 52.2799, lng: 8.0472 },
+    searchTerms: ["osnabrück", "49074", "49xxx", "westfälischer friede", "niedersachsen"]
+  },
+  {
+    city: "Wolfsburg",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "38440",
+    coordinates: { lat: 52.4227, lng: 10.7865 },
+    searchTerms: ["wolfsburg", "38440", "38xxx", "volkswagen", "autostadt", "niedersachsen"]
+  },
+  {
+    city: "Göttingen",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "37073",
+    coordinates: { lat: 51.5414, lng: 9.9158 },
+    searchTerms: ["göttingen", "37073", "37xxx", "universität", "gänseliesel", "niedersachsen"]
+  },
+  {
+    city: "Hildesheim",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "31134",
+    coordinates: { lat: 52.1561, lng: 9.9511 },
+    searchTerms: ["hildesheim", "31134", "31xxx", "weltkulturerbe", "niedersachsen"]
+  },
+  // Hesse cities
+  {
+    city: "Wiesbaden",
+    state: "Hessen",
+    country: "Deutschland",
+    postcode: "65183",
+    coordinates: { lat: 50.0826, lng: 8.2399 },
+    searchTerms: ["wiesbaden", "65183", "65xxx", "kurstadt", "hessen"]
+  },
+  {
+    city: "Kassel",
+    state: "Hessen",
+    country: "Deutschland",
+    postcode: "34117",
+    coordinates: { lat: 51.3127, lng: 9.4797 },
+    searchTerms: ["kassel", "34117", "34xxx", "documenta", "hercules", "hessen"]
+  },
+  {
+    city: "Darmstadt",
+    state: "Hessen",
+    country: "Deutschland",
+    postcode: "64283",
+    coordinates: { lat: 49.8728, lng: 8.6512 },
+    searchTerms: ["darmstadt", "64283", "64xxx", "wissenschaftsstadt", "hessen"]
+  },
+  {
+    city: "Offenbach",
+    state: "Hessen",
+    country: "Deutschland",
+    postcode: "63065",
+    coordinates: { lat: 50.0955, lng: 8.7761 },
+    searchTerms: ["offenbach", "63065", "63xxx", "main", "hessen"]
+  },
+  {
+    city: "Gießen",
+    state: "Hessen",
+    country: "Deutschland",
+    postcode: "35390",
+    coordinates: { lat: 50.5841, lng: 8.6724 },
+    searchTerms: ["gießen", "35390", "35xxx", "universität", "lahn", "hessen"]
+  },
+  // Baden-Württemberg cities
+  {
+    city: "Stuttgart",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "70173",
+    coordinates: { lat: 48.7758, lng: 9.1829 },
+    searchTerms: ["stuttgart", "70173", "70xxx", "mercedes", "porsche", "baden-württemberg"]
+  },
+  {
+    city: "Mannheim",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "68159",
+    coordinates: { lat: 49.4875, lng: 8.4660 },
+    searchTerms: ["mannheim", "68159", "68xxx", "quadrate", "rhein", "baden-württemberg"]
+  },
+  {
+    city: "Karlsruhe",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "76133",
+    coordinates: { lat: 49.0069, lng: 8.4037 },
+    searchTerms: ["karlsruhe", "76133", "76xxx", "fächer", "recht", "baden-württemberg"]
+  },
+  {
+    city: "Freiburg",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "79098",
+    coordinates: { lat: 47.9990, lng: 7.8421 },
+    searchTerms: ["freiburg", "79098", "79xxx", "breisgau", "schwarzwald", "baden-württemberg"]
+  },
+  {
+    city: "Heidelberg",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "69117",
+    coordinates: { lat: 49.3988, lng: 8.6724 },
+    searchTerms: ["heidelberg", "69117", "69xxx", "schloss", "neckar", "baden-württemberg"]
+  },
+  {
+    city: "Heilbronn",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "74072",
+    coordinates: { lat: 49.1427, lng: 9.2109 },
+    searchTerms: ["heilbronn", "74072", "74xxx", "neckar", "käthchen", "baden-württemberg"]
+  },
+  {
+    city: "Ulm",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "89073",
+    coordinates: { lat: 48.3984, lng: 9.9916 },
+    searchTerms: ["ulm", "89073", "89xxx", "münster", "donau", "baden-württemberg"]
+  },
+  {
+    city: "Pforzheim",
+    state: "Baden-Württemberg",
+    country: "Deutschland",
+    postcode: "75175",
+    coordinates: { lat: 48.8915, lng: 8.6983 },
+    searchTerms: ["pforzheim", "75175", "75xxx", "goldstadt", "schmuck", "baden-württemberg"]
   },
   {
     city: "Frankfurt am Main",
@@ -355,94 +664,131 @@ export const staticAddresses: StaticAddress[] = [
   }
 ];
 
-// Enhanced fuzzy search function for better address matching
+// Enhanced fuzzy search function with intelligent address parsing
 export const searchAddresses = (query: string, limit: number = 5): StaticAddress[] => {
   if (!query || query.length < 2) return [];
   
-  const searchTerm = query.toLowerCase().trim();
-  const results: { address: StaticAddress; score: number }[] = [];
+  const normalizedQuery = query.toLowerCase().trim();
+  console.log('🔍 Searching for:', normalizedQuery);
   
-  // Also check for partial postal code matches
-  const isNumeric = /^\d+/.test(searchTerm);
+  // Extract postal code from complex addresses like "Technologiepark 18, 33100 Paderborn"
+  const postalCodeMatch = normalizedQuery.match(/\b(\d{5})\b/);
+  const postalCode = postalCodeMatch ? postalCodeMatch[1] : null;
   
+  // Extract city name after postal code or comma
+  let cityName = '';
+  if (postalCode) {
+    const afterPostalCode = normalizedQuery.split(postalCode)[1];
+    if (afterPostalCode) {
+      cityName = afterPostalCode.replace(/^\s*,?\s*/, '').trim().split(/\s+/)[0];
+    }
+  }
+  
+  // Alternative: extract city from comma-separated parts
+  if (!cityName) {
+    const parts = normalizedQuery.split(',');
+    if (parts.length > 1) {
+      // Try last part first (most likely city)
+      cityName = parts[parts.length - 1].trim();
+      // Remove postal code if present
+      cityName = cityName.replace(/^\d{5}\s*/, '');
+    }
+  }
+  
+  console.log('🏙️ Extracted postal code:', postalCode, 'city:', cityName);
+  
+  const results: Array<{ address: StaticAddress; score: number }> = [];
+
   staticAddresses.forEach(address => {
     let score = 0;
-    
-    // Check exact matches first (highest score)
-    if (address.city.toLowerCase() === searchTerm) {
+    const searchableText = [
+      address.city.toLowerCase(),
+      address.postcode,
+      address.state?.toLowerCase() || '',
+      address.country.toLowerCase(),
+      ...address.searchTerms.map(term => term.toLowerCase())
+    ];
+
+    // Postal code match gets very high priority
+    if (postalCode && address.postcode === postalCode) {
+      score = 150;
+    }
+    // Postal code range match (e.g., 33xxx for 33100)
+    else if (postalCode && address.searchTerms.some(term => 
+      term.includes(postalCode.substring(0, 2) + 'xxx')
+    )) {
+      score = 120;
+    }
+    // City name exact match
+    else if (cityName && address.city.toLowerCase() === cityName) {
+      score = 110;
+    }
+    // City name starts with
+    else if (cityName && address.city.toLowerCase().startsWith(cityName)) {
       score = 100;
-    } else if (address.postcode === searchTerm) {
-      score = 95;
-    } else if (isNumeric && address.postcode.startsWith(searchTerm)) {
-      // Partial postal code match
-      score = 93;
-    } else if (address.city.toLowerCase().startsWith(searchTerm)) {
+    }
+    // Exact match with full query
+    else if (searchableText.some(text => text === normalizedQuery)) {
       score = 90;
-    } else if (address.searchTerms.some(term => term === searchTerm)) {
-      score = 85;
-    } else if (address.city.toLowerCase().includes(searchTerm)) {
+    }
+    // Starts with match
+    else if (searchableText.some(text => text.startsWith(normalizedQuery))) {
       score = 80;
-    } else if (address.searchTerms.some(term => term.includes(searchTerm))) {
-      score = 75;
-    } else if (address.searchTerms.some(term => term.startsWith(searchTerm))) {
-      score = 73;
-    } else if (address.state?.toLowerCase().includes(searchTerm)) {
-      score = 70;
-    } else if (address.state?.toLowerCase().startsWith(searchTerm)) {
-      score = 68;
-    } else if (address.country.toLowerCase().includes(searchTerm)) {
-      score = 65;
     }
-    
-    // Fuzzy matching: check for typos and partial matches
-    if (score === 0) {
-      // Check if query is a partial match with at least 3 chars
-      if (searchTerm.length >= 3) {
-        const cityLower = address.city.toLowerCase();
-        if (cityLower.includes(searchTerm.substring(0, Math.min(searchTerm.length, cityLower.length)))) {
-          score = 60;
-        }
-      }
+    // Contains match
+    else if (searchableText.some(text => text.includes(normalizedQuery))) {
+      score = 60;
+    }
+    // Fuzzy matching for common German variations
+    else if (normalizedQuery.includes('ue') || normalizedQuery.includes('ae') || normalizedQuery.includes('oe')) {
+      const umlautQuery = normalizedQuery
+        .replace(/ue/g, 'ü')
+        .replace(/ae/g, 'ä')
+        .replace(/oe/g, 'ö');
       
-      // Check for common typos/variations
-      const variations = [
-        { original: 'ü', variants: ['ue', 'u'] },
-        { original: 'ä', variants: ['ae', 'a'] },
-        { original: 'ö', variants: ['oe', 'o'] },
-        { original: 'ß', variants: ['ss', 's'] }
-      ];
-      
-      let normalizedQuery = searchTerm;
-      let normalizedCity = address.city.toLowerCase();
-      
-      variations.forEach(({ original, variants }) => {
-        variants.forEach(variant => {
-          normalizedQuery = normalizedQuery.replace(variant, original);
-          normalizedCity = normalizedCity.replace(original, variant);
-        });
-      });
-      
-      if (normalizedCity.includes(normalizedQuery) || normalizedQuery.includes(normalizedCity.substring(0, 4))) {
-        score = 55;
+      if (searchableText.some(text => text.includes(umlautQuery))) {
+        score = 40;
       }
     }
-    
+    // Reverse umlaut matching
+    else {
+      const deUmlautQuery = normalizedQuery
+        .replace(/ü/g, 'ue')
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe');
+      
+      if (searchableText.some(text => text.includes(deUmlautQuery))) {
+        score = 40;
+      }
+    }
+
+    // Bonus for multiple matches
+    if (cityName && postalCode && 
+        address.city.toLowerCase().includes(cityName) && 
+        address.postcode.startsWith(postalCode.substring(0, 2))) {
+      score += 50;
+    }
+
     if (score > 0) {
       results.push({ address, score });
     }
   });
-  
-  // If no results found, provide helpful suggestions
-  if (results.length === 0) {
-    console.log(`🔍 Keine Ergebnisse für "${query}". Verfügbare Städte:`, 
-      staticAddresses.slice(0, 5).map(a => a.city).join(', '));
-  }
-  
-  // Sort by score (highest first) and return top results
-  return results
+
+  // Sort by score and return top results
+  const sortedResults = results
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(result => result.address);
+
+  if (sortedResults.length === 0) {
+    // Provide helpful suggestions including newly added cities
+    const suggestions = staticAddresses.slice(0, 8).map(a => a.city).join(', ');
+    console.log(`🔍 Keine Ergebnisse für "${query}". Verfügbare Städte: ${suggestions}`);
+  } else {
+    console.log(`✅ Found ${sortedResults.length} matches for "${query}"`);
+  }
+
+  return sortedResults;
 };
 
 // Convert static address to geocoding result format
