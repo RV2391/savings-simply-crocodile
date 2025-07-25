@@ -1,4 +1,5 @@
 import { openStreetMapService } from './openStreetMapService';
+import { backendMapService } from './backendMapService';
 
 export type MapProvider = 'osm';
 
@@ -49,48 +50,94 @@ export class MapProviderManager {
     this.providerStatus.set(provider, 'available');
   }
 
-  // Address suggestions using OpenStreetMap
+  // Helper methods for address formatting
+  private extractMainText(displayName: string): string {
+    const parts = displayName.split(',');
+    return parts[0]?.trim() || displayName;
+  }
+
+  private extractSecondaryText(displayName: string): string {
+    const parts = displayName.split(',');
+    return parts.slice(1).join(',').trim() || '';
+  }
+
+  // Address suggestions using backend API (with fallback to offline)
   public async getAddressSuggestions(input: string): Promise<any[]> {
     try {
-      console.log(`🔍 Getting address suggestions with OpenStreetMap`);
-      const result = await openStreetMapService.getAddressSuggestions(input);
+      console.log(`🔍 Getting address suggestions via backend API`);
+      const result = await backendMapService.getAddressSuggestions(input);
       this.markProviderAsAvailable('osm');
-      return result;
+      return result.map(item => ({
+        place_id: item.place_id,
+        description: item.display_name,
+        main_text: this.extractMainText(item.display_name),
+        secondary_text: this.extractSecondaryText(item.display_name)
+      }));
     } catch (error) {
-      console.error(`❌ OpenStreetMap provider failed:`, error);
-      this.markProviderAsUnavailable('osm');
-      throw error instanceof Error ? error : new Error('Adressdienst ist nicht verfügbar');
+      console.error(`❌ Backend API failed, trying offline fallback:`, error);
+      try {
+        console.log(`🔄 Falling back to offline address search`);
+        const fallbackResult = await openStreetMapService.getAddressSuggestions(input);
+        console.log(`✅ Offline fallback successful`);
+        return fallbackResult;
+      } catch (fallbackError) {
+        console.error(`❌ Both backend and offline failed:`, fallbackError);
+        this.markProviderAsUnavailable('osm');
+        throw new Error('Adressdienst ist nicht verfügbar');
+      }
     }
   }
 
-  // Place details using OpenStreetMap
+  // Place details using backend API (with fallback to offline)
   public async getPlaceDetails(placeId: string): Promise<any> {
     try {
-      console.log(`📍 Getting place details with OpenStreetMap`);
-      const result = await openStreetMapService.getPlaceDetails(placeId);
+      console.log(`📍 Getting place details via backend API`);
+      const result = await backendMapService.getPlaceDetails(placeId);
       this.markProviderAsAvailable('osm');
-      return result;
+      return {
+        lat: parseFloat(result.lat),
+        lng: parseFloat(result.lon),
+        addressComponents: result.address
+      };
     } catch (error) {
-      console.error(`❌ OpenStreetMap provider failed:`, error);
-      this.markProviderAsUnavailable('osm');
-      throw error instanceof Error ? error : new Error('Ortsdienst ist nicht verfügbar');
+      console.error(`❌ Backend API failed, trying offline fallback:`, error);
+      try {
+        console.log(`🔄 Falling back to offline place details`);
+        const fallbackResult = await openStreetMapService.getPlaceDetails(placeId);
+        console.log(`✅ Offline fallback successful`);
+        return fallbackResult;
+      } catch (fallbackError) {
+        console.error(`❌ Both backend and offline failed:`, fallbackError);
+        this.markProviderAsUnavailable('osm');
+        throw new Error('Ortsdienst ist nicht verfügbar');
+      }
     }
   }
 
-  // Geocoding using OpenStreetMap
+  // Geocoding using backend API (with fallback to offline)
   public async geocodeAddress(address: string): Promise<{ lat: number; lng: number; addressComponents?: any } | null> {
     try {
-      console.log(`🗺️ Geocoding with OpenStreetMap`);
-      const result = await openStreetMapService.geocodeAddress(address);
+      console.log(`🗺️ Geocoding via backend API`);
+      const result = await backendMapService.geocodeAddress(address);
       if (result) {
         this.markProviderAsAvailable('osm');
       }
       return result;
     } catch (error) {
-      console.error(`❌ OpenStreetMap provider failed:`, error);
-      this.markProviderAsUnavailable('osm');
-      console.warn('⚠️ Geocoding failed, returning null');
-      return null;
+      console.error(`❌ Backend API failed, trying offline fallback:`, error);
+      try {
+        console.log(`🔄 Falling back to offline geocoding`);
+        const fallbackResult = await openStreetMapService.geocodeAddress(address);
+        if (fallbackResult) {
+          console.log(`✅ Offline fallback successful`);
+        }
+        return fallbackResult;
+      } catch (fallbackError) {
+        console.error(`❌ Both backend and offline failed:`, fallbackError);
+        this.markProviderAsUnavailable('osm');
+        console.warn('⚠️ Geocoding failed, returning null');
+        return null;
+      }
     }
   }
 

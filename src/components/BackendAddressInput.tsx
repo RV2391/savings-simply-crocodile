@@ -287,7 +287,7 @@ export const BackendAddressInput = ({
               // Delay hiding suggestions to allow clicks
               setTimeout(() => setShowSuggestions(false), 200);
             }}
-            placeholder="Adresse eingeben..."
+            placeholder="Vollständige Adresse eingeben (z.B. Baumstraße 15, 75175 Pforzheim)"
             disabled={loading}
             className="w-full pr-8 bg-white text-gray-900 border-gray-300 placeholder:text-gray-500"
           />
