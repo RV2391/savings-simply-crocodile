@@ -19,7 +19,7 @@ const Embed = () => {
     if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
       const meta = document.createElement('meta');
       meta.httpEquiv = 'Content-Security-Policy';
-      meta.content = "default-src 'self'; img-src 'self' data: https://cartodb-basemaps-c.global.ssl.fastly.net https://tile.openstreetmap.org https://cartodb-basemaps-a.global.ssl.fastly.net; connect-src 'self' https://cartodb-basemaps-c.global.ssl.fastly.net https://tile.openstreetmap.org; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';";
+      meta.content = "default-src 'self'; img-src 'self' data: https://cartodb-basemaps-c.global.ssl.fastly.net https://tile.openstreetmap.org https://cartodb-basemaps-a.global.ssl.fastly.net; connect-src 'self' https://cartodb-basemaps-c.global.ssl.fastly.net https://tile.openstreetmap.org https://vkarnxgrniqtyeeibgxq.supabase.co; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';";
       document.head.appendChild(meta);
     }
 
