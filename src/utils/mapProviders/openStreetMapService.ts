@@ -89,7 +89,9 @@ export class OpenStreetMapService {
       const results = searchAddresses(query, 1);
       
       if (results.length === 0) {
-        throw new Error('Keine Ergebnisse gefunden');
+        // Provide helpful suggestions for common cities
+        const suggestions = searchAddresses('', 10).slice(0, 5).map(a => a.city).join(', ');
+        throw new Error(`Keine Ergebnisse für diese Adresse. Verfügbare Städte: ${suggestions}`);
       }
 
       const address = results[0];
@@ -122,6 +124,9 @@ export class OpenStreetMapService {
       
       if (results.length === 0) {
         console.log('❌ OSM: No offline results found for:', address);
+        // Log available cities for debugging
+        const availableCities = searchAddresses('', 10).slice(0, 5).map(a => a.city);
+        console.log('🏙️ Available cities:', availableCities.join(', '));
         return null;
       }
 

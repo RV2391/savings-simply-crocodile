@@ -39,10 +39,14 @@ export class StaticMapService {
     
     // Return a placeholder since external map tiles are blocked by CSP
     // We'll use the BackendOnlyMap component instead
+    // Fix: Ensure no spaces in SVG attributes
+    const cleanWidth = String(width).trim();
+    const cleanHeight = String(height).trim();
+    
     return `data:image/svg+xml;base64,${btoa(`
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${width}" height="${height}" fill="#f0f0f0"/>
-        <text x="${width/2}" y="${height/2}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16" fill="#666">
+      <svg width="${cleanWidth}" height="${cleanHeight}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${cleanWidth}" height="${cleanHeight}" fill="#f0f0f0"/>
+        <text x="${Number(cleanWidth)/2}" y="${Number(cleanHeight)/2}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="16" fill="#666">
           Karte nicht verfügbar (CSP-Modus)
         </text>
       </svg>

@@ -178,15 +178,192 @@ export const staticAddresses: StaticAddress[] = [
     postcode: "1003",
     coordinates: { lat: 46.5197, lng: 6.6323 },
     searchTerms: ["lausanne", "waadt", "vaud", "olympics"]
+  },
+
+  // More German cities
+  {
+    city: "Dresden",
+    state: "Sachsen",
+    country: "Deutschland",
+    postcode: "01067",
+    coordinates: { lat: 51.0504, lng: 13.7373 },
+    searchTerms: ["dresden", "sachsen", "elbe", "frauenkirche"]
+  },
+  {
+    city: "Hannover",
+    state: "Niedersachsen",
+    country: "Deutschland",
+    postcode: "30159",
+    coordinates: { lat: 52.3759, lng: 9.7320 },
+    searchTerms: ["hannover", "niedersachsen", "messe"]
+  },
+  {
+    city: "Nürnberg",
+    state: "Bayern",
+    country: "Deutschland",
+    postcode: "90403",
+    coordinates: { lat: 49.4521, lng: 11.0767 },
+    searchTerms: ["nürnberg", "nuremberg", "bayern", "lebkuchen"]
+  },
+  {
+    city: "Bremen",
+    state: "Bremen",
+    country: "Deutschland",
+    postcode: "28195",
+    coordinates: { lat: 53.0793, lng: 8.8017 },
+    searchTerms: ["bremen", "weser", "hansestadt"]
+  },
+  {
+    city: "Wiesbaden",
+    state: "Hessen",
+    country: "Deutschland",
+    postcode: "65183",
+    coordinates: { lat: 50.0782, lng: 8.2398 },
+    searchTerms: ["wiesbaden", "hessen", "kurstadt"]
+  },
+  {
+    city: "Mainz",
+    state: "Rheinland-Pfalz",
+    country: "Deutschland",
+    postcode: "55116",
+    coordinates: { lat: 49.9929, lng: 8.2473 },
+    searchTerms: ["mainz", "rheinland-pfalz", "rhein", "gutenberg"]
+  },
+  {
+    city: "Saarbrücken",
+    state: "Saarland",
+    country: "Deutschland",
+    postcode: "66111",
+    coordinates: { lat: 49.2401, lng: 6.9969 },
+    searchTerms: ["saarbrücken", "saarland", "saar"]
+  },
+  {
+    city: "Schwerin",
+    state: "Mecklenburg-Vorpommern",
+    country: "Deutschland",
+    postcode: "19053",
+    coordinates: { lat: 53.6355, lng: 11.4010 },
+    searchTerms: ["schwerin", "mecklenburg-vorpommern", "schloss"]
+  },
+  {
+    city: "Erfurt",
+    state: "Thüringen",
+    country: "Deutschland",
+    postcode: "99084",
+    coordinates: { lat: 50.9848, lng: 11.0299 },
+    searchTerms: ["erfurt", "thüringen", "dom"]
+  },
+  {
+    city: "Magdeburg",
+    state: "Sachsen-Anhalt",
+    country: "Deutschland",
+    postcode: "39104",
+    coordinates: { lat: 52.1205, lng: 11.6276 },
+    searchTerms: ["magdeburg", "sachsen-anhalt", "elbe", "dom"]
+  },
+  {
+    city: "Kiel",
+    state: "Schleswig-Holstein",
+    country: "Deutschland",
+    postcode: "24103",
+    coordinates: { lat: 54.3233, lng: 10.1228 },
+    searchTerms: ["kiel", "schleswig-holstein", "kieler", "förde"]
+  },
+  {
+    city: "Potsdam",
+    state: "Brandenburg",
+    country: "Deutschland",
+    postcode: "14467",
+    coordinates: { lat: 52.3906, lng: 13.0645 },
+    searchTerms: ["potsdam", "brandenburg", "sanssouci", "schloss"]
+  },
+
+  // More Austrian cities
+  {
+    city: "Klagenfurt",
+    state: "Kärnten",
+    country: "Österreich",
+    postcode: "9020",
+    coordinates: { lat: 46.6247, lng: 14.3055 },
+    searchTerms: ["klagenfurt", "kärnten", "wörthersee"]
+  },
+  {
+    city: "Bregenz",
+    state: "Vorarlberg",
+    country: "Österreich",
+    postcode: "6900",
+    coordinates: { lat: 47.5058, lng: 9.7471 },
+    searchTerms: ["bregenz", "vorarlberg", "bodensee"]
+  },
+  {
+    city: "St. Pölten",
+    state: "Niederösterreich",
+    country: "Österreich",
+    postcode: "3100",
+    coordinates: { lat: 48.2058, lng: 15.6232 },
+    searchTerms: ["st pölten", "niederösterreich", "traisen"]
+  },
+  {
+    city: "Eisenstadt",
+    state: "Burgenland",
+    country: "Österreich",
+    postcode: "7000",
+    coordinates: { lat: 47.8450, lng: 16.5200 },
+    searchTerms: ["eisenstadt", "burgenland", "haydn"]
+  },
+
+  // More Swiss cities
+  {
+    city: "Winterthur",
+    state: "Zürich",
+    country: "Schweiz",
+    postcode: "8400",
+    coordinates: { lat: 47.4979, lng: 8.7242 },
+    searchTerms: ["winterthur", "zürich", "technorama"]
+  },
+  {
+    city: "St. Gallen",
+    state: "St. Gallen",
+    country: "Schweiz",
+    postcode: "9000",
+    coordinates: { lat: 47.4245, lng: 9.3767 },
+    searchTerms: ["st gallen", "stiftsbibliothek", "textil"]
+  },
+  {
+    city: "Luzern",
+    state: "Luzern",
+    country: "Schweiz",
+    postcode: "6003",
+    coordinates: { lat: 47.0502, lng: 8.3093 },
+    searchTerms: ["luzern", "lucerne", "vierwaldstättersee", "kapellbrücke"]
+  },
+  {
+    city: "Lugano",
+    state: "Tessin",
+    country: "Schweiz",
+    postcode: "6900",
+    coordinates: { lat: 46.0037, lng: 8.9511 },
+    searchTerms: ["lugano", "tessin", "ticino", "monte"]
+  },
+  {
+    city: "Thun",
+    state: "Bern",
+    country: "Schweiz",
+    postcode: "3600",
+    coordinates: { lat: 46.758, lng: 7.6280 },
+    searchTerms: ["thun", "thunersee", "oberland"]
   }
 ];
 
-// Fuzzy search function for address matching
+// Enhanced fuzzy search function for better address matching
 export const searchAddresses = (query: string, limit: number = 5): StaticAddress[] => {
   if (!query || query.length < 2) return [];
   
   const searchTerm = query.toLowerCase().trim();
   const results: { address: StaticAddress; score: number }[] = [];
+  
+  // Also check for partial postal code matches
+  const isNumeric = /^\d+/.test(searchTerm);
   
   staticAddresses.forEach(address => {
     let score = 0;
@@ -196,6 +373,9 @@ export const searchAddresses = (query: string, limit: number = 5): StaticAddress
       score = 100;
     } else if (address.postcode === searchTerm) {
       score = 95;
+    } else if (isNumeric && address.postcode.startsWith(searchTerm)) {
+      // Partial postal code match
+      score = 93;
     } else if (address.city.toLowerCase().startsWith(searchTerm)) {
       score = 90;
     } else if (address.searchTerms.some(term => term === searchTerm)) {
@@ -204,16 +384,59 @@ export const searchAddresses = (query: string, limit: number = 5): StaticAddress
       score = 80;
     } else if (address.searchTerms.some(term => term.includes(searchTerm))) {
       score = 75;
+    } else if (address.searchTerms.some(term => term.startsWith(searchTerm))) {
+      score = 73;
     } else if (address.state?.toLowerCase().includes(searchTerm)) {
       score = 70;
+    } else if (address.state?.toLowerCase().startsWith(searchTerm)) {
+      score = 68;
     } else if (address.country.toLowerCase().includes(searchTerm)) {
       score = 65;
+    }
+    
+    // Fuzzy matching: check for typos and partial matches
+    if (score === 0) {
+      // Check if query is a partial match with at least 3 chars
+      if (searchTerm.length >= 3) {
+        const cityLower = address.city.toLowerCase();
+        if (cityLower.includes(searchTerm.substring(0, Math.min(searchTerm.length, cityLower.length)))) {
+          score = 60;
+        }
+      }
+      
+      // Check for common typos/variations
+      const variations = [
+        { original: 'ü', variants: ['ue', 'u'] },
+        { original: 'ä', variants: ['ae', 'a'] },
+        { original: 'ö', variants: ['oe', 'o'] },
+        { original: 'ß', variants: ['ss', 's'] }
+      ];
+      
+      let normalizedQuery = searchTerm;
+      let normalizedCity = address.city.toLowerCase();
+      
+      variations.forEach(({ original, variants }) => {
+        variants.forEach(variant => {
+          normalizedQuery = normalizedQuery.replace(variant, original);
+          normalizedCity = normalizedCity.replace(original, variant);
+        });
+      });
+      
+      if (normalizedCity.includes(normalizedQuery) || normalizedQuery.includes(normalizedCity.substring(0, 4))) {
+        score = 55;
+      }
     }
     
     if (score > 0) {
       results.push({ address, score });
     }
   });
+  
+  // If no results found, provide helpful suggestions
+  if (results.length === 0) {
+    console.log(`🔍 Keine Ergebnisse für "${query}". Verfügbare Städte:`, 
+      staticAddresses.slice(0, 5).map(a => a.city).join(', '));
+  }
   
   // Sort by score (highest first) and return top results
   return results
