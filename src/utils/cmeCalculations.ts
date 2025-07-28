@@ -34,7 +34,9 @@ export const calculateAnnualCMERequirements = (
   includesExercises: boolean = false,
   includesTest: boolean = false
 ): CMECalculationResult => {
-  const requiredPoints = isDentist ? 25 : 24; // Zahnärzte: 25 Punkte (125/5 Jahre), Assistenz: 24 Punkte
+  // Nur Zahnärzte haben gesetzliche CME-Pflicht nach § 95d SGB V
+  // ZFA haben KEINE gesetzliche Fortbildungspflicht
+  const requiredPoints = isDentist ? 25 : 0; // Zahnärzte: 25 Punkte (125/5 Jahre), ZFA: keine gesetzliche Pflicht
   
   const pointsPerSession = calculateCMEPoints({
     duration: averageSessionDuration,

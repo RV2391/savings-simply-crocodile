@@ -3,13 +3,16 @@ import { useEffect } from "react";
 import { Clock, TrendingUp, Users, Car } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGTMTracking } from "@/hooks/useGTMTracking";
+import { TimeSavingsDisclaimer } from "./TimeSavingsDisclaimer";
 import { ExtendedTimeSavings } from "@/utils/calculations/extendedTimeSavingsCalculations";
 
 interface TimeSavingsCardProps {
   timeSavings: ExtendedTimeSavings;
+  dentists: number;
+  assistants: number;
 }
 
-export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
+export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavingsCardProps) => {
   const { trackTimeSavingsViewed } = useGTMTracking();
 
   // Track when time savings card is displayed
@@ -177,6 +180,8 @@ export const TimeSavingsCard = ({ timeSavings }: TimeSavingsCardProps) => {
               <li>• Keine Wochenend-/Abendtermine erforderlich</li>
             </ul>
           </div>
+
+          <TimeSavingsDisclaimer dentists={dentists} assistants={assistants} />
         </CardContent>
       </Card>
     </motion.div>

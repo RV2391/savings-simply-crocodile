@@ -23,6 +23,8 @@ export interface TimeSavingsDetails {
       travelHours: number;
       prepHours: number;
       totalHours: number;
+      isVoluntary?: boolean;
+      participationRate?: number;
     };
   };
   monetaryValues: {

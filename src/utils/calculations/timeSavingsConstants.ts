@@ -14,8 +14,12 @@ export const TIME_SAVINGS_CONSTANTS = {
     CROCODILE_ONLINE: 0         // Keine Praxisschließung bei Online-Fortbildung
   },
   
-  // Praxisausfall-Faktoren (konservative Schätzung)
-  PRACTICE_IMPACT_FACTOR: 0.6,           // 60% der Fortbildungen führen zu echtem Praxisausfall
+  // Praxisausfall-Faktoren (degressive Skalierung nach Teamgröße)
+  PRACTICE_IMPACT_FACTORS: {
+    SMALL_PRACTICE: 0.8,                 // 1-4 Mitarbeiter: 80% Ausfallwahrscheinlichkeit
+    MEDIUM_PRACTICE: 0.5,                // 5-10 Mitarbeiter: 50% Ausfallwahrscheinlichkeit  
+    LARGE_PRACTICE: 0.3,                 // 11+ Mitarbeiter: 30% Ausfallwahrscheinlichkeit
+  },
   WEEKEND_TRAINING_RATE: 0.5,            // 50% der Fortbildungen finden am Wochenende statt
   
   // Organisationskosten (Quelle: Praxismanagement-Studien)
@@ -32,11 +36,17 @@ export const TIME_SAVINGS_CONSTANTS = {
   // Opportunitätskosten-Faktoren
   OPPORTUNITY_COST_MULTIPLIER: 1.2,       // 20% zusätzliche Opportunitätskosten
   
-  // Stundensätze für Personalkosten (Quelle: VMF Tarifverträge 2025, ZWP-Online Praxismanagement)
+  // Konservative Stundensätze für Ausfallkosten (nicht Vollkosten)
   HOURLY_RATES: {
-    DENTIST_GROSS_INCOME: 65,              // Angestellter Zahnarzt Brutto-Stundenlohn (konservativ)
-    ZFA_GROSS_INCOME: 16,                  // ZFA Brutto-Stundenlohn nach VMF Tarifvertrag 2025
-    PRACTICE_OVERHEAD_FACTOR: 1.4          // Faktor für Praxisnebenkosten
+    DENTIST_OPPORTUNITY_COST: 80,          // Konservative Opportunitätskosten für Zahnarzt
+    ZFA_OPPORTUNITY_COST: 20,              // Konservative Opportunitätskosten für ZFA
+    PRACTICE_OVERHEAD_FACTOR: 1.2          // Reduzierter Faktor für Praxisnebenkosten
+  },
+  
+  // Freiwillige Fortbildung für ZFA (keine gesetzliche Pflicht)
+  ZFA_VOLUNTARY_TRAINING: {
+    AVERAGE_HOURS_PER_YEAR: 8,             // Durchschnittlich 8 Stunden freiwillige Fortbildung pro Jahr
+    PARTICIPATION_RATE: 0.7,               // 70% der ZFA nehmen an freiwilliger Fortbildung teil
   },
   
   // CME-Anforderungen (basierend auf § 95d SGB V)

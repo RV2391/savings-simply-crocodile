@@ -247,9 +247,13 @@ export const CostCalculator = () => {
                 calculatorData={calculatorData}
                 addressComponents={addressComponents}
               />
-              {results.extendedTimeSavings && (
-                <TimeSavingsCard timeSavings={results.extendedTimeSavings} />
-              )}
+            {results.extendedTimeSavings && (
+              <TimeSavingsCard 
+                timeSavings={results.extendedTimeSavings} 
+                dentists={inputs.dentists}
+                assistants={inputs.teamSize - inputs.dentists}
+              />
+            )}
             </>
           )}
         </div>

@@ -8,6 +8,7 @@ import {
   ASSISTANTS_PER_CAR
 } from './constants';
 import { TIME_SAVINGS_CONSTANTS } from './timeSavingsConstants';
+import { calculatePracticeImpactFactor, calculateZFATrainingRequirements } from './practiceImpactCalculations';
 
 export const calculateTimeSavings = (
   dentists: number,
@@ -17,28 +18,33 @@ export const calculateTimeSavings = (
   traditionalAssistantCME: any
 ): TimeSavings => {
   const travelTimeHours = travelTimeMinutes / 60;
+  const totalTeamSize = dentists + assistants;
   
-  // Realistische Berechnung für Zahnärzte (5 Stunden pro Einheit statt 8)
+  // Degressive Skalierung: größere Praxen haben bessere Vertretungsmöglichkeiten
+  const practiceImpactFactor = calculatePracticeImpactFactor(totalTeamSize);
+  
+  // Realistische Berechnung für Zahnärzte (gesetzliche CME-Pflicht)
   const dentistTimePerSession = TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS + travelTimeHours + PREPARATION_TIME;
   const totalDentistHours = dentistTimePerSession * traditionalDentistCME.requiredSessions * dentists;
   
-  // Berücksichtigung des Praxisausfall-Faktors (60% führen zu echtem Ausfall)
-  const adjustedDentistHours = totalDentistHours * TIME_SAVINGS_CONSTANTS.PRACTICE_IMPACT_FACTOR;
+  // Angepasster Praxisausfall-Faktor basierend auf Teamgröße
+  const adjustedDentistHours = totalDentistHours * practiceImpactFactor;
   const dentistMonetaryValue = adjustedDentistHours * DENTIST_HOURLY_RATE;
 
-  // Realistische Berechnung für Assistenzkräfte (5 Stunden pro Einheit statt 8)
-  const assistantTimePerSession = TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS + travelTimeHours + PREPARATION_TIME;
-  const totalAssistantHours = assistantTimePerSession * traditionalAssistantCME.requiredSessions * assistants;
+  // ZFA haben KEINE gesetzliche CME-Pflicht - nur freiwillige Fortbildung
+  const zfaTraining = calculateZFATrainingRequirements(assistants);
+  const averageSessionDurationForZFA = TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS;
+  const totalZFAVoluntaryHours = zfaTraining.totalVoluntaryHours + (zfaTraining.participatingAssistants * travelTimeHours);
   
-  // Berücksichtigung des Praxisausfall-Faktors
-  const adjustedAssistantHours = totalAssistantHours * TIME_SAVINGS_CONSTANTS.PRACTICE_IMPACT_FACTOR;
+  // Deutlich reduzierte Berechnung für freiwillige ZFA-Fortbildung
+  const adjustedAssistantHours = totalZFAVoluntaryHours * practiceImpactFactor;
   const assistantMonetaryValue = adjustedAssistantHours * ASSISTANT_HOURLY_RATE;
 
-  // Gesamte Reisezeit (konservativ berechnet)
+  // Gesamte Reisezeit (nur für tatsächlich verpflichtete Fortbildungen)
   const totalTravelHours = travelTimeHours * 
     (traditionalDentistCME.requiredSessions * dentists + 
-     traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR)) *
-    TIME_SAVINGS_CONSTANTS.PRACTICE_IMPACT_FACTOR; // Nur 60% führen zu echten Reisekosten
+     Math.ceil(zfaTraining.participatingAssistants / ASSISTANTS_PER_CAR)) *
+    practiceImpactFactor;
 
   return {
     totalHoursPerYear: adjustedDentistHours + adjustedAssistantHours,
@@ -55,10 +61,12 @@ export const calculateTimeSavings = (
           totalHours: dentistTimePerSession
         },
         assistant: {
-          trainingHours: TIME_SAVINGS_CONSTANTS.CME_REQUIREMENTS.AVERAGE_SESSION_DURATION_HOURS,
+          trainingHours: averageSessionDurationForZFA,
           travelHours: travelTimeHours,
           prepHours: PREPARATION_TIME,
-          totalHours: assistantTimePerSession
+          totalHours: averageSessionDurationForZFA + travelTimeHours + PREPARATION_TIME,
+          isVoluntary: true,
+          participationRate: TIME_SAVINGS_CONSTANTS.ZFA_VOLUNTARY_TRAINING.PARTICIPATION_RATE
         }
       },
       monetaryValues: {
