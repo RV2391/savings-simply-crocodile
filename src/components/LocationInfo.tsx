@@ -43,7 +43,7 @@ export const LocationInfo = ({
               <div className="flex items-center gap-1 mt-2 text-blue-400">
                 <Navigation className="w-3 h-3" />
                 <span className="text-xs">
-                  Entfernung: ca. {Math.round(distance)} km
+                  Fahrstrecke: ca. {Math.round(distance)} km
                 </span>
               </div>
             )}

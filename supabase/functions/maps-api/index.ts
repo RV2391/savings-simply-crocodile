@@ -67,6 +67,75 @@ serve(async (req) => {
         });
       }
 
+      case 'route-calculation': {
+        const { start, end } = params;
+        
+        try {
+          // Use OSRM (OpenStreetMap Routing Machine) for routing
+          const routeUrl = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=false&alternatives=false&steps=false`;
+          
+          const routeResponse = await fetch(routeUrl, {
+            headers: {
+              'User-Agent': 'Dental-Calculator/1.0'
+            }
+          });
+          
+          if (!routeResponse.ok) {
+            throw new Error(`OSRM API error: ${routeResponse.status}`);
+          }
+          
+          const routeData = await routeResponse.json();
+          
+          if (!routeData.routes || routeData.routes.length === 0) {
+            throw new Error('No route found');
+          }
+          
+          const route = routeData.routes[0];
+          const distanceKm = route.distance / 1000; // Convert meters to kilometers
+          const durationMinutes = Math.round(route.duration / 60); // Convert seconds to minutes
+          
+          console.log(`✅ Route calculated: ${distanceKm.toFixed(1)}km, ${durationMinutes}min`);
+          
+          return new Response(JSON.stringify({
+            distance: distanceKm,
+            duration: durationMinutes,
+            provider: 'OSRM'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+          
+        } catch (error) {
+          console.warn('❌ Routing failed, falling back to straight-line calculation:', error);
+          
+          // Fallback to Haversine formula for straight-line distance
+          const R = 6371; // Earth's radius in km
+          const dLat = toRad(end.lat - start.lat);
+          const dLon = toRad(end.lng - start.lng);
+          
+          const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(start.lat)) * Math.cos(toRad(end.lat)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+          
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distance = R * c;
+          
+          // Estimate travel time: distance * 1.4 factor / 50 km/h average speed
+          const estimatedDuration = Math.round(distance * 1.4 / 50 * 60);
+          
+          console.log(`✅ Fallback calculation: ${distance.toFixed(1)}km straight-line, ~${estimatedDuration}min estimated`);
+          
+          return new Response(JSON.stringify({
+            distance: distance,
+            duration: estimatedDuration,
+            provider: 'Fallback (Straight-line)',
+            isEstimate: true
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       case 'static-map': {
         const { center, markers, width = 800, height = 400, zoom = 12 } = params;
         
@@ -120,6 +189,10 @@ serve(async (req) => {
     });
   }
 });
+
+function toRad(value: number): number {
+  return value * Math.PI / 180;
+}
 
 function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number; z: number } {
   const latRad = (lat * Math.PI) / 180;
