@@ -170,6 +170,29 @@ export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavin
               Nach der Anmeldung erhältst du eine E-Mail mit allen Berechnungsgrundlagen, 
               Stundensätzen und Quellen unserer Zeitersparnis-Analyse im Vergleich zu Präsenz-Fortbildungen.
             </p>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => {
+                  const formElement = document.getElementById('detailed-analysis-form');
+                  if (formElement) {
+                    formElement.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                    // Focus on email input after scroll
+                    setTimeout(() => {
+                      const emailInput = document.querySelector('#email');
+                      if (emailInput) {
+                        (emailInput as HTMLInputElement).focus();
+                      }
+                    }, 500);
+                  }
+                }}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+              >
+                Detaillierte Analyse anfordern
+              </button>
+            </div>
           </div>
 
           {/* Weitere Zeitvorteile */}

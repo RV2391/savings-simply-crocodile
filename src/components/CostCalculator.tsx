@@ -253,7 +253,7 @@ export const CostCalculator = () => {
         </motion.div>
 
         <div className="flex flex-col items-start justify-center space-y-6">
-          {isCalculating ? (
+          {isCalculating && inputs.practiceLat ? (
             <CalculationLoadingState currentStep={calculationStep} />
           ) : (
             <>
