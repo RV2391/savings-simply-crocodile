@@ -21,22 +21,22 @@ export const CostLegend = () => {
             >
               <AlertDescription className="text-left text-sm">
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-primary">Zahnärzte/innen: 1.200 € pro Jahr*</h4>
-                    <p className="mt-1 text-gray-400">
-                      Diese konservative Schätzung basiert auf den gesetzlichen Anforderungen von 125 Fortbildungspunkten in 5 Jahren 
-                      (durchschnittlich 25 Punkte pro Jahr) und beinhaltet Kosten für Selbststudium, Präsenzveranstaltungen, 
-                      Online-Fortbildungen und Fachmitgliedschaften.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-medium text-primary">Assistenzkräfte: 280 € pro Jahr*</h4>
-                    <p className="mt-1 text-gray-400">
-                      Diese Schätzung berücksichtigt den geringeren Umfang der Fortbildungspflicht und umfasst 1-2 
-                      Tagesfortbildungen oder Online-Kurse pro Jahr sowie Fachliteratur.
-                    </p>
-                  </div>
+                   <div>
+                     <h4 className="font-medium text-primary">Zahnärzte/innen: 1.200 € pro Jahr*</h4>
+                     <p className="mt-1 text-gray-400">
+                       Diese konservative Schätzung basiert auf den gesetzlichen Anforderungen von 125 Fortbildungspunkten in 5 Jahren 
+                       (durchschnittlich 25 Punkte pro Jahr nach § 95d SGB V) und beinhaltet Kosten für Selbststudium, Präsenzveranstaltungen, 
+                       Online-Fortbildungen und Fachmitgliedschaften.
+                     </p>
+                   </div>
+                   
+                   <div>
+                     <h4 className="font-medium text-primary">Assistenzkräfte: Freiwillige Fortbildung*</h4>
+                     <p className="mt-1 text-gray-400">
+                       ZFA haben keine gesetzliche CME-Pflicht. Diese Schätzung berücksichtigt freiwillige Fortbildungen 
+                       mit realistischer Teilnahmequote und umfasst 1-2 Tagesfortbildungen oder Online-Kurse pro Jahr.
+                     </p>
+                   </div>
 
                   <div>
                     <h4 className="font-medium text-primary">Reisekosten: 0,30 € pro Kilometer</h4>

@@ -115,10 +115,10 @@ export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavin
           <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
             <h4 className="text-sm font-medium text-emerald-800 mb-2">Konservative Berechnung:</h4>
             <ul className="text-xs text-emerald-700 space-y-1">
-              <li>• Ø 5 Stunden pro Präsenzfortbildung (statt 8h)</li>
-              <li>• 60% Praxisausfall-Faktor (Wochenendkurse berücksichtigt)</li>
-              <li>• Realistische CME-Punkte-Verteilung</li>
-              <li>• Inklusive Anfahrt und Vor-/Nachbereitung</li>
+              <li>• Nur gesetzlich verpflichtende CME für Zahnärzte (§ 95d SGB V)</li>
+              <li>• ZFA-Fortbildung freiwillig, realistische Teilnahmequote</li>
+              <li>• Degressive Praxisausfall-Faktoren je nach Teamgröße</li>
+              <li>• Opportunitätskosten: €80/h Zahnarzt, €20/h ZFA</li>
             </ul>
           </div>
 
