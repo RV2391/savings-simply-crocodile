@@ -6,6 +6,36 @@ interface TimeSavingsExplanationProps {
 }
 
 export const formatTimeSavingsExplanation = ({ timeSavings }: TimeSavingsExplanationProps): string => {
+  // Defensive checks for undefined values
+  if (!timeSavings || !timeSavings.details || !timeSavings.details.perSession) {
+    return `
+    DETAILLIERTE ZEITERSPARNIS-ANALYSE FÜR DEINE PRAXIS
+    
+    Die detaillierte Berechnung konnte nicht erstellt werden. 
+    Bitte kontaktieren Sie uns für eine manuelle Analyse Ihrer Praxis.
+    `;
+  }
+
+  const { details } = timeSavings;
+  const dentistSession = details.perSession.dentist || {
+    totalHours: 0,
+    trainingHours: 0,
+    travelHours: 0,
+    prepHours: 0
+  };
+  const assistantSession = details.perSession.assistant || {
+    totalHours: 0,
+    trainingHours: 0,
+    travelHours: 0,
+    prepHours: 0,
+    isVoluntary: false,
+    participationRate: 0
+  };
+  const monetaryValues = details.monetaryValues || {
+    dentist: 0,
+    assistant: 0
+  };
+
   return `
     DETAILLIERTE ZEITERSPARNIS-ANALYSE FÜR DEINE PRAXIS
     
@@ -30,22 +60,22 @@ export const formatTimeSavingsExplanation = ({ timeSavings }: TimeSavingsExplana
     - Berücksichtigt bessere Vertretungsmöglichkeiten bei größeren Teams
     
     FORTBILDUNGSAUFWAND PRO TRADITIONELLER VERANSTALTUNG:
-    - Zahnärzte: ${timeSavings.details.perSession.dentist.totalHours.toFixed(1)} Stunden
-      → ${timeSavings.details.perSession.dentist.trainingHours}h Fortbildung
-      → ${timeSavings.details.perSession.dentist.travelHours.toFixed(1)}h Reisezeit (Hin- und Rückfahrt)
-      → ${timeSavings.details.perSession.dentist.prepHours}h Vor-/Nachbereitung
+    - Zahnärzte: ${(dentistSession.totalHours || 0).toFixed(1)} Stunden
+      → ${dentistSession.trainingHours || 0}h Fortbildung
+      → ${(dentistSession.travelHours || 0).toFixed(1)}h Reisezeit (Hin- und Rückfahrt)
+      → ${dentistSession.prepHours || 0}h Vor-/Nachbereitung
     
-    ${timeSavings.details.perSession.assistant.isVoluntary ? `- ZFA (FREIWILLIG, ${Math.round(timeSavings.details.perSession.assistant.participationRate * 100)}% Teilnahme): ${timeSavings.details.perSession.assistant.totalHours.toFixed(1)} Stunden
-      → ${timeSavings.details.perSession.assistant.trainingHours}h Fortbildung
-      → ${timeSavings.details.perSession.assistant.travelHours.toFixed(1)}h Reisezeit (oft Fahrgemeinschaften)
-      → ${timeSavings.details.perSession.assistant.prepHours}h Vor-/Nachbereitung` : ''}
+    ${assistantSession.isVoluntary ? `- ZFA (FREIWILLIG, ${Math.round((assistantSession.participationRate || 0) * 100)}% Teilnahme): ${(assistantSession.totalHours || 0).toFixed(1)} Stunden
+      → ${assistantSession.trainingHours || 0}h Fortbildung
+      → ${(assistantSession.travelHours || 0).toFixed(1)}h Reisezeit (oft Fahrgemeinschaften)
+      → ${assistantSession.prepHours || 0}h Vor-/Nachbereitung` : ''}
 
     JÄHRLICHE GESAMTERSPARNIS (KONSERVATIVE BERECHNUNG):
-    - Zahnärzte: ${Math.round(timeSavings.dentistHours)} Stunden (Opportunitätskosten: ${Math.round(timeSavings.details.monetaryValues.dentist)}€)
-    ${timeSavings.assistantHours > 0 ? `- ZFA (freiwillig): ${Math.round(timeSavings.assistantHours)} Stunden (Opportunitätskosten: ${Math.round(timeSavings.details.monetaryValues.assistant)}€)` : ''}
-    - Gesparte Reisezeit gesamt: ${Math.round(timeSavings.travelHours)} Stunden
+    - Zahnärzte: ${Math.round(timeSavings.dentistHours || 0)} Stunden (Opportunitätskosten: ${Math.round(monetaryValues.dentist || 0)}€)
+    ${(timeSavings.assistantHours || 0) > 0 ? `- ZFA (freiwillig): ${Math.round(timeSavings.assistantHours || 0)} Stunden (Opportunitätskosten: ${Math.round(monetaryValues.assistant || 0)}€)` : ''}
+    - Gesparte Reisezeit gesamt: ${Math.round(timeSavings.travelHours || 0)} Stunden
     
-    MONETÄRER GESAMTWERT: ${Math.round(timeSavings.totalMonetaryValue)}€ pro Jahr
+    MONETÄRER GESAMTWERT: ${Math.round(timeSavings.totalMonetaryValue || 0)}€ pro Jahr
     
     WICHTIGE HINWEISE:
     - Diese Berechnung verwendet bewusst KONSERVATIVE Werte
