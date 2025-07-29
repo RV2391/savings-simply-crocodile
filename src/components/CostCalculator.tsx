@@ -12,6 +12,7 @@ import {
 import { ResultCard } from "./ResultCard";
 import { TimeSavingsCard } from "./TimeSavingsCard";
 import { LoadingSkeleton } from "./LoadingSkeleton";
+import { CalculationLoadingState } from "./CalculationLoadingState";
 import { CostLegend } from "./CostLegend";
 import { TimeSavingsLegend } from "./TimeSavingsLegend";
 import { calculateResults, type CalculationInputs } from "@/utils/calculations";
@@ -59,6 +60,7 @@ export const CostCalculator = () => {
   const [results, setResults] = useState<ExtendedResults>(defaultResults);
   const [addressComponents, setAddressComponents] = useState<AddressComponents>({});
   const [isCalculating, setIsCalculating] = useState(false);
+  const [calculationStep, setCalculationStep] = useState(1);
   const { toast } = useToast();
 
   // GTM Tracking
@@ -73,7 +75,19 @@ export const CostCalculator = () => {
   useEffect(() => {
     const updateResults = async () => {
       setIsCalculating(true);
+      setCalculationStep(1);
+      
       try {
+        // Step 1: Finding nearest institute
+        if (inputs.practiceLat && inputs.practiceLng) {
+          setCalculationStep(2);
+          // Step 2: Calculating distances
+          await new Promise(resolve => setTimeout(resolve, 800));
+          setCalculationStep(3);
+          // Step 3: Finalizing calculation
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
         const newResults = await calculateResults(inputs) as ExtendedResults;
         setResults(newResults);
         sessionStorage.setItem('calculatorData', JSON.stringify({
@@ -102,6 +116,7 @@ export const CostCalculator = () => {
         });
       } finally {
         setIsCalculating(false);
+        setCalculationStep(1);
       }
     };
     updateResults();
@@ -239,7 +254,7 @@ export const CostCalculator = () => {
 
         <div className="flex flex-col items-start justify-center space-y-6">
           {isCalculating ? (
-            <LoadingSkeleton />
+            <CalculationLoadingState currentStep={calculationStep} />
           ) : (
             <>
               <ResultCard 

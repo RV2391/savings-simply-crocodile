@@ -103,6 +103,12 @@ export const BackendAddressInput = ({
     setLastError('');
 
     try {
+      // Notify parent about calculation start
+      toast({
+        title: "Berechnung gestartet",
+        description: "Ermittlung des nächsten Fortbildungsinstituts...",
+      });
+
       console.log('🔄 Frontend: Getting place details for:', suggestion.place_id);
       // For OSM, pass the description as query, for Google use place_id
       const query = mapProviderManager.getCurrentProvider() === 'osm' ? suggestion.description : suggestion.place_id;
@@ -111,6 +117,12 @@ export const BackendAddressInput = ({
       console.log('✅ Frontend: Place details received:', placeDetails);
       onLocationChange({ lat: placeDetails.lat, lng: placeDetails.lng });
       
+      // Update progress
+      toast({
+        title: "Fortbildungsinstitut gefunden",
+        description: "Berechnung der Entfernungen...",
+      });
+
       const nearestInstitute = await calculateNearestInstitute(placeDetails.lat, placeDetails.lng);
       if (nearestInstitute) {
         onNearestInstituteFound(

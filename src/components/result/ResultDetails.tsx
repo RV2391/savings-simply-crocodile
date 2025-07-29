@@ -71,10 +71,24 @@ export const ResultDetails = ({
       )}
 
       {nearestInstitute && (
-        <div className="mt-6 space-y-2 border-t border-gray-700 pt-4">
-          <div className="text-xs text-gray-500">Nächstgelegenes Fortbildungsinstitut:</div>
+        <div className="mt-6 space-y-4 border-t border-gray-700 pt-4">
+          {/* Prominent Institute Header */}
+          <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-primary text-sm">🏛️</span>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-base font-semibold text-white mb-1">
+                  Ihr nächstgelegenes Fortbildungsinstitut:
+                </h4>
+                <div className="font-medium text-primary text-lg">{nearestInstitute.name}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Distance and Travel Details */}
           <div className="space-y-2 text-sm">
-            <div className="font-medium text-white">{nearestInstitute.name}</div>
             <div className="space-y-1">
               <div className="flex justify-between">
                 <span className="text-gray-400">Entfernung (einfach)</span>
