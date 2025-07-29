@@ -54,12 +54,12 @@ export const BackendAddressInput = ({
       setSuggestionsLoading(true);
       setLastError('');
       
-      try {
-        const results = await mapProviderManager.getAddressSuggestions(debouncedAddress);
-        setSuggestions(results);
-        setShowSuggestions(true);
-        setSelectedIndex(-1);
-        setApiStatus('working');
+    try {
+      const results = await mapProviderManager.getAddressSuggestions(debouncedAddress);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+      setSelectedIndex(-1);
+      setApiStatus('working');
         
         console.log(`✅ Frontend: Autocomplete successful - ${results.length} suggestions`);
       } catch (error) {
@@ -99,6 +99,7 @@ export const BackendAddressInput = ({
     setAddress(suggestion.description);
     setShowSuggestions(false);
     setSuggestions([]);
+    setSelectedIndex(-1);
     setLoading(true);
     setLastError('');
 
@@ -203,6 +204,7 @@ export const BackendAddressInput = ({
         });
         onAddressComponentsChange(components);
         
+        setShowSuggestions(false);
         setApiStatus('working');
         toast({
           title: "Adresse gefunden",

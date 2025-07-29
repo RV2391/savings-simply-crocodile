@@ -85,32 +85,6 @@ export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavin
             </div>
           </div>
 
-          {/* CTA Button direkt nach der Hauptersparnis */}
-          <div className="text-center">
-            <button
-              onClick={() => {
-                const formElement = document.getElementById('detailed-analysis-form');
-                if (formElement) {
-                  formElement.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                  });
-                  setTimeout(() => {
-                    const emailInput = document.querySelector('#email');
-                    if (emailInput) {
-                      (emailInput as HTMLInputElement).focus();
-                    }
-                  }, 500);
-                }
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] text-lg"
-            >
-              🔍 Jetzt detaillierte Analyse anfordern
-            </button>
-            <p className="text-sm text-gray-600 mt-2">
-              Kostenlos per E-Mail erhalten
-            </p>
-          </div>
 
           {/* Aufschlüsselung */}
           <div className="grid grid-cols-2 gap-4">
