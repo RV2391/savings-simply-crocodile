@@ -60,7 +60,7 @@ export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavin
               <Clock className="h-5 w-5 text-emerald-600" />
             </div>
             <CardTitle className="text-xl font-bold text-emerald-800">
-              Zeitersparnis pro Jahr (konservativ berechnet)
+              Zeitersparnis vs. Präsenz-Fortbildung*
             </CardTitle>
           </div>
         </CardHeader>
@@ -80,6 +80,9 @@ export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavin
             <p className="text-sm text-emerald-600">
               Monetärer Wert der Zeitersparnis
             </p>
+            <div className="text-xs text-gray-500 mt-2">
+              *Verglichen mit herkömmlichen Präsenz-Fortbildungen
+            </div>
           </div>
 
           {/* Aufschlüsselung */}
@@ -158,14 +161,14 @@ export const TimeSavingsCard = ({ timeSavings, dentists, assistants }: TimeSavin
           {/* Zusätzliche Vorteile */}
           {/* Transparenz-Hinweis */}
           <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
-            <h4 className="text-sm font-medium text-emerald-800 mb-2">Klingt hoch?</h4>
+            <h4 className="text-sm font-medium text-emerald-800 mb-2">Klingt viel?</h4>
             <p className="text-xs text-emerald-700 mb-2">
-              Lass dir die detaillierte Aufschlüsselung per Mail zukommen. 
+              Lass dir die detaillierte Kalkulation per Mail zuschicken und vergleiche sie mit deinen aktuellen Fortbildungskosten.
               Unsere Berechnung basiert auf aktuellen Branchendaten und konservativen Annahmen.
             </p>
             <p className="text-xs text-emerald-600">
               Nach der Anmeldung erhältst du eine E-Mail mit allen Berechnungsgrundlagen, 
-              Stundensätzen und Quellen unserer Zeitersparnis-Analyse.
+              Stundensätzen und Quellen unserer Zeitersparnis-Analyse im Vergleich zu Präsenz-Fortbildungen.
             </p>
           </div>
 
