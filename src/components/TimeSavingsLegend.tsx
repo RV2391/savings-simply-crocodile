@@ -22,54 +22,54 @@ export const TimeSavingsLegend = () => {
               <AlertDescription className="text-left text-sm">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-medium text-emerald-400">Traditionelle Fortbildung: 5 Stunden pro Präsenzveranstaltung</h4>
+                    <h4 className="font-medium text-emerald-400">Gesetzliche CME-Pflicht nach § 95d SGB V</h4>
                     <p className="mt-1 text-gray-400">
-                      Jede traditionelle Fortbildungsveranstaltung erfordert (konservative Berechnung):
+                      <strong>Nur Zahnärzte</strong> haben eine gesetzliche Fortbildungspflicht:
                     </p>
                     <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-1">
-                      <li>5 Stunden aktive Fortbildungszeit</li>
-                      <li>Anreise- und Abreisezeit (variiert je nach Standort)</li>
-                      <li>0,5 Stunden Vor- und Nachbereitung</li>
-                      <li>Praxisschließung oder Personalausfall während der Abwesenheit</li>
+                      <li>25 CME-Punkte pro Jahr (125 Punkte in 5 Jahren)</li>
+                      <li>Ca. 5 Präsenzveranstaltungen à 5 Stunden pro Jahr</li>
+                      <li>ZFA haben KEINE gesetzliche Fortbildungspflicht</li>
+                      <li>ZFA: Nur freiwillige Weiterbildung (~30% Teilnahmequote)</li>
                     </ul>
                   </div>
                   
                   <div>
-                    <h4 className="font-medium text-emerald-400">Crocodile Online-Fortbildung: 3 Stunden pro Einheit</h4>
+                    <h4 className="font-medium text-emerald-400">Traditionelle vs. Online-Fortbildung</h4>
                     <p className="mt-1 text-gray-400">
-                      Digitale Fortbildungen bei Crocodile:
+                      Zeitaufwand pro Fortbildungseinheit (konservative Schätzung):
                     </p>
                     <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-1">
-                      <li>3 Stunden fokussierte Online-Fortbildung</li>
-                      <li>Keine Reisezeit - direkt in der Praxis</li>
-                      <li>0,5 Stunden minimale Vor- und Nachbereitung</li>
-                      <li>Keine Praxisschließung oder Personalausfälle</li>
+                      <li><strong>Traditionell:</strong> 5h Fortbildung + Reisezeit + 1h Vorbereitung</li>
+                      <li><strong>Online:</strong> Flexible Zeiteinteilung, keine Reisezeit</li>
+                      <li><strong>Praxisausfall:</strong> Degressive Skalierung je nach Teamgröße</li>
+                      <li><strong>Vertretung:</strong> Große Praxen haben bessere Möglichkeiten</li>
                     </ul>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-emerald-400">Praxisausfallkosten</h4>
+                    <h4 className="font-medium text-emerald-400">Degressive Praxisausfall-Faktoren</h4>
                     <p className="mt-1 text-gray-400">
-                      Bei traditionellen Fortbildungen entstehen zusätzliche Kosten durch:
+                      Realistische Berechnung basierend auf Praxisgröße:
                     </p>
                     <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-1">
-                      <li>Terminabsagen und Patientenumbuchungen</li>
-                      <li>Entgangene Umsätze während Praxisschließung</li>
-                      <li>Kommunikationsaufwand mit Patienten</li>
-                      <li>Permanente Patientenverluste bei häufigen Ausfällen</li>
+                      <li><strong>Kleine Praxis (bis 4 Mitarbeiter):</strong> 85% Ausfallwahrscheinlichkeit</li>
+                      <li><strong>Mittlere Praxis (5-10 Mitarbeiter):</strong> 65% Ausfallwahrscheinlichkeit</li>
+                      <li><strong>Große Praxis (10+ Mitarbeiter):</strong> 45% Ausfallwahrscheinlichkeit</li>
+                      <li>Berücksichtigt Vertretungsmöglichkeiten und Flexibilität</li>
                     </ul>
                   </div>
 
                   <div>
-                    <h4 className="font-medium text-emerald-400">Monetäre Bewertung der Zeitersparnis</h4>
+                    <h4 className="font-medium text-emerald-400">Konservative Opportunitätskosten</h4>
                     <p className="mt-1 text-gray-400">
-                      Die Zeitersparnis wird wie folgt bewertet:
+                      Reduzierte Stundensätze für realistische Berechnung:
                     </p>
                     <ul className="list-disc pl-4 mt-2 text-gray-400 space-y-1">
-                      <li>Zahnarzt/Zahnärztin: 150 € pro Stunde</li>
-                      <li>Assistenzkraft: 25 € pro Stunde</li>
-                      <li>Durchschnittlicher Praxisumsatz: 200 € pro Stunde</li>
-                      <li>Basiert auf branchenüblichen Durchschnittswerten</li>
+                      <li><strong>Zahnarzt:</strong> 80€/Stunde (konservative Opportunitätskosten)</li>
+                      <li><strong>ZFA:</strong> 20€/Stunde (konservative Opportunitätskosten)</li>
+                      <li>Deutlich unter Marktpreisen für konservative Schätzung</li>
+                      <li>Keine Umsatzverluste, nur direkte Personalkosten</li>
                     </ul>
                   </div>
 

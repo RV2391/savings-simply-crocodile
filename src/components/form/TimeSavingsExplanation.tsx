@@ -9,18 +9,25 @@ export const formatTimeSavingsExplanation = ({ timeSavings }: TimeSavingsExplana
   return `
     DETAILLIERTE ZEITERSPARNIS-ANALYSE FÜR DEINE PRAXIS
     
-    Berechnungsgrundlagen (basierend auf Branchendaten 2024/2025):
+    Berechnungsgrundlagen (konservative Schätzung basierend auf aktueller Rechtslage 2025):
     
-    CME-PFLICHT NACH § 95d SGB V:
-    - Vertragszahnärzte: 125 CME-Punkte in 5 Jahren (= 25 Punkte/Jahr)
-    - Durchschnittlich 5 Fortbildungsveranstaltungen pro Jahr
-    - Maximum 8 CME-Punkte pro Tag anrechenbar
+    GESETZLICHE FORTBILDUNGSPFLICHT NACH § 95d SGB V:
+    - NUR ZAHNÄRZTE haben gesetzliche CME-Pflicht: 25 Punkte/Jahr (125 in 5 Jahren)
+    - ZFA haben KEINE gesetzliche Fortbildungspflicht
+    - ZFA-Fortbildung ist freiwillig (ca. 30% Teilnahmequote)
+    - Durchschnittlich 5 Präsenzveranstaltungen pro Jahr für Zahnärzte
     
-    STUNDENSÄTZE UND GRUNDLAGEN:
-    - Zahnarzt (angestellt): 65€/h brutto + 40% Praxisnebenkosten = 91€/h Gesamtkosten
-    - ZFA: 16€/h brutto + 40% Praxisnebenkosten = 22,40€/h Gesamtkosten
-    - Praxisumsatz: 250€/h (Quelle: ZWP-Online Praxismanagement-Studie 2023)
-    - Praxisausfall-Faktor: 60% (berücksichtigt 50% Wochenendfortbildungen)
+    KONSERVATIVE OPPORTUNITÄTSKOSTEN:
+    - Zahnarzt: 80€/Stunde (deutlich unter Marktpreis für konservative Schätzung)
+    - ZFA: 20€/Stunde (nur bei freiwilliger Teilnahme)
+    - Keine Umsatzverluste berücksichtigt, nur direkte Personalkosten
+    - Berücksichtigung von Vertretungsmöglichkeiten je nach Praxisgröße
+    
+    DEGRESSIVE PRAXISAUSFALL-FAKTOREN:
+    - Kleine Praxis (bis 4 MA): 85% Ausfallwahrscheinlichkeit
+    - Mittlere Praxis (5-10 MA): 65% Ausfallwahrscheinlichkeit  
+    - Große Praxis (10+ MA): 45% Ausfallwahrscheinlichkeit
+    - Berücksichtigt bessere Vertretungsmöglichkeiten bei größeren Teams
     
     FORTBILDUNGSAUFWAND PRO TRADITIONELLER VERANSTALTUNG:
     - Zahnärzte: ${timeSavings.details.perSession.dentist.totalHours.toFixed(1)} Stunden
@@ -28,34 +35,40 @@ export const formatTimeSavingsExplanation = ({ timeSavings }: TimeSavingsExplana
       → ${timeSavings.details.perSession.dentist.travelHours.toFixed(1)}h Reisezeit (Hin- und Rückfahrt)
       → ${timeSavings.details.perSession.dentist.prepHours}h Vor-/Nachbereitung
     
-    - ZFA/Assistenzkräfte: ${timeSavings.details.perSession.assistant.totalHours.toFixed(1)} Stunden
+    ${timeSavings.details.perSession.assistant.isVoluntary ? `- ZFA (FREIWILLIG, ${Math.round(timeSavings.details.perSession.assistant.participationRate * 100)}% Teilnahme): ${timeSavings.details.perSession.assistant.totalHours.toFixed(1)} Stunden
       → ${timeSavings.details.perSession.assistant.trainingHours}h Fortbildung
       → ${timeSavings.details.perSession.assistant.travelHours.toFixed(1)}h Reisezeit (oft Fahrgemeinschaften)
-      → ${timeSavings.details.perSession.assistant.prepHours}h Vor-/Nachbereitung
+      → ${timeSavings.details.perSession.assistant.prepHours}h Vor-/Nachbereitung` : ''}
 
-    JÄHRLICHE GESAMTERSPARNIS:
-    - Zahnärzte: ${Math.round(timeSavings.dentistHours)} Stunden (Kostenwert: ${Math.round(timeSavings.details.monetaryValues.dentist)}€)
-    - ZFA/Assistenzkräfte: ${Math.round(timeSavings.assistantHours)} Stunden (Kostenwert: ${Math.round(timeSavings.details.monetaryValues.assistant)}€)
+    JÄHRLICHE GESAMTERSPARNIS (KONSERVATIVE BERECHNUNG):
+    - Zahnärzte: ${Math.round(timeSavings.dentistHours)} Stunden (Opportunitätskosten: ${Math.round(timeSavings.details.monetaryValues.dentist)}€)
+    ${timeSavings.assistantHours > 0 ? `- ZFA (freiwillig): ${Math.round(timeSavings.assistantHours)} Stunden (Opportunitätskosten: ${Math.round(timeSavings.details.monetaryValues.assistant)}€)` : ''}
     - Gesparte Reisezeit gesamt: ${Math.round(timeSavings.travelHours)} Stunden
     
     MONETÄRER GESAMTWERT: ${Math.round(timeSavings.totalMonetaryValue)}€ pro Jahr
+    
+    WICHTIGE HINWEISE:
+    - Diese Berechnung verwendet bewusst KONSERVATIVE Werte
+    - Tatsächliche Einsparungen können je nach Praxisorganisation höher sein
+    - ZFA-Fortbildung ist gesetzlich NICHT verpflichtend
+    - Praxisausfall-Faktoren berücksichtigen realistische Vertretungsmöglichkeiten
+    - Nur direkte Opportunitätskosten, keine Umsatzverluste eingerechnet
     
     DATENQUELLEN:
     - § 95d SGB V - CME-Pflicht: https://www.zm-online.de/cme/cme-uebersicht
     - KZV Fortbildungspflicht: https://www.kzvlb.de/berufsausuebung/fortbildungspflicht
     - VMF Tarifvertrag ZFA 2025: https://www.vmf-online.de/zfa/zfa-tarife
-    - ZWP-Online Praxismanagement: https://www.zwp-online.info/zwpnews/wirtschaft-und-recht/praxismanagement/stundensatze-in-der-zahnarztpraxis
-    - ZFA Gehaltsdaten 2025: https://www.zfa-mal-anders.de/karriere/zfa/gehalt
+    - ZWP-Online Praxismanagement: https://www.zwp-online.info/zwpnews/wirtschaft-und-recht/praxismanagement
     - BZÄK Daten und Zahlen: https://www.bzaek.de/ueber-uns/daten-und-zahlen/nachgezaehlt.html
     
     BERECHNUNGSHINWEISE:
-    Diese Analyse basiert auf der gesetzlichen CME-Pflicht von 125 Punkten in 5 Jahren (§ 95d SGB V).
-    Verwendet werden konservative, branchenübliche Werte und realistische Faktoren wie:
-    - 50% Wochenendfortbildungen (kein Praxisausfall)
-    - Fahrgemeinschaften bei ZFA
-    - Realistische CME-Verteilung: 25 Punkte/Jahr = ca. 5 Veranstaltungen
-    - Praxisnebenkosten und Opportunitätskosten
+    Diese Analyse basiert ausschließlich auf der gesetzlichen CME-Pflicht für Zahnärzte.
+    Verwendet werden konservative, branchenübliche Werte und realistische Faktoren:
+    - Degressive Skalierung nach Praxisgröße
+    - Berücksichtigung von Vertretungsmöglichkeiten
+    - Nur bei ZFA: Freiwillige Teilnahme ohne gesetzliche Verpflichtung
+    - Konservative Opportunitätskosten ohne Umsatzverluste
     
-    Alle Berechnungen basieren auf aktuellen Tarifverträgen und der gesetzlichen Fortbildungspflicht 2024/2025.
+    Alle Berechnungen folgen der aktuellen Rechtslage und verwenden konservative Marktdaten 2025.
   `;
 };

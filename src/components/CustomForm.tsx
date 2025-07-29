@@ -88,12 +88,25 @@ export const CustomForm = ({
           dentist_hours_per_year: Math.round(Number(results.timeSavings?.dentistHours)) || 0,
           assistant_hours_per_year: Math.round(Number(results.timeSavings?.assistantHours)) || 0,
           travel_hours_saved: Math.round(Number(results.timeSavings?.travelHours)) || 0,
-          practice_impact_factor: 0.6,
-          weekend_training_rate: 0.5,
-          dentist_hourly_cost: 91, // 65€ + 40% Nebenkosten
-          assistant_hourly_cost: 22.40, // 16€ + 40% Nebenkosten
-          practice_revenue_per_hour: 250,
-          data_sources: "VMF Tarifvertrag 2025, ZWP-Online Praxismanagement-Studie 2023, BZÄK Statistiken"
+          legal_obligation: {
+            dentists: "Gesetzliche CME-Pflicht nach § 95d SGB V: 25 Punkte/Jahr",
+            assistants: "KEINE gesetzliche Fortbildungspflicht für ZFA"
+          },
+          practice_size_analysis: {
+            team_size: calculatorData.teamSize || 0,
+            practice_category: (calculatorData.teamSize || 0) <= 4 ? 'klein' : (calculatorData.teamSize || 0) <= 10 ? 'mittel' : 'groß',
+            impact_factor: (calculatorData.teamSize || 0) <= 4 ? 0.85 : (calculatorData.teamSize || 0) <= 10 ? 0.65 : 0.45,
+            explanation: "Degressive Skalierung: Größere Praxen haben bessere Vertretungsmöglichkeiten"
+          },
+          conservative_calculation: {
+            dentist_opportunity_cost: 80, // Konservative Opportunitätskosten
+            assistant_opportunity_cost: 20, // Nur bei freiwilliger Teilnahme
+            zfa_participation_rate: 0.3, // 30% nehmen freiwillig teil
+            no_revenue_loss_calculated: true,
+            explanation: "Bewusst konservative Schätzung ohne Umsatzverluste"
+          },
+          data_sources: "§ 95d SGB V, VMF Tarifvertrag 2025, ZWP-Online Praxismanagement 2023, BZÄK Statistiken",
+          calculation_transparency: "Nur direkte Opportunitätskosten, degressive Praxisausfall-Faktoren, keine gesetzliche ZFA-Fortbildungspflicht"
         },
         address: {
           street: addressComponents.street || '',
