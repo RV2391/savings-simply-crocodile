@@ -14,24 +14,53 @@ interface GTMEvent {
 export const GTMDebugger = () => {
   const [events, setEvents] = useState<GTMEvent[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    dataLayerExists: false,
+    originalPushExists: false,
+    eventsIntercepted: 0
+  });
 
   useEffect(() => {
-    // Override dataLayer.push to capture events
+    // Initialize dataLayer if it doesn't exist
+    if (!window.dataLayer) {
+      window.dataLayer = [];
+      console.log('GTM Debugger: Created window.dataLayer');
+    }
+
     const originalPush = window.dataLayer?.push;
+    setDebugInfo(prev => ({
+      ...prev,
+      dataLayerExists: !!window.dataLayer,
+      originalPushExists: !!originalPush
+    }));
+
     if (originalPush) {
       window.dataLayer.push = function(...args: any[]) {
+        console.log('GTM Debugger: Event intercepted', args);
+        
         // Capture the event for debugging
         args.forEach(arg => {
           if (arg.event) {
-            setEvents(prev => [...prev.slice(-9), {
+            const eventData = {
               timestamp: Date.now(),
               event: arg.event,
               data: arg
-            }]);
+            };
+            
+            setEvents(prev => [...prev.slice(-9), eventData]);
+            setDebugInfo(prev => ({
+              ...prev,
+              eventsIntercepted: prev.eventsIntercepted + 1
+            }));
+            
+            console.log('GTM Debugger: Event captured', eventData);
           }
         });
+        
         return originalPush.apply(window.dataLayer, args);
       };
+    } else {
+      console.warn('GTM Debugger: Original dataLayer.push not found');
     }
 
     return () => {
@@ -72,30 +101,53 @@ export const GTMDebugger = () => {
                 </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-2 overflow-y-auto max-h-64">
-              {events.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Keine Events aufgezeichnet
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {events.map((event, index) => (
-                    <div key={index} className="border rounded p-2 text-xs">
-                      <div className="flex justify-between items-center mb-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {event.event}
-                        </Badge>
-                        <span className="text-muted-foreground">
-                          {formatTime(event.timestamp)}
-                        </span>
-                      </div>
-                      <pre className="text-xs bg-muted/50 p-1 rounded overflow-x-auto">
-                        {JSON.stringify(event.data, null, 2)}
-                      </pre>
-                    </div>
-                  ))}
+            <CardContent className="p-2 space-y-2">
+              {/* Debug Info Section */}
+              <div className="text-xs bg-muted/30 p-2 rounded">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant={debugInfo.dataLayerExists ? "default" : "destructive"} className="text-xs">
+                    DataLayer: {debugInfo.dataLayerExists ? "✓" : "✗"}
+                  </Badge>
+                  <Badge variant={debugInfo.originalPushExists ? "default" : "destructive"} className="text-xs">
+                    Push: {debugInfo.originalPushExists ? "✓" : "✗"}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    Events: {debugInfo.eventsIntercepted}
+                  </Badge>
                 </div>
-              )}
+              </div>
+
+              {/* Events List */}
+              <div className="overflow-y-auto max-h-48">
+                {events.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Keine Events aufgezeichnet
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Verwende den Calculator um Events zu generieren
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {events.map((event, index) => (
+                      <div key={index} className="border rounded p-2 text-xs bg-card">
+                        <div className="flex justify-between items-center mb-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {event.event}
+                          </Badge>
+                          <span className="text-muted-foreground">
+                            {formatTime(event.timestamp)}
+                          </span>
+                        </div>
+                        <pre className="text-xs bg-muted/50 p-1 rounded overflow-x-auto whitespace-pre-wrap break-words">
+                          {JSON.stringify(event.data, null, 2)}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </CollapsibleContent>
