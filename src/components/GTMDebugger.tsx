@@ -47,12 +47,13 @@ export const GTMDebugger = () => {
     return new Date(timestamp).toLocaleTimeString();
   };
 
-  if (process.env.NODE_ENV !== 'development') {
+  // Always show in development, or when GTM events are detected
+  if (process.env.NODE_ENV !== 'development' && events.length === 0) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[9999]">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
