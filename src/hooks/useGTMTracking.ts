@@ -1,5 +1,6 @@
 
 import { useCallback } from 'react';
+import { getTrackingSource } from '@/utils/environmentDetection';
 
 interface GTMEvent {
   event: string;
@@ -7,24 +8,31 @@ interface GTMEvent {
   calculator_team_size?: number;
   calculator_dentists_count?: number;
   calculator_location_provided?: boolean;
+  source?: 'standalone' | 'embed';
   [key: string]: any;
 }
 
 export const useGTMTracking = () => {
   const trackEvent = useCallback((eventData: GTMEvent) => {
     if (typeof window !== 'undefined' && window.dataLayer) {
-      console.log('🏷️ GTM Event:', eventData);
+      // Add source information to all events
+      const enhancedEventData = {
+        ...eventData,
+        source: getTrackingSource()
+      };
+      
+      console.log('🏷️ GTM Event:', enhancedEventData);
       
       // Enhanced debugging in development
       if (process.env.NODE_ENV === 'development') {
-        console.group(`GTM: ${eventData.event}`);
-        console.log('Event Data:', eventData);
+        console.group(`GTM: ${enhancedEventData.event}`);
+        console.log('Event Data:', enhancedEventData);
         console.log('DataLayer before push:', [...window.dataLayer]);
-        window.dataLayer.push(eventData);
+        window.dataLayer.push(enhancedEventData);
         console.log('DataLayer after push:', [...window.dataLayer]);
         console.groupEnd();
       } else {
-        window.dataLayer.push(eventData);
+        window.dataLayer.push(enhancedEventData);
       }
     } else {
       console.warn('⚠️ GTM: dataLayer not available');
