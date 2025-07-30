@@ -13,8 +13,21 @@ interface GTMEvent {
 export const useGTMTracking = () => {
   const trackEvent = useCallback((eventData: GTMEvent) => {
     if (typeof window !== 'undefined' && window.dataLayer) {
-      console.log('GTM Event:', eventData);
-      window.dataLayer.push(eventData);
+      console.log('🏷️ GTM Event:', eventData);
+      
+      // Enhanced debugging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.group(`GTM: ${eventData.event}`);
+        console.log('Event Data:', eventData);
+        console.log('DataLayer before push:', [...window.dataLayer]);
+        window.dataLayer.push(eventData);
+        console.log('DataLayer after push:', [...window.dataLayer]);
+        console.groupEnd();
+      } else {
+        window.dataLayer.push(eventData);
+      }
+    } else {
+      console.warn('⚠️ GTM: dataLayer not available');
     }
   }, []);
 

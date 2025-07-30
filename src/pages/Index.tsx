@@ -1,4 +1,5 @@
 import { CostCalculator } from "@/components/CostCalculator";
+import { GTMDebugger } from "@/components/GTMDebugger";
 
 const Index = () => {
   return (
@@ -36,6 +37,7 @@ const Index = () => {
         </div>
         <CostCalculator />
       </div>
+      <GTMDebugger />
     </div>
   );
 };
