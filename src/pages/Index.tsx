@@ -1,12 +1,8 @@
 import { CostCalculator } from "@/components/CostCalculator";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
       <div className="container py-12">
         <div className="mb-12 text-center">
           <img 
