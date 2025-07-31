@@ -31,7 +31,7 @@ const Embed = () => {
   }, []);
 
   return (
-    <div className="bg-[#111] min-h-screen">
+    <div className="bg-background min-h-screen">
       <CostCalculator />
     </div>
   );
