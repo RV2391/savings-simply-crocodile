@@ -187,7 +187,7 @@ export const CustomForm = ({
   };
 
   return (
-    <div id="detailed-analysis-form" className="w-full bg-[#2a2a2a] p-8 rounded-2xl shadow-lg mt-8">
+    <div id="detailed-analysis-form" className="w-full bg-card p-8 rounded-2xl shadow-lg mt-8">
       <FormHeader 
         title="Deine persönliche Zeitersparnis-Analyse anfordern" 
         description="Erhalte eine detaillierte Aufschlüsselung deiner Zeitersparnis und Kostenoptimierung per E-Mail - basierend auf deinen Eingaben und aktuellen Marktdaten."

@@ -175,7 +175,7 @@ export const CostCalculator = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6 rounded-2xl bg-[#2a2a2a] p-6 shadow-lg"
+          className="space-y-6 rounded-2xl bg-card p-6 shadow-lg"
         >
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold text-white">Kostenkalkulator</h2>
@@ -191,7 +191,7 @@ export const CostCalculator = () => {
                 value={inputs.teamSize.toString()}
                 onValueChange={handleSelectChange("teamSize")}
               >
-                <SelectTrigger className="w-full bg-[#1a1a1a] text-white border-gray-700">
+                <SelectTrigger className="w-full bg-input text-foreground border-border">
                   <SelectValue placeholder="Wähle die Teamgröße" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
@@ -211,7 +211,7 @@ export const CostCalculator = () => {
                 value={inputs.dentists.toString()}
                 onValueChange={handleSelectChange("dentists")}
               >
-                <SelectTrigger className="w-full bg-[#1a1a1a] text-white border-gray-700">
+                <SelectTrigger className="w-full bg-input text-foreground border-border">
                   <SelectValue placeholder="Wähle die Anzahl der Zahnärzte" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">

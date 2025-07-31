@@ -34,7 +34,7 @@ export const FormFields = ({
             onChange={(e) => setEmail(e.target.value)}
             placeholder="deine@email.de"
             required
-            className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
+            className="bg-input text-foreground border-border h-12 text-base"
             disabled={isSubmitting}
           />
         </div>
@@ -48,7 +48,7 @@ export const FormFields = ({
             onChange={(e) => setCompanyName(e.target.value)}
             placeholder="Deine Praxis"
             required
-            className="bg-[#1a1a1a] text-white border-gray-700 h-12 text-base"
+            className="bg-input text-foreground border-border h-12 text-base"
             disabled={isSubmitting}
           />
         </div>
