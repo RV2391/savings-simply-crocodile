@@ -8,11 +8,10 @@ export const isEmbedded = (): boolean => {
   }
 };
 
-export const getGTMContainerId = (): string | null => {
+export const getGTMContainerId = (): string => {
   if (isEmbedded()) {
-    // Return null to disable GTM in embedded mode
-    // or return a different container ID if you want separate tracking
-    return null;
+    // Use separate GTM container for embedded lead-gen tools
+    return 'GTM-TJNNMFVQ';
   }
   return 'GTM-MNZBQL6';
 };
