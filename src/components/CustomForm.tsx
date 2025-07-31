@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,13 +8,11 @@ import { formatTimeSavingsExplanation } from "./form/TimeSavingsExplanation";
 import { useGTMTracking } from "@/hooks/useGTMTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-
 interface CustomFormProps {
   calculatorData: CalculatorData;
   results: Results;
   addressComponents: AddressComponents;
 }
-
 export const CustomForm = ({
   calculatorData,
   results,
@@ -25,28 +22,29 @@ export const CustomForm = ({
   const [companyName, setCompanyName] = useState("");
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-  const { trackEvent } = useGTMTracking();
-
+  const {
+    toast
+  } = useToast();
+  const {
+    trackEvent
+  } = useGTMTracking();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!email || !companyName || !consent) {
       toast({
         variant: "destructive",
         title: "Fehler",
-        description: "Bitte fülle alle Pflichtfelder aus und stimme den Bedingungen zu.",
+        description: "Bitte fülle alle Pflichtfelder aus und stimme den Bedingungen zu."
       });
       return;
     }
-
     setIsSubmitting(true);
     console.log("Processing form submission...");
-
     try {
-      const timeSavingsExplanation = results.timeSavings ? 
-        formatTimeSavingsExplanation({ timeSavings: results.timeSavings }) : '';
-      
+      const timeSavingsExplanation = results.timeSavings ? formatTimeSavingsExplanation({
+        timeSavings: results.timeSavings
+      }) : '';
+
       // IP-Adresse für DSGVO-Compliance ermitteln
       let userIP = '';
       try {
@@ -69,7 +67,7 @@ export const CustomForm = ({
         opt_in_method: "calculator_form",
         page_url: window.location.href
       };
-      
+
       // Daten für Make.com Webhook vorbereiten
       const webhookData = {
         email: email,
@@ -99,9 +97,12 @@ export const CustomForm = ({
             explanation: "Degressive Skalierung: Größere Praxen haben bessere Vertretungsmöglichkeiten"
           },
           conservative_calculation: {
-            dentist_opportunity_cost: 80, // Konservative Opportunitätskosten
-            assistant_opportunity_cost: 20, // Nur bei freiwilliger Teilnahme
-            zfa_participation_rate: 0.3, // 30% nehmen freiwillig teil
+            dentist_opportunity_cost: 80,
+            // Konservative Opportunitätskosten
+            assistant_opportunity_cost: 20,
+            // Nur bei freiwilliger Teilnahme
+            zfa_participation_rate: 0.3,
+            // 30% nehmen freiwillig teil
             no_revenue_loss_calculated: true,
             explanation: "Bewusst konservative Schätzung ohne Umsatzverluste"
           },
@@ -124,15 +125,15 @@ export const CustomForm = ({
 
       // Send to secure Supabase Edge Function
       console.log("Sending data to secure webhook:", webhookData);
-      
-      const { data, error } = await supabase.functions.invoke('secure-webhook', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('secure-webhook', {
         body: webhookData
       });
-
       if (error) {
         throw new Error(`Secure webhook failed: ${error.message}`);
       }
-
       console.log("Secure webhook sent successfully:", data);
 
       // GTM Event für Lead-Tracking über Taggrs
@@ -156,7 +157,6 @@ export const CustomForm = ({
         page_url: window.location.href,
         page_title: document.title
       });
-
       console.log("Lead data tracked via GTM/Taggrs and sent to Make.com:", {
         email,
         companyName,
@@ -164,10 +164,9 @@ export const CustomForm = ({
         results,
         addressComponents
       });
-
       toast({
         title: "Erfolgreich gesendet",
-        description: "Deine Daten wurden erfolgreich übermittelt. Du erhältst in ca. 30 Sekunden eine E-Mail mit deiner detaillierten Zeitersparnis-Aufschlüsselung.",
+        description: "Deine Daten wurden erfolgreich übermittelt. Du erhältst in ca. 30 Sekunden eine E-Mail mit deiner detaillierten Zeitersparnis-Aufschlüsselung."
       });
 
       // Reset form
@@ -176,36 +175,22 @@ export const CustomForm = ({
       setConsent(false);
     } catch (error) {
       console.error("Form submission error:", error);
-        toast({
-          variant: "destructive",
-          title: "Fehler",
-          description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut."
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  return (
-    <div id="detailed-analysis-form" className="w-full bg-card p-8 rounded-2xl shadow-lg mt-8">
-      <FormHeader 
-        title="Deine persönliche Zeitersparnis-Analyse anfordern" 
-        description="Erhalte eine detaillierte Aufschlüsselung deiner Zeitersparnis und Kostenoptimierung per E-Mail - basierend auf deinen Eingaben und aktuellen Marktdaten."
-      />
+  return <div id="detailed-analysis-form" className="w-full bg-card p-8 rounded-2xl shadow-lg mt-8">
+      <FormHeader title="Deine persönliche Zeitersparnis-Analyse anfordern" description="Erhalte eine detaillierte Aufschlüsselung deiner Zeitersparnis und Kostenoptimierung per E-Mail - basierend auf deinen Eingaben und aktuellen Marktdaten." />
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        <FormFields
-          email={email}
-          setEmail={setEmail}
-          companyName={companyName}
-          setCompanyName={setCompanyName}
-          consent={consent}
-          setConsent={setConsent}
-          isSubmitting={isSubmitting}
-        />
+        <FormFields email={email} setEmail={setEmail} companyName={companyName} setCompanyName={setCompanyName} consent={consent} setConsent={setConsent} isSubmitting={isSubmitting} />
 
-        {isSubmitting && (
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
+        {isSubmitting && <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
             <div className="flex">
               <div className="flex-shrink-0">
                 <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
@@ -217,17 +202,11 @@ export const CustomForm = ({
                 </p>
               </div>
             </div>
-          </div>
-        )}
+          </div>}
 
-        <Button 
-          type="submit" 
-          className="w-full h-12 mt-8 text-lg font-medium bg-primary hover:bg-primary/90" 
-          disabled={isSubmitting}
-        >
+        <Button type="submit" disabled={isSubmitting} className="w-full h-12 mt-8 text-lg font-medium bg-primary hover:bg-primary/90 bg-[f7004d]">
           {isSubmitting ? "Wird verarbeitet..." : "Kostenlos anfordern"}
         </Button>
       </form>
-    </div>
-  );
+    </div>;
 };
