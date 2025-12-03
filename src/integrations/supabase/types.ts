@@ -7,43 +7,70 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      form_submissions: {
+      live_data_sync: {
         Row: {
-          company_name: string
-          consent_data: Json
+          bookings: number
+          cpa_revenue: number
+          cpl_revenue: number
           created_at: string
-          email: string
+          ebitda: number
+          events: number
           id: string
-          ip_address: string | null
-          submission_data: Json
-          user_agent: string | null
+          is_live_data: boolean
+          month: number
+          net_revenue: number
+          partners: number
+          registrations: number
+          subscription_revenue: number
+          synced_at: string
+          total_pv: number
+          total_uv: number
+          updated_at: string
         }
         Insert: {
-          company_name: string
-          consent_data: Json
+          bookings?: number
+          cpa_revenue?: number
+          cpl_revenue?: number
           created_at?: string
-          email: string
+          ebitda?: number
+          events?: number
           id?: string
-          ip_address?: string | null
-          submission_data: Json
-          user_agent?: string | null
+          is_live_data?: boolean
+          month: number
+          net_revenue?: number
+          partners?: number
+          registrations?: number
+          subscription_revenue?: number
+          synced_at?: string
+          total_pv?: number
+          total_uv?: number
+          updated_at?: string
         }
         Update: {
-          company_name?: string
-          consent_data?: Json
+          bookings?: number
+          cpa_revenue?: number
+          cpl_revenue?: number
           created_at?: string
-          email?: string
+          ebitda?: number
+          events?: number
           id?: string
-          ip_address?: string | null
-          submission_data?: Json
-          user_agent?: string | null
+          is_live_data?: boolean
+          month?: number
+          net_revenue?: number
+          partners?: number
+          registrations?: number
+          subscription_revenue?: number
+          synced_at?: string
+          total_pv?: number
+          total_uv?: number
+          updated_at?: string
         }
         Relationships: []
       }

@@ -39,17 +39,26 @@ export interface TimeSavings {
   dentistHours: number;
   assistantHours: number;
   travelHours: number;
-  details: TimeSavingsDetails;
+  researchHoursSaved?: number;
+  details?: TimeSavingsDetails;
+}
+
+export interface OptimizationBreakdown {
+  freeCoursesSavings: number;
+  priceOptimizationSavings: number;
+  researchTimeSaved: number;
+  platformCost: number;
 }
 
 export interface Results {
   traditionalCostsDentists: number;
   traditionalCostsAssistants: number;
   totalTraditionalCosts: number;
-  crocodileCosts: number;
+  optimizedCosts: number;
   savings: number;
   savingsPercentage: number;
   timeSavings?: TimeSavings;
+  optimizationBreakdown?: OptimizationBreakdown;
   nearestInstitute?: {
     name: string;
     distance: number;
