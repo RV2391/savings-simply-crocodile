@@ -28,7 +28,7 @@ export interface ExtendedResults extends Results {
   extendedTimeSavings?: ExtendedTimeSavings;
 }
 
-const calculateCrocodileCosts = (teamSize: number): number => {
+const calculateOptimizedCosts = (teamSize: number): number => {
   if (teamSize <= BASE_USERS_INCLUDED) {
     return BASE_PRICE;
   }
@@ -221,16 +221,16 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Exten
   const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants + 
     (nearestInstitute?.travelCosts || 0);
   
-  const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
+  const optimizedCosts = calculateOptimizedCosts(inputs.teamSize);
   
-  const savings = totalTraditionalCosts - crocodileCosts;
+  const savings = totalTraditionalCosts - optimizedCosts;
   const savingsPercentage = (savings / totalTraditionalCosts) * 100;
 
   return {
     traditionalCostsDentists,
     traditionalCostsAssistants,
     totalTraditionalCosts,
-    crocodileCosts,
+    optimizedCosts,
     savings,
     savingsPercentage,
     nearestInstitute,
