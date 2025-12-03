@@ -8,12 +8,19 @@ export const isEmbedded = (): boolean => {
   }
 };
 
+// KursRadar GTM Web Container (Server-side tracking via Taggrs)
 export const getGTMContainerId = (): string => {
-  if (isEmbedded()) {
-    // Use separate GTM container for embedded lead-gen tools
-    return 'GTM-TJNNMFVQ';
-  }
-  return 'GTM-MNZBQL6';
+  return 'GTM-KGKTXGG4';
+};
+
+// KursRadar GTM Server Container (für Referenz)
+export const getGTMServerContainerId = (): string => {
+  return 'GTM-NLLB6F85';
+};
+
+// Taggrs Server-URL für Server-seitiges Tracking
+export const getTaggrsServerUrl = (): string => {
+  return 'https://sst.kurs-radar.com';
 };
 
 export const getTrackingSource = (): 'standalone' | 'embed' => {

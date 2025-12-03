@@ -24,7 +24,7 @@ serve(async (req) => {
         
         const response = await fetch(url, {
           headers: {
-            'User-Agent': 'Dental-Calculator/1.0'
+            'User-Agent': 'KursRadar/1.0'
           }
         });
         
@@ -46,7 +46,7 @@ serve(async (req) => {
         
         const response = await fetch(url, {
           headers: {
-            'User-Agent': 'Dental-Calculator/1.0'
+            'User-Agent': 'KursRadar/1.0'
           }
         });
         
@@ -76,7 +76,7 @@ serve(async (req) => {
           
           const routeResponse = await fetch(routeUrl, {
             headers: {
-              'User-Agent': 'Dental-Calculator/1.0'
+              'User-Agent': 'KursRadar/1.0'
             }
           });
           

@@ -3,7 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- SEO Meta Tags -->
     <meta name="description" content="KursRadar Kostenrechner - Berechne dein Einsparpotenzial durch optimierte Fortbildungsplanung" />
     <meta property="og:title" content="KursRadar Kostenrechner" />
     <meta property="og:description" content="Berechne, wie viel du mit optimierter Kursauswahl bei deinen Fortbildungen sparen kannst" />
@@ -21,50 +29,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Google Tag Manager -->
+    <!-- Google Tag Manager (KursRadar - Server-side via Taggrs) -->
     <script>
-      // Check if we're in an iframe to determine which GTM container to use
-      function isEmbedded() {
-        try {
-          return window.self !== window.top;
-        } catch (e) {
-          return true;
-        }
-      }
-      
-      // Initialize dataLayer for both scenarios
       window.dataLayer = window.dataLayer || [];
       
-      // Load appropriate GTM container based on environment
-      if (isEmbedded()) {
-        // Embedded version - use lead-gen GTM container
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-TJNNMFVQ');
-      } else {
-        // Standalone version - use main GTM container
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-MNZBQL6');
-      }
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://sst.kurs-radar.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-KGKTXGG4');
     </script>
     <!-- End Google Tag Manager -->
   </head>
   <body class="font-roboto">
     <!-- Google Tag Manager (noscript) -->
-    <script>
-      if (isEmbedded()) {
-        // Embedded version noscript
-        document.write('<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TJNNMFVQ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>');
-      } else {
-        // Standalone version noscript
-        document.write('<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MNZBQL6" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>');
-      }
-    </script>
+    <noscript><iframe src="https://sst.kurs-radar.com/ns.html?id=GTM-KGKTXGG4" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     
     <div id="root"></div>
