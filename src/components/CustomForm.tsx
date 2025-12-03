@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -78,9 +77,10 @@ export const CustomForm = ({
         dentists: calculatorData.dentists || 0,
         assistants: (calculatorData.teamSize || 0) - (calculatorData.dentists || 0),
         traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
-        crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
+        optimized_costs: Math.round(Number(results.optimizedCosts)) || 0,
         savings: Math.round(Number(results.savings)) || 0,
         savings_percentage: Math.round(Number(results.savingsPercentage)) || 0,
+        optimization_breakdown: results.optimizationBreakdown || null,
         time_savings_hours: Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0,
         time_savings_value: Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0,
         time_savings_explanation: timeSavingsExplanation,
@@ -88,6 +88,7 @@ export const CustomForm = ({
           dentist_hours_per_year: Math.round(Number(results.timeSavings?.dentistHours)) || 0,
           assistant_hours_per_year: Math.round(Number(results.timeSavings?.assistantHours)) || 0,
           travel_hours_saved: Math.round(Number(results.timeSavings?.travelHours)) || 0,
+          research_hours_saved: results.timeSavings?.researchHoursSaved || 10,
           legal_obligation: {
             dentists: "Gesetzliche CME-Pflicht nach § 95d SGB V: 25 Punkte/Jahr",
             assistants: "KEINE gesetzliche Fortbildungspflicht für ZFA"
@@ -99,9 +100,9 @@ export const CustomForm = ({
             explanation: "Degressive Skalierung: Größere Praxen haben bessere Vertretungsmöglichkeiten"
           },
           conservative_calculation: {
-            dentist_opportunity_cost: 80, // Konservative Opportunitätskosten
-            assistant_opportunity_cost: 20, // Nur bei freiwilliger Teilnahme
-            zfa_participation_rate: 0.3, // 30% nehmen freiwillig teil
+            dentist_opportunity_cost: 80,
+            assistant_opportunity_cost: 20,
+            zfa_participation_rate: 0.3,
             no_revenue_loss_calculated: true,
             explanation: "Bewusst konservative Schätzung ohne Umsatzverluste"
           },
@@ -117,7 +118,7 @@ export const CustomForm = ({
         travel_distance: Math.round(Number(results.nearestInstitute?.oneWayDistance)) || 0,
         travel_costs: Math.round(Number(results.nearestInstitute?.travelCosts)) || 0,
         timestamp: consentTimestamp,
-        source: 'Calculator Form',
+        source: 'KursRadar Calculator',
         page_url: window.location.href,
         consent: consentData
       };
@@ -145,7 +146,7 @@ export const CustomForm = ({
         dentists: calculatorData.dentists || 0,
         assistants: (calculatorData.teamSize || 0) - (calculatorData.dentists || 0),
         traditional_costs: Math.round(Number(results.totalTraditionalCosts)) || 0,
-        crocodile_costs: Math.round(Number(results.crocodileCosts)) || 0,
+        optimized_costs: Math.round(Number(results.optimizedCosts)) || 0,
         savings: Math.round(Number(results.savings)) || 0,
         time_savings_hours: Math.round(Number(results.timeSavings?.totalHoursPerYear)) || 0,
         time_savings_value: Math.round(Number(results.timeSavings?.totalMonetaryValue)) || 0,
@@ -187,10 +188,10 @@ export const CustomForm = ({
   };
 
   return (
-    <div id="detailed-analysis-form" className="w-full bg-card p-8 rounded-2xl shadow-lg mt-8">
+    <div id="detailed-analysis-form" className="w-full bg-card p-8 rounded-2xl shadow-lg mt-8 border">
       <FormHeader 
-        title="Deine persönliche Zeitersparnis-Analyse anfordern" 
-        description="Erhalte eine detaillierte Aufschlüsselung deiner Zeitersparnis und Kostenoptimierung per E-Mail - basierend auf deinen Eingaben und aktuellen Marktdaten."
+        title="Deine persönliche Analyse anfordern" 
+        description="Erhalte eine detaillierte Aufschlüsselung deiner Ersparnis und Zeitoptimierung per E-Mail - basierend auf deinen Eingaben und aktuellen Marktdaten."
       />
       
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -205,13 +206,13 @@ export const CustomForm = ({
         />
 
         {isSubmitting && (
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 rounded">
+          <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 rounded">
             <div className="flex">
               <div className="flex-shrink-0">
-                <Loader2 className="h-5 w-5 text-blue-400 animate-spin" />
+                <Loader2 className="h-5 w-5 text-primary animate-spin" />
               </div>
               <div className="ml-3">
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-foreground font-roboto">
                   <strong>Deine E-Mail wird individuell erstellt...</strong><br />
                   Dies dauert ca. 30 Sekunden. Du erhältst eine Benachrichtigung, sobald deine persönliche Analyse bereit ist.
                 </p>
@@ -222,7 +223,7 @@ export const CustomForm = ({
 
         <Button 
           type="submit" 
-          className="w-full h-12 mt-8 text-lg font-medium bg-primary hover:bg-primary/90" 
+          className="w-full h-12 mt-8 text-lg font-medium font-montserrat" 
           disabled={isSubmitting}
         >
           {isSubmitting ? "Wird verarbeitet..." : "Kostenlos anfordern"}

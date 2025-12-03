@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
@@ -43,7 +42,7 @@ const defaultResults: ExtendedResults = {
   traditionalCostsDentists: 0,
   traditionalCostsAssistants: 0,
   totalTraditionalCosts: 0,
-  crocodileCosts: 0,
+  optimizedCosts: 0,
   savings: 0,
   savingsPercentage: 0,
 };
@@ -175,23 +174,23 @@ export const CostCalculator = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6 rounded-2xl bg-card p-6 shadow-lg"
+          className="space-y-6 rounded-2xl bg-card p-6 shadow-lg border"
         >
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-white">Kostenkalkulator</h2>
-            <p className="text-sm text-gray-400">
-              Berechne dein Einsparpotenzial mit Crocodile
+            <h2 className="font-montserrat text-2xl font-semibold text-card-foreground">Kostenkalkulator</h2>
+            <p className="text-sm text-muted-foreground font-roboto">
+              Berechne dein Einsparpotenzial mit KursRadar
             </p>
           </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="teamSize" className="text-gray-300">Teamgröße (inkl. Zahnärzte)</Label>
+              <Label htmlFor="teamSize" className="text-card-foreground">Teamgröße (inkl. Zahnärzte)</Label>
               <Select
                 value={inputs.teamSize.toString()}
                 onValueChange={handleSelectChange("teamSize")}
               >
-                <SelectTrigger className="w-full bg-input text-foreground border-border">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Wähle die Teamgröße" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
@@ -202,16 +201,16 @@ export const CostCalculator = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-400">Bitte wähle hier die Gesamtanzahl deiner Mitarbeiter, inklusive aller Zahnärzte.</p>
+              <p className="text-xs text-muted-foreground">Bitte wähle hier die Gesamtanzahl deiner Mitarbeiter, inklusive aller Zahnärzte.</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dentists" className="text-gray-300">Anzahl Zahnärzte</Label>
+              <Label htmlFor="dentists" className="text-card-foreground">Anzahl Zahnärzte</Label>
               <Select
                 value={inputs.dentists.toString()}
                 onValueChange={handleSelectChange("dentists")}
               >
-                <SelectTrigger className="w-full bg-input text-foreground border-border">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Wähle die Anzahl der Zahnärzte" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
@@ -224,9 +223,9 @@ export const CostCalculator = () => {
               </Select>
             </div>
 
-            <div className="space-y-2 border-t border-gray-700 pt-4">
-              <h3 className="text-lg font-medium text-white">Standort der Praxis</h3>
-              <p className="text-sm text-gray-400">
+            <div className="space-y-2 border-t border-border pt-4">
+              <h3 className="font-montserrat text-lg font-medium text-card-foreground">Standort der Praxis</h3>
+              <p className="text-sm text-muted-foreground font-roboto">
                 Gib deinen Standort ein, um die Reisekosten zu berechnen
               </p>
               <AddressInput 

@@ -1,4 +1,3 @@
-
 import { calculateNearestInstitute } from './dentalInstitutes';
 import { 
   calculateAnnualCMERequirements, 
@@ -31,17 +30,27 @@ export interface TimeSavings {
   dentistHours: number;
   assistantHours: number;
   travelHours: number;
+  researchHoursSaved?: number;
+  details?: any;
+}
+
+export interface OptimizationBreakdown {
+  freeCoursesSavings: number;
+  priceOptimizationSavings: number;
+  researchTimeSaved: number;
+  platformCost: number;
 }
 
 export interface CalculationResults {
   traditionalCostsDentists: number;
   traditionalCostsAssistants: number;
   totalTraditionalCosts: number;
-  crocodileCosts: number;
+  optimizedCosts: number;
   savings: number;
   savingsPercentage: number;
   timeSavings?: TimeSavings;
   nearestInstitute?: NearestInstitute;
+  optimizationBreakdown?: OptimizationBreakdown;
   cmeRequirements?: {
     traditional: {
       dentist: {
@@ -60,26 +69,43 @@ export interface CalculationResults {
 
 const DENTIST_ANNUAL_COST = 1200;
 const ASSISTANT_ANNUAL_COST = 280;
-const BASE_USERS_INCLUDED = 20;
-const ADDITIONAL_USER_BLOCK_SIZE = 10;
-const COST_PER_ADDITIONAL_BLOCK_MONTHLY = 50;
-const BASE_PRICE = 1699;
 const COST_PER_KM = 0.30;
 const ASSISTANTS_PER_CAR = 5;
-const MONTHS_PER_YEAR = 12;
 const DENTIST_HOURLY_RATE = 150;
 const ASSISTANT_HOURLY_RATE = 35;
 const PREPARATION_TIME = 1;
 
-export const calculateCrocodileCosts = (teamSize: number): number => {
-  if (teamSize <= BASE_USERS_INCLUDED) {
-    return BASE_PRICE;
-  }
+// KursRadar specific constants
+const KURSRADAR_PLATFORM_COST = 0; // Free for practices
+const FREE_COURSE_PERCENTAGE = 0.30; // 30% of courses are free/sponsored
+const PRICE_OPTIMIZATION_FACTOR = 0.15; // 15% savings through price comparison
+const RESEARCH_TIME_SAVED_HOURS = 10; // Hours saved per year through centralized search
+
+export const calculateOptimizedCosts = (
+  traditionalCosts: number,
+  teamSize: number
+): { optimizedCosts: number; breakdown: OptimizationBreakdown } => {
+  // Savings through free/sponsored courses
+  const freeCoursesSavings = traditionalCosts * FREE_COURSE_PERCENTAGE;
   
-  const additionalUsers = teamSize - BASE_USERS_INCLUDED;
-  const additionalBlocks = Math.ceil(additionalUsers / ADDITIONAL_USER_BLOCK_SIZE);
-  const annualAdditionalCosts = additionalBlocks * COST_PER_ADDITIONAL_BLOCK_MONTHLY * MONTHS_PER_YEAR;
-  return BASE_PRICE + annualAdditionalCosts;
+  // Savings through price comparison and transparency
+  const remainingCosts = traditionalCosts - freeCoursesSavings;
+  const priceOptimizationSavings = remainingCosts * PRICE_OPTIMIZATION_FACTOR;
+  
+  // Platform cost (free for practices)
+  const platformCost = KURSRADAR_PLATFORM_COST;
+  
+  const optimizedCosts = traditionalCosts - freeCoursesSavings - priceOptimizationSavings + platformCost;
+  
+  return {
+    optimizedCosts: Math.round(optimizedCosts),
+    breakdown: {
+      freeCoursesSavings: Math.round(freeCoursesSavings),
+      priceOptimizationSavings: Math.round(priceOptimizationSavings),
+      researchTimeSaved: RESEARCH_TIME_SAVED_HOURS,
+      platformCost
+    }
+  };
 };
 
 const calculateTravelCosts = (distance: number, dentists: number, assistants: number): number => {
@@ -112,11 +138,12 @@ const calculateTimeSavings = (
      traditionalAssistantCME.requiredSessions * Math.ceil(assistants / ASSISTANTS_PER_CAR));
 
   return {
-    totalHoursPerYear: totalDentistHours + totalAssistantHours,
+    totalHoursPerYear: totalDentistHours + totalAssistantHours + RESEARCH_TIME_SAVED_HOURS,
     totalMonetaryValue: dentistMonetaryValue + assistantMonetaryValue,
     dentistHours: totalDentistHours,
     assistantHours: totalAssistantHours,
-    travelHours: totalTravelHours
+    travelHours: totalTravelHours,
+    researchHoursSaved: RESEARCH_TIME_SAVED_HOURS
   };
 };
 
@@ -194,20 +221,21 @@ export const calculateResults = async (inputs: CalculationInputs): Promise<Calcu
   const totalTraditionalCosts = traditionalCostsDentists + traditionalCostsAssistants + 
     (nearestInstitute?.travelCosts || 0);
   
-  const crocodileCosts = calculateCrocodileCosts(inputs.teamSize);
+  const { optimizedCosts, breakdown } = calculateOptimizedCosts(totalTraditionalCosts, inputs.teamSize);
   
-  const savings = totalTraditionalCosts - crocodileCosts;
+  const savings = totalTraditionalCosts - optimizedCosts;
   const savingsPercentage = (savings / totalTraditionalCosts) * 100;
 
   return {
     traditionalCostsDentists,
     traditionalCostsAssistants,
     totalTraditionalCosts,
-    crocodileCosts,
+    optimizedCosts,
     savings,
     savingsPercentage,
     nearestInstitute,
     timeSavings,
+    optimizationBreakdown: breakdown,
     cmeRequirements: {
       traditional: {
         dentist: traditionalDentistCME,
